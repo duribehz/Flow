@@ -1,0 +1,14 @@
+{
+  "name": "flow",
+  "private": true,
+  "packageManager": "bun@1.3.11",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "bun run --filter api dev",
+    "dev:web": "bun run --filter web dev",
+    "build": "bun run --filter '*' build",
+    "typecheck:api": "bun run --filter api typecheck"
+  }
+}
