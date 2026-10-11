@@ -12,6 +12,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { branches } from '../branches/branches.schema.js'
+import { inventoryShifts } from '../inventory/inventory.schema.js'
 import { shipmentItems, shipments } from '../shipments/shipments.schema.js'
 import { supplies } from '../supplies/supplies.schema.js'
 import { users } from '../users/users.schema.js'
@@ -47,6 +48,7 @@ export const receipts = pgTable('receipts', {
   id: uuid().primaryKey().defaultRandom(),
   receiptNumber: text('receipt_number').notNull(),
   shipmentId: uuid('shipment_id').notNull().references(() => shipments.id),
+  inventoryShiftId: uuid('inventory_shift_id').notNull().references(() => inventoryShifts.id),
   branchId: uuid('branch_id').notNull().references(() => branches.id),
   status: receiptStatus().notNull().default('pending'),
   receivedBy: uuid('received_by').references(() => users.id),
@@ -58,6 +60,7 @@ export const receipts = pgTable('receipts', {
 }, (table) => [
   uniqueIndex('receipts_receipt_number_unique').on(table.receiptNumber),
   uniqueIndex('receipts_shipment_unique').on(table.shipmentId),
+  index('receipts_inventory_shift_id_idx').on(table.inventoryShiftId),
   index('receipts_branch_id_idx').on(table.branchId),
   index('receipts_status_idx').on(table.status),
 ])

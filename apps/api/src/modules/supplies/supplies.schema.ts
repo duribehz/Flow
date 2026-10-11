@@ -1,10 +1,9 @@
 import { sql } from 'drizzle-orm'
 import {
-  boolean,
   bigint,
+  boolean,
   check,
   index,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -14,34 +13,39 @@ import {
 
 import { branches } from '../branches/branches.schema.js'
 
-export const supplyUnit = pgEnum('supply_unit', [
-  'unit',
-  'box',
-  'package',
-  'kilogram',
-  'gram',
-  'liter',
-  'milliliter',
-])
-
 export const categories = pgTable('categories', {
   id: uuid().primaryKey().defaultRandom(),
   name: text().notNull(),
 }, (table) => [uniqueIndex('categories_name_unique').on(table.name)])
+
+export const units = pgTable('units', {
+  id: uuid().primaryKey().defaultRandom(),
+  name: text().notNull(),
+  symbol: text().notNull(),
+  active: boolean().notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex('units_name_unique').on(table.name),
+  uniqueIndex('units_symbol_unique').on(table.symbol),
+])
 
 export const supplies = pgTable('supplies', {
   id: uuid().primaryKey().defaultRandom(),
   sku: text().notNull(),
   name: text().notNull(),
   description: text(),
-  unit: supplyUnit().notNull(),
+  unitId: uuid('unit_id').notNull().references(() => units.id),
+  unitCost: bigint('unit_cost', { mode: 'number' }).notNull().default(0),
   categoryId: uuid('category_id').notNull().references(() => categories.id),
   active: boolean().notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   uniqueIndex('supplies_sku_unique').on(table.sku),
+  index('supplies_unit_id_idx').on(table.unitId),
   index('supplies_category_id_idx').on(table.categoryId),
+  check('supplies_unit_cost_check', sql`${table.unitCost} >= 0`),
 ])
 
 export const branchSupplySettings = pgTable('branch_supply_settings', {

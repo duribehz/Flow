@@ -30,7 +30,7 @@ export const replenishmentRequests = pgTable('replenishment_requests', {
   id: uuid().primaryKey().defaultRandom(),
   requestNumber: text('request_number').notNull(),
   branchId: uuid('branch_id').notNull().references(() => branches.id),
-  inventoryClosureId: uuid('inventory_closure_id').references(() => inventoryClosures.id),
+  inventoryClosureId: uuid('inventory_closure_id').notNull().references(() => inventoryClosures.id),
   status: replenishmentRequestStatus().notNull().default('draft'),
   requestedBy: uuid('request_by').notNull().references(() => users.id),
   reviewedBy: uuid('reviewed_by').references(() => users.id),
