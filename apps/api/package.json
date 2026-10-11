@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun src/shared/infrastructure/database/migrate.ts",
     "typecheck": "tsc --noEmit",
     "build": "bun run typecheck && bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js"
