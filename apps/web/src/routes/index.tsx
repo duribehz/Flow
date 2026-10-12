@@ -1,13 +1,9 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: HomePage,
-})
+});
 
 function HomePage() {
-  return (
-    <main>
-      <h1>Flow</h1>
-    </main>
-  )
+  return <Navigate to="/reportes" replace />;
 }

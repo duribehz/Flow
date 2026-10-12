@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm'
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -10,66 +10,97 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-} from 'drizzle-orm/pg-core'
+} from "drizzle-orm/pg-core";
 
-import { branches } from '../branches/branches.schema.js'
+import { branches } from "../branches/branches.schema.js";
 import {
   replenishmentRequestItems,
   replenishmentRequests,
-} from '../replenishments/replenishments.schema.js'
-import { supplies } from '../supplies/supplies.schema.js'
-import { users } from '../users/users.schema.js'
+} from "../replenishments/replenishments.schema.js";
+import { supplies } from "../supplies/supplies.schema.js";
+import { users } from "../users/users.schema.js";
 
-export const shipmentStatus = pgEnum('shipment_status', [
-  'preparing',
-  'dispatched',
-  'delivered',
-  'cancelled',
-])
+export const shipmentStatus = pgEnum("shipment_status", [
+  "preparing",
+  "dispatched",
+  "delivered",
+  "cancelled",
+]);
 
-export const packagePurposes = pgTable('package_purpose', {
-  id: uuid().primaryKey().defaultRandom(),
-  code: text().notNull(),
-  name: text().notNull(),
-  description: text(),
-  active: boolean().notNull().default(true),
-  createdBy: uuid('created_by').notNull().references(() => users.id),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [uniqueIndex('package_purpose_code_unique').on(table.code)])
+export const packagePurposes = pgTable(
+  "package_purpose",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    code: text().notNull(),
+    name: text().notNull(),
+    description: text(),
+    active: boolean().notNull().default(true),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex("package_purpose_code_unique").on(table.code)],
+);
 
-export const shipments = pgTable('shipments', {
-  id: uuid().primaryKey().defaultRandom(),
-  shipmentNumber: text('shipment_number').notNull(),
-  branchId: uuid('branch_id').notNull().references(() => branches.id),
-  replenishmentRequestId: uuid('replenishment_request_id').notNull().references(() => replenishmentRequests.id),
-  packagePurposeId: uuid('package_purpose_id').notNull().references(() => packagePurposes.id),
-  status: shipmentStatus().notNull().default('preparing'),
-  preparedBy: uuid('prepared_by').notNull().references(() => users.id),
-  dispatchedBy: uuid('dispatched_by').references(() => users.id),
-  preparedAt: timestamp('prepared_at', { withTimezone: true }).notNull().defaultNow(),
-  dispatchedAt: timestamp('dispatched_at', { withTimezone: true }),
-  notes: text(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  uniqueIndex('shipments_shipment_number_unique').on(table.shipmentNumber),
-  index('shipments_branch_id_idx').on(table.branchId),
-  index('shipments_replenishment_request_id_idx').on(table.replenishmentRequestId),
-  index('shipments_status_idx').on(table.status),
-])
+export const shipments = pgTable(
+  "shipments",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    shipmentNumber: text("shipment_number").notNull(),
+    branchId: uuid("branch_id")
+      .notNull()
+      .references(() => branches.id),
+    replenishmentRequestId: uuid("replenishment_request_id")
+      .notNull()
+      .references(() => replenishmentRequests.id),
+    packagePurposeId: uuid("package_purpose_id")
+      .notNull()
+      .references(() => packagePurposes.id),
+    status: shipmentStatus().notNull().default("preparing"),
+    preparedBy: uuid("prepared_by")
+      .notNull()
+      .references(() => users.id),
+    dispatchedBy: uuid("dispatched_by").references(() => users.id),
+    preparedAt: timestamp("prepared_at", { withTimezone: true }).notNull().defaultNow(),
+    dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
+    notes: text(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("shipments_shipment_number_unique").on(table.shipmentNumber),
+    index("shipments_branch_id_idx").on(table.branchId),
+    index("shipments_replenishment_request_id_idx").on(table.replenishmentRequestId),
+    index("shipments_status_idx").on(table.status),
+  ],
+);
 
-export const shipmentItems = pgTable('shipment_items', {
-  id: uuid().primaryKey().defaultRandom(),
-  shipmentId: uuid('shipment_id').notNull().references(() => shipments.id, { onDelete: 'cascade' }),
-  supplyId: uuid('supply_id').notNull().references(() => supplies.id),
-  replenishmentRequestItemId: uuid('replenishment_request_item_id').notNull().references(() => replenishmentRequestItems.id),
-  plannedQuantity: bigint('planned_quantity', { mode: 'number' }).notNull(),
-  shippedQuantity: bigint('shipped_quantity', { mode: 'number' }).notNull().default(0),
-  notes: text(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  uniqueIndex('shipment_items_shipment_supply_unique').on(table.shipmentId, table.supplyId),
-  index('shipment_items_request_item_id_idx').on(table.replenishmentRequestItemId),
-  check('shipment_items_quantities_check', sql`${table.plannedQuantity} > 0 and ${table.shippedQuantity} >= 0`),
-])
+export const shipmentItems = pgTable(
+  "shipment_items",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    shipmentId: uuid("shipment_id")
+      .notNull()
+      .references(() => shipments.id, { onDelete: "cascade" }),
+    supplyId: uuid("supply_id")
+      .notNull()
+      .references(() => supplies.id),
+    replenishmentRequestItemId: uuid("replenishment_request_item_id")
+      .notNull()
+      .references(() => replenishmentRequestItems.id),
+    plannedQuantity: bigint("planned_quantity", { mode: "number" }).notNull(),
+    shippedQuantity: bigint("shipped_quantity", { mode: "number" }).notNull().default(0),
+    notes: text(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("shipment_items_shipment_supply_unique").on(table.shipmentId, table.supplyId),
+    index("shipment_items_request_item_id_idx").on(table.replenishmentRequestItemId),
+    check(
+      "shipment_items_quantities_check",
+      sql`${table.plannedQuantity} > 0 and ${table.shippedQuantity} >= 0`,
+    ),
+  ],
+);
