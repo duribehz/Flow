@@ -19,6 +19,12 @@ export const supplySchema = z
       name: z.string(),
       symbol: z.string(),
     }),
+    suppliers: z.array(
+      z.object({
+        id: z.uuid(),
+        name: z.string(),
+      }),
+    ),
     createdAt: dateTimeSchema,
     updatedAt: dateTimeSchema,
   })
@@ -32,6 +38,27 @@ export const createSupplySchema = z
     unitId: z.uuid(),
     unitCost: z.number().int().nonnegative().default(0),
     categoryId: z.uuid(),
+    supplierIds: z
+      .array(z.uuid())
+      .min(1)
+      .refine((supplierIds) => new Set(supplierIds).size === supplierIds.length, {
+        message: "Supplier IDs must be unique",
+      }),
     active: z.boolean().default(true),
   })
   .openapi("CreateSupply");
+
+export const replaceSupplySuppliersSchema = z
+  .object({
+    supplierIds: z
+      .array(z.uuid())
+      .min(1)
+      .refine((supplierIds) => new Set(supplierIds).size === supplierIds.length, {
+        message: "Supplier IDs must be unique",
+      }),
+  })
+  .openapi("ReplaceSupplySuppliers");
+
+export const supplyIdParamsSchema = z.object({
+  supplyId: z.uuid().openapi({ param: { name: "supplyId", in: "path" } }),
+});

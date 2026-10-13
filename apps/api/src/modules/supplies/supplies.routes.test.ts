@@ -15,6 +15,9 @@ function createTestApp() {
     async createSupply() {
       return supply;
     },
+    async replaceSupplySuppliers() {
+      return supply;
+    },
   };
 
   app.onError(errorHandler);
@@ -63,6 +66,9 @@ describe("supply routes", () => {
           receivedInput = input;
           return supply;
         },
+        async replaceSupplySuppliers() {
+          return supply;
+        },
       }),
     );
 
@@ -74,6 +80,7 @@ describe("supply routes", () => {
         name: createSupplyInput.name,
         unitId: createSupplyInput.unitId,
         categoryId: createSupplyInput.categoryId,
+        supplierIds: createSupplyInput.supplierIds,
       }),
     });
 
@@ -90,18 +97,57 @@ describe("supply routes", () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({
-      error: { code: "VALIDATION_ERROR", message: "Invalid request body" },
+      error: { code: "VALIDATION_ERROR", message: "Invalid request" },
+    });
+  });
+
+  test("rejects creating a supply without suppliers", async () => {
+    const response = await createTestApp().request("/supplies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...createSupplyInput, supplierIds: [] }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Invalid request" },
+    });
+  });
+
+  test("replaces a supply's suppliers", async () => {
+    const response = await createTestApp().request(`/supplies/${supply.id}/suppliers`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ supplierIds: createSupplyInput.supplierIds }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ data: supplyResponse });
+  });
+
+  test("rejects duplicate suppliers when replacing", async () => {
+    const supplierId = createSupplyInput.supplierIds[0]!;
+    const response = await createTestApp().request(`/supplies/${supply.id}/suppliers`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ supplierIds: [supplierId, supplierId] }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Invalid request" },
     });
   });
 
   test("publishes list and create operations in OpenAPI", async () => {
     const response = await createTestApp().request("/openapi.json");
     const document = (await response.json()) as {
-      paths: Record<string, { get?: unknown; post?: unknown }>;
+      paths: Record<string, { get?: unknown; post?: unknown; put?: unknown }>;
     };
 
     expect(response.status).toBe(200);
     expect(document.paths["/supplies"]?.get).toBeDefined();
     expect(document.paths["/supplies"]?.post).toBeDefined();
+    expect(document.paths["/supplies/{supplyId}/suppliers"]?.put).toBeDefined();
   });
 });

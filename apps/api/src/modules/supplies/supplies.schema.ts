@@ -12,6 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { branches } from "../branches/branches.schema.js";
+import { suppliers } from "../suppliers/suppliers.schema.js";
 
 export const categories = pgTable(
   "categories",
@@ -61,6 +62,24 @@ export const supplies = pgTable(
     index("supplies_unit_id_idx").on(table.unitId),
     index("supplies_category_id_idx").on(table.categoryId),
     check("supplies_unit_cost_check", sql`${table.unitCost} >= 0`),
+  ],
+);
+
+export const supplySuppliers = pgTable(
+  "supply_suppliers",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    supplyId: uuid("supply_id")
+      .notNull()
+      .references(() => supplies.id, { onDelete: "cascade" }),
+    supplierId: uuid("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("supply_suppliers_supply_supplier_unique").on(table.supplyId, table.supplierId),
+    index("supply_suppliers_supplier_id_idx").on(table.supplierId),
   ],
 );
 
