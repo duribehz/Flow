@@ -11,7 +11,14 @@ import type { Key, SWRConfiguration } from "swr";
 import useSWRMutation from "swr/mutation";
 import type { SWRMutationConfiguration } from "swr/mutation";
 
-import type { ApiError, CreateSupply, GetSupplies200, PostSupplies201 } from "../models";
+import type {
+  ApiError,
+  CreateSupply,
+  GetSupplies200,
+  PostSupplies201,
+  PutSuppliesSupplyIdSuppliers200,
+  ReplaceSupplySuppliers,
+} from "../models";
 
 import { apiClient } from "../../http-client";
 
@@ -168,6 +175,121 @@ export const usePostSupplies = <TError = ApiError>(options?: {
 
   const swrKey = swrOptions?.swrKey ?? getPostSuppliesMutationKey();
   const swrFn = getPostSuppliesMutationFetcher(requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+export type putSuppliesSupplyIdSuppliersResponse200 = {
+  data: PutSuppliesSupplyIdSuppliers200;
+  status: 200;
+};
+
+export type putSuppliesSupplyIdSuppliersResponse400 = {
+  data: ApiError;
+  status: 400;
+};
+
+export type putSuppliesSupplyIdSuppliersResponse404 = {
+  data: ApiError;
+  status: 404;
+};
+
+export type putSuppliesSupplyIdSuppliersResponseSuccess =
+  putSuppliesSupplyIdSuppliersResponse200 & {
+    headers: Headers;
+  };
+export type putSuppliesSupplyIdSuppliersResponseError = (
+  | putSuppliesSupplyIdSuppliersResponse400
+  | putSuppliesSupplyIdSuppliersResponse404
+) & {
+  headers: Headers;
+};
+
+export type putSuppliesSupplyIdSuppliersResponse =
+  | putSuppliesSupplyIdSuppliersResponseSuccess
+  | putSuppliesSupplyIdSuppliersResponseError;
+
+export const getPutSuppliesSupplyIdSuppliersUrl = (supplyId: string) => {
+  return `/supplies/${supplyId}/suppliers`;
+};
+
+/**
+ * @summary Replace a supply's suppliers
+ */
+export const putSuppliesSupplyIdSuppliers = async (
+  supplyId: string,
+  replaceSupplySuppliers: ReplaceSupplySuppliers,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<putSuppliesSupplyIdSuppliersResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return apiClient<putSuppliesSupplyIdSuppliersResponse>(
+    getPutSuppliesSupplyIdSuppliersUrl(supplyId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+      body: JSON.stringify(replaceSupplySuppliers),
+    },
+  );
+};
+
+export const getPutSuppliesSupplyIdSuppliersMutationFetcher = (
+  supplyId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
+  return (_: Key, { arg }: { arg: ReplaceSupplySuppliers }) => {
+    return putSuppliesSupplyIdSuppliers(supplyId, arg, options);
+  };
+};
+export const getPutSuppliesSupplyIdSuppliersMutationKey = (supplyId: string) =>
+  [`/supplies/${supplyId}/suppliers`] as const;
+
+export type PutSuppliesSupplyIdSuppliersMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putSuppliesSupplyIdSuppliers>>
+>;
+
+/**
+ * @summary Replace a supply's suppliers
+ */
+export const usePutSuppliesSupplyIdSuppliers = <TError = ApiError>(
+  supplyId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof putSuppliesSupplyIdSuppliers>>,
+      TError,
+      Key,
+      ReplaceSupplySuppliers,
+      Awaited<ReturnType<typeof putSuppliesSupplyIdSuppliers>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getPutSuppliesSupplyIdSuppliersMutationKey(supplyId);
+  const swrFn = getPutSuppliesSupplyIdSuppliersMutationFetcher(supplyId, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

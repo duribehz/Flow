@@ -26,5 +26,7 @@ export interface CreateSupply {
   /** @minimum 0 */
   unitCost?: number;
   categoryId: string;
+  /** @minItems 1 */
+  supplierIds: string[];
   active?: boolean;
 }

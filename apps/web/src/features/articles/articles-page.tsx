@@ -1,12 +1,20 @@
 import { useState } from "react";
-import { PackageOpen, Plus, RefreshCw } from "lucide-react";
+import { Ellipsis, PackageOpen, Plus, RefreshCw, UsersRound } from "lucide-react";
 
 import { useGetCategories } from "@/api/generated/categories/categories";
 import { useGetSupplies } from "@/api/generated/supplies/supplies";
+import { useGetSuppliers } from "@/api/generated/suppliers/suppliers";
+import { useGetUnits } from "@/api/generated/units/units";
 import type { Supply } from "@/api/generated/models";
 import { ApiError } from "@/api/http-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Empty,
   EmptyDescription,
@@ -30,6 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CreateSupplyDialog } from "./create-supply-dialog";
+import { ManageSuppliersDialog } from "./manage-suppliers-dialog";
 
 type StatusFilter = "all" | "active" | "inactive";
 
@@ -37,6 +46,7 @@ export function ArticlesPage() {
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [managedSupply, setManagedSupply] = useState<Supply>();
   const {
     data: suppliesData,
     error: suppliesError,
@@ -49,11 +59,24 @@ export function ArticlesPage() {
     isLoading: categoriesLoading,
     mutate: mutateCategories,
   } = useGetCategories<ApiError>();
+  const {
+    data: unitsData,
+    error: unitsError,
+    isLoading: unitsLoading,
+    mutate: mutateUnits,
+  } = useGetUnits<ApiError>();
+  const {
+    data: suppliersData,
+    error: suppliersError,
+    isLoading: suppliersLoading,
+    mutate: mutateSuppliers,
+  } = useGetSuppliers<ApiError>();
   const supplies = suppliesData?.data.data ?? [];
   const categories = categoriesData?.data.data ?? [];
-  const units = uniqueById(supplies.map((supply) => supply.unit));
-  const isLoading = suppliesLoading || categoriesLoading;
-  const error = suppliesError ?? categoriesError;
+  const units = (unitsData?.data.data ?? []).filter((unit) => unit.active);
+  const suppliers = suppliersData?.data.data ?? [];
+  const isLoading = suppliesLoading || categoriesLoading || unitsLoading || suppliersLoading;
+  const error = suppliesError ?? categoriesError ?? unitsError ?? suppliersError;
 
   const visibleSupplies = supplies.filter(
     (supply) =>
@@ -145,7 +168,7 @@ export function ArticlesPage() {
             </div>
           </div>
 
-          <Table className="min-w-[850px]">
+          <Table className="min-w-[1080px]">
             <TableHeader className="bg-muted/60">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-[50px] w-[250px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
@@ -154,14 +177,20 @@ export function ArticlesPage() {
                 <TableHead className="w-[180px] text-xs font-semibold tracking-wide text-muted-foreground">
                   CATEGORÍA
                 </TableHead>
-                <TableHead className="w-[190px] text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="w-[230px] text-xs font-semibold tracking-wide text-muted-foreground">
+                  PROVEEDORES
+                </TableHead>
+                <TableHead className="w-[160px] text-xs font-semibold tracking-wide text-muted-foreground">
                   UNIDAD
                 </TableHead>
-                <TableHead className="w-[170px] text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="w-[150px] text-xs font-semibold tracking-wide text-muted-foreground">
                   COSTO UNITARIO
                 </TableHead>
-                <TableHead className="w-[130px] pr-7 text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="w-[120px] text-xs font-semibold tracking-wide text-muted-foreground">
                   ESTADO
+                </TableHead>
+                <TableHead className="w-14 pr-5">
+                  <span className="sr-only">Acciones</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -169,7 +198,7 @@ export function ArticlesPage() {
               {isLoading && <LoadingRows />}
               {!isLoading && error && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={5} className="h-[280px] p-6">
+                  <TableCell colSpan={7} className="h-[280px] p-6">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -180,7 +209,14 @@ export function ArticlesPage() {
                       </EmptyHeader>
                       <Button
                         variant="outline"
-                        onClick={() => void Promise.all([mutateSupplies(), mutateCategories()])}
+                        onClick={() =>
+                          void Promise.all([
+                            mutateSupplies(),
+                            mutateCategories(),
+                            mutateUnits(),
+                            mutateSuppliers(),
+                          ])
+                        }
                       >
                         Intentar de nuevo
                       </Button>
@@ -191,10 +227,16 @@ export function ArticlesPage() {
               {!isLoading &&
                 !error &&
                 visibleSupplies.length > 0 &&
-                visibleSupplies.map((supply) => <SupplyRow key={supply.id} supply={supply} />)}
+                visibleSupplies.map((supply) => (
+                  <SupplyRow
+                    key={supply.id}
+                    supply={supply}
+                    onManage={() => setManagedSupply(supply)}
+                  />
+                ))}
               {!isLoading && !error && visibleSupplies.length === 0 && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={5} className="h-[280px] p-6">
+                  <TableCell colSpan={7} className="h-[280px] p-6">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -221,16 +263,27 @@ export function ArticlesPage() {
       {isCreateOpen && (
         <CreateSupplyDialog
           categories={categories}
-          units={units.map((unit) => ({ ...unit, detail: unit.symbol }))}
+          units={units}
+          suppliers={suppliers}
           onClose={() => setIsCreateOpen(false)}
           onCreated={() => mutateSupplies()}
+          onUnitCreated={() => mutateUnits()}
+        />
+      )}
+
+      {managedSupply && (
+        <ManageSuppliersDialog
+          supply={managedSupply}
+          suppliers={suppliers}
+          onClose={() => setManagedSupply(undefined)}
+          onUpdated={() => mutateSupplies()}
         />
       )}
     </>
   );
 }
 
-function SupplyRow({ supply }: { supply: Supply }) {
+function SupplyRow({ supply, onManage }: { supply: Supply; onManage: () => void }) {
   return (
     <TableRow className="h-[88px] hover:bg-transparent">
       <TableCell className="pl-7">
@@ -239,15 +292,40 @@ function SupplyRow({ supply }: { supply: Supply }) {
       </TableCell>
       <TableCell className="text-base">{supply.category.name}</TableCell>
       <TableCell className="text-base text-muted-foreground">
+        <span
+          className="block max-w-[220px] truncate"
+          title={supply.suppliers.map(({ name }) => name).join(", ")}
+        >
+          {supply.suppliers.map(({ name }) => name).join(", ")}
+        </span>
+      </TableCell>
+      <TableCell className="text-base text-muted-foreground">
         {supply.unit.name} ({supply.unit.symbol})
       </TableCell>
       <TableCell className="text-base font-semibold">
         {new Intl.NumberFormat("es-MX").format(supply.unitCost)}
       </TableCell>
-      <TableCell className="pr-7">
+      <TableCell>
         <span className="inline-flex h-8 items-center rounded-full border bg-muted/70 px-3 text-sm font-semibold">
           {supply.active ? "Activo" : "Inactivo"}
         </span>
+      </TableCell>
+      <TableCell className="pr-5 text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon" aria-label={`Acciones para ${supply.name}`} />
+            }
+          >
+            <Ellipsis className="size-5 text-muted-foreground" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuItem onClick={onManage}>
+              <UsersRound />
+              Gestionar proveedores
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
@@ -256,19 +334,11 @@ function SupplyRow({ supply }: { supply: Supply }) {
 function LoadingRows() {
   return Array.from({ length: 5 }, (_, index) => (
     <TableRow key={index} className="h-[88px] hover:bg-transparent">
-      <TableCell className="pl-7" colSpan={5}>
+      <TableCell className="pl-7" colSpan={7}>
         <div className="h-4 w-full max-w-[720px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>
   ));
-}
-
-function uniqueById<T extends { id: string }>(items: T[]) {
-  return Array.from(new Map(items.map((item) => [item.id, item])).values()).sort((a, b) =>
-    "name" in a && "name" in b && typeof a.name === "string" && typeof b.name === "string"
-      ? a.name.localeCompare(b.name, "es")
-      : 0,
-  );
 }
 
 function getErrorMessage(error: ApiError) {

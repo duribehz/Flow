@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { SupplyCategory } from "./supplyCategory";
+import type { SupplySuppliersItem } from "./supplySuppliersItem";
 import type { SupplyUnit } from "./supplyUnit";
 
 export interface Supply {
@@ -19,6 +20,7 @@ export interface Supply {
   active: boolean;
   category: SupplyCategory;
   unit: SupplyUnit;
+  suppliers: SupplySuppliersItem[];
   createdAt: string;
   updatedAt: string;
 }
