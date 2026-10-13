@@ -10,6 +10,9 @@ import { createReplenishmentsRoutes } from "./modules/replenishments/replenishme
 import { SuppliesRepo } from "./modules/supplies/supplies.repo.js";
 import { createSuppliesRoutes } from "./modules/supplies/supplies.routes.js";
 import { SuppliesUseCase } from "./modules/supplies/supplies.usecase.js";
+import { UnitsRepo } from "./modules/units/units.repo.js";
+import { createUnitsRoutes } from "./modules/units/units.routes.js";
+import { UnitsUseCase } from "./modules/units/units.usecase.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 import { configureOpenApi } from "./shared/http/openapi.js";
 import { db } from "./shared/infrastructure/database/client.js";
@@ -22,6 +25,8 @@ const replenishmentsRepo = new ReplenishmentsRepo(db);
 const replenishmentUseCase = new ReplenishmentUseCase(replenishmentsRepo);
 const suppliesRepo = new SuppliesRepo(db);
 const suppliesUseCase = new SuppliesUseCase(suppliesRepo);
+const unitsRepo = new UnitsRepo(db);
+const unitsUseCase = new UnitsUseCase(unitsRepo);
 
 app.use(
   "*",
@@ -34,5 +39,6 @@ app.onError(errorHandler);
 app.route("/categories", createCategoriesRoutes(categoriesUseCase));
 app.route("/replenishments", createReplenishmentsRoutes(replenishmentUseCase));
 app.route("/supplies", createSuppliesRoutes(suppliesUseCase));
+app.route("/units", createUnitsRoutes(unitsUseCase));
 
 configureOpenApi(app);
