@@ -78,15 +78,6 @@ export const replenishmentDetailSchema = z
   })
   .openapi("ReplenishmentDetail");
 
-export const errorSchema = z
-  .object({
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-    }),
-  })
-  .openapi("ApiError");
-
 export const replenishmentIdParamsSchema = z.object({
   replenishmentId: z.uuid().openapi({ param: { name: "replenishmentId", in: "path" } }),
 });

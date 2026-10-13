@@ -1,8 +1,8 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
+import { errorSchema } from "@/shared/http/contracts.js";
 import type { ReplenishmentUseCase } from "./replenishment.usecase.js";
 import {
-  errorSchema,
   replenishmentDetailSchema,
   replenishmentIdParamsSchema,
   submittedReplenishmentSchema,
