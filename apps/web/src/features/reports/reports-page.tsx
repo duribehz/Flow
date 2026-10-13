@@ -120,16 +120,16 @@ export function ReportsPage() {
                 className="h-[76px] cursor-pointer"
                 onClick={() =>
                   navigate({
-                    to: "/reportes/$reporteId",
-                    params: { reporteId: report.id },
+                    to: "/reports/$reportId",
+                    params: { reportId: report.id },
                   })
                 }
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
                     void navigate({
-                      to: "/reportes/$reporteId",
-                      params: { reporteId: report.id },
+                      to: "/reports/$reportId",
+                      params: { reportId: report.id },
                     });
                   }
                 }}

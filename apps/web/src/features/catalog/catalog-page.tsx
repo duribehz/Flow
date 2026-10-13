@@ -1,36 +1,18 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
-import {
-  Bell,
-  ChevronDown,
-  CircleHelp,
-  Ellipsis,
-  Pencil,
-  Plus,
-  Search,
-  Settings,
-  Trash2,
-  UserRound,
-} from "lucide-react";
+import { PackageOpen, Plus, RefreshCw } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+import { useGetSupplies } from "@/api/generated/supplies/supplies";
+import type { Supply } from "@/api/generated/models";
+import { ApiError } from "@/api/http-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Select,
   SelectContent,
@@ -38,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -47,180 +28,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CreateSupplyDialog } from "./create-supply-dialog";
 
-type CategoryId = "oils" | "grains" | "dry-goods" | "proteins" | "vegetables";
-type SupplierId = "central-market" | "kitchen-supplies" | "gourmet-distributor" | "fresh-foods";
-type StockStatus = "available" | "low-stock";
-type UnitId = "liter" | "kilogram";
-
-type CatalogItem = {
-  id: string;
-  name: string;
-  code: string;
-  category: CategoryId;
-  supplier: SupplierId;
-  stock: number;
-  unit: UnitId;
-  status: StockStatus;
-};
-
-const categoryLabels: Record<CategoryId, string> = {
-  oils: "Aceites",
-  grains: "Granos",
-  "dry-goods": "Secos",
-  proteins: "Proteínas",
-  vegetables: "Verduras",
-};
-
-const supplierLabels: Record<SupplierId, string> = {
-  "central-market": "Central de Abastos MX",
-  "kitchen-supplies": "Insumos de Cocina Mayoreo",
-  "gourmet-distributor": "Distribuidora Gourmet",
-  "fresh-foods": "Alimentos Frescos del Centro",
-};
-
-const unitLabels: Record<UnitId, string> = {
-  liter: "Litro",
-  kilogram: "Kilogramo",
-};
-
-const statusLabels: Record<StockStatus, string> = {
-  available: "Disponible",
-  "low-stock": "Stock bajo",
-};
-
-const catalogItems: CatalogItem[] = [
-  {
-    id: "1",
-    name: "Aceite vegetal",
-    code: "COC-001",
-    category: "oils",
-    supplier: "central-market",
-    stock: 24,
-    unit: "liter",
-    status: "available",
-  },
-  {
-    id: "2",
-    name: "Arroz blanco",
-    code: "COC-002",
-    category: "grains",
-    supplier: "kitchen-supplies",
-    stock: 38,
-    unit: "kilogram",
-    status: "available",
-  },
-  {
-    id: "3",
-    name: "Harina de trigo",
-    code: "COC-003",
-    category: "dry-goods",
-    supplier: "gourmet-distributor",
-    stock: 16,
-    unit: "kilogram",
-    status: "available",
-  },
-  {
-    id: "4",
-    name: "Pechuga de pollo",
-    code: "COC-004",
-    category: "proteins",
-    supplier: "fresh-foods",
-    stock: 8,
-    unit: "kilogram",
-    status: "low-stock",
-  },
-  {
-    id: "5",
-    name: "Jitomate saladet",
-    code: "COC-005",
-    category: "vegetables",
-    supplier: "central-market",
-    stock: 14,
-    unit: "kilogram",
-    status: "available",
-  },
-];
+type StatusFilter = "all" | "active" | "inactive";
 
 export function CatalogPage() {
-  const [category, setCategory] = useState("all");
-  const [supplier, setSupplier] = useState("all");
+  const [categoryId, setCategoryId] = useState("all");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { data, error, isLoading, mutate } = useGetSupplies<ApiError>();
+  const supplies = data?.data.data ?? [];
+  const categories = uniqueById(supplies.map((supply) => supply.category));
+  const units = uniqueById(supplies.map((supply) => supply.unit));
 
-  const visibleItems = catalogItems.filter(
-    (item) =>
-      (category === "all" || item.category === category) &&
-      (supplier === "all" || item.supplier === supplier),
+  const visibleSupplies = supplies.filter(
+    (supply) =>
+      (categoryId === "all" || supply.category.id === categoryId) &&
+      (status === "all" || supply.active === (status === "active")),
   );
 
   return (
-    <div className="min-h-screen border-l-[4px] border-foreground bg-[#fbfbfc]">
-      <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b bg-background/95 px-5 backdrop-blur sm:px-9">
-        <Breadcrumb>
-          <BreadcrumbList className="text-base">
-            <BreadcrumbItem>
-              <BreadcrumbLink render={<Link to="/" />}>Flow</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="font-semibold">Catálogo de artículos</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
-        <div className="flex h-full items-center gap-1 sm:gap-3">
-          <Button variant="ghost" size="icon-lg" aria-label="Buscar">
-            <Search className="size-6 text-muted-foreground" />
-          </Button>
-          <Button variant="ghost" size="icon-lg" aria-label="Notificaciones" className="relative">
-            <Bell className="size-6 text-muted-foreground" />
-            <span className="absolute top-2 right-2 size-1.5 rounded-full bg-foreground ring-2 ring-background" />
-          </Button>
-          <Separator orientation="vertical" className="mx-1 hidden max-h-11 sm:block" />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  className="h-auto gap-3 px-1.5 py-1 sm:pr-2"
-                  aria-label="Abrir menú de usuario"
-                />
-              }
-            >
-              <Avatar size="lg">
-                <AvatarFallback className="font-semibold text-foreground">AG</AvatarFallback>
-              </Avatar>
-              <span className="hidden min-w-32 flex-col items-start md:flex">
-                <span className="text-base leading-5 font-semibold">Andrea Gómez</span>
-                <span className="text-sm font-normal text-muted-foreground">Administradora</span>
-              </span>
-              <ChevronDown className="hidden text-muted-foreground md:block" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem>
-                <UserRound />
-                Mi perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings />
-                Configuración
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Cerrar sesión</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
+    <>
       <main className="mx-auto w-full max-w-[1088px] px-5 py-10 sm:px-8 sm:py-11">
         <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Catálogo de artículos</h1>
             <p className="mt-2 text-base text-muted-foreground">
-              Administra el inventario disponible para todas las sucursales.
+              Administra los artículos disponibles para todas las sucursales.
             </p>
           </div>
-          <Button className="h-[50px] w-full gap-3 px-5 text-base sm:w-auto">
+          <Button
+            className="h-[50px] w-full gap-3 px-5 text-base sm:w-auto"
+            onClick={() => setIsCreateOpen(true)}
+          >
             <Plus className="size-5" />
             Agregar artículo
           </Button>
@@ -228,120 +68,103 @@ export function CatalogPage() {
 
         <Card className="gap-0 py-0 shadow-sm">
           <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:p-6">
-            <Select value={category} onValueChange={(value) => setCategory(value ?? "all")}>
+            <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? "all")}>
               <SelectTrigger
-                className="h-[50px] w-full px-4 text-base sm:w-[260px]"
+                className="h-[50px] w-full px-4 text-base sm:w-[280px]"
                 aria-label="Filtrar por categoría"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {Object.entries(categoryLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={supplier} onValueChange={(value) => setSupplier(value ?? "all")}>
+            <Select
+              value={status}
+              onValueChange={(value) => setStatus((value as StatusFilter | null) ?? "all")}
+            >
               <SelectTrigger
-                className="h-[50px] w-full px-4 text-base sm:w-[320px]"
-                aria-label="Filtrar por proveedor"
+                className="h-[50px] w-full px-4 text-base sm:w-[220px]"
+                aria-label="Filtrar por estado"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {Object.entries(supplierLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="inactive">Inactivos</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <Table className="min-w-[960px]">
+          <Table className="min-w-[850px]">
             <TableHeader className="bg-muted/60">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] w-[210px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="h-[50px] w-[250px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
                   ARTÍCULO
                 </TableHead>
-                <TableHead className="w-[130px] text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="w-[180px] text-xs font-semibold tracking-wide text-muted-foreground">
                   CATEGORÍA
                 </TableHead>
-                <TableHead className="w-[310px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  PROVEEDOR
+                <TableHead className="w-[190px] text-xs font-semibold tracking-wide text-muted-foreground">
+                  UNIDAD
                 </TableHead>
-                <TableHead className="w-[135px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  EXISTENCIAS
+                <TableHead className="w-[170px] text-xs font-semibold tracking-wide text-muted-foreground">
+                  COSTO UNITARIO
                 </TableHead>
-                <TableHead className="w-[150px] text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="w-[130px] pr-7 text-xs font-semibold tracking-wide text-muted-foreground">
                   ESTADO
-                </TableHead>
-                <TableHead className="w-14 pr-5">
-                  <span className="sr-only">Acciones</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibleItems.map((item) => (
-                <TableRow key={item.id} className="h-[88px] hover:bg-transparent">
-                  <TableCell className="pl-7">
-                    <p className="text-base font-semibold">{item.name}</p>
-                    <p className="mt-0.5 text-base text-muted-foreground">{item.code}</p>
-                  </TableCell>
-                  <TableCell className="text-base">{categoryLabels[item.category]}</TableCell>
-                  <TableCell className="text-base text-muted-foreground">
-                    {supplierLabels[item.supplier]}
-                  </TableCell>
-                  <TableCell className="text-base font-semibold">
-                    {item.stock}{" "}
-                    <span className="text-sm font-normal text-muted-foreground">
-                      {unitLabels[item.unit]}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="inline-flex h-8 items-center rounded-full border bg-muted/70 px-3 text-sm font-semibold">
-                      {statusLabels[item.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="pr-5 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label={`Acciones para ${item.name}`}
-                          />
-                        }
-                      >
-                        <Ellipsis className="size-5 text-muted-foreground" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-36">
-                        <DropdownMenuItem>
-                          <Pencil />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem variant="destructive">
-                          <Trash2 />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {isLoading && <LoadingRows />}
+              {!isLoading && error && (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={5} className="h-[280px] p-6">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <RefreshCw />
+                        </EmptyMedia>
+                        <EmptyTitle>No pudimos cargar el catálogo</EmptyTitle>
+                        <EmptyDescription>{getErrorMessage(error)}</EmptyDescription>
+                      </EmptyHeader>
+                      <Button variant="outline" onClick={() => void mutate()}>
+                        Intentar de nuevo
+                      </Button>
+                    </Empty>
                   </TableCell>
                 </TableRow>
-              ))}
-              {visibleItems.length === 0 && (
+              )}
+              {!isLoading &&
+                !error &&
+                visibleSupplies.length > 0 &&
+                visibleSupplies.map((supply) => <SupplyRow key={supply.id} supply={supply} />)}
+              {!isLoading && !error && visibleSupplies.length === 0 && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell
-                    colSpan={6}
-                    className="h-[200px] text-center text-base text-muted-foreground"
-                  >
-                    No hay artículos que coincidan con los filtros seleccionados.
+                  <TableCell colSpan={5} className="h-[280px] p-6">
+                    <Empty>
+                      <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                          <PackageOpen />
+                        </EmptyMedia>
+                        <EmptyTitle>
+                          {supplies.length === 0 ? "No hay artículos" : "No encontramos resultados"}
+                        </EmptyTitle>
+                        <EmptyDescription>
+                          {supplies.length === 0
+                            ? "Los artículos que registres aparecerán en este catálogo."
+                            : "No hay artículos que coincidan con los filtros seleccionados."}
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               )}
@@ -350,14 +173,63 @@ export function CatalogPage() {
         </Card>
       </main>
 
-      <Button
-        variant="outline"
-        size="icon-lg"
-        className="fixed right-3 bottom-3 z-50 rounded-full bg-background shadow-md"
-        aria-label="Ayuda"
-      >
-        <CircleHelp className="size-5" />
-      </Button>
-    </div>
+      {isCreateOpen && (
+        <CreateSupplyDialog
+          categories={categories}
+          units={units.map((unit) => ({ ...unit, detail: unit.symbol }))}
+          onClose={() => setIsCreateOpen(false)}
+          onCreated={() => mutate()}
+        />
+      )}
+    </>
   );
+}
+
+function SupplyRow({ supply }: { supply: Supply }) {
+  return (
+    <TableRow className="h-[88px] hover:bg-transparent">
+      <TableCell className="pl-7">
+        <p className="text-base font-semibold">{supply.name}</p>
+        <p className="mt-0.5 text-base text-muted-foreground">{supply.sku}</p>
+      </TableCell>
+      <TableCell className="text-base">{supply.category.name}</TableCell>
+      <TableCell className="text-base text-muted-foreground">
+        {supply.unit.name} ({supply.unit.symbol})
+      </TableCell>
+      <TableCell className="text-base font-semibold">
+        {new Intl.NumberFormat("es-MX").format(supply.unitCost)}
+      </TableCell>
+      <TableCell className="pr-7">
+        <span className="inline-flex h-8 items-center rounded-full border bg-muted/70 px-3 text-sm font-semibold">
+          {supply.active ? "Activo" : "Inactivo"}
+        </span>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function LoadingRows() {
+  return Array.from({ length: 5 }, (_, index) => (
+    <TableRow key={index} className="h-[88px] hover:bg-transparent">
+      <TableCell className="pl-7" colSpan={5}>
+        <div className="h-4 w-full max-w-[720px] animate-pulse rounded bg-muted" />
+      </TableCell>
+    </TableRow>
+  ));
+}
+
+function uniqueById<T extends { id: string }>(items: T[]) {
+  return Array.from(new Map(items.map((item) => [item.id, item])).values()).sort((a, b) =>
+    "name" in a && "name" in b && typeof a.name === "string" && typeof b.name === "string"
+      ? a.name.localeCompare(b.name, "es")
+      : 0,
+  );
+}
+
+function getErrorMessage(error: ApiError) {
+  if (error.status >= 500) {
+    return "El servidor no está disponible. Inténtalo de nuevo en unos momentos.";
+  }
+
+  return "Verifica tu conexión e inténtalo de nuevo.";
 }

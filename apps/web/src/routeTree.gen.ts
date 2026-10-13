@@ -10,14 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BranchesRouteImport } from './routes/branches'
 import { Route as CatalogRouteImport } from './routes/catalog'
-import { Route as ReportesRouteImport } from './routes/reportes'
-import { Route as ReportesIndexRouteImport } from './routes/reportes.index'
-import { Route as ReportesReporteIdRouteImport } from './routes/reportes.$reporteId'
+import { Route as InventoryRouteImport } from './routes/inventory'
+import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as SuppliersRouteImport } from './routes/suppliers'
+import { Route as UsersRouteImport } from './routes/users'
+import { Route as ReportsIndexRouteImport } from './routes/reports.index'
+import { Route as ReportsReportIdRouteImport } from './routes/reports.$reportId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BranchesRoute = BranchesRouteImport.update({
+  id: '/branches',
+  path: '/branches',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogRoute = CatalogRouteImport.update({
@@ -25,62 +35,125 @@ const CatalogRoute = CatalogRouteImport.update({
   path: '/catalog',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportesRoute = ReportesRouteImport.update({
-  id: '/reportes',
-  path: '/reportes',
+const InventoryRoute = InventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportesIndexRoute = ReportesIndexRouteImport.update({
+const OrdersRoute = OrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliersRoute = SuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReportsIndexRoute = ReportsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ReportesRoute,
+  getParentRoute: () => ReportsRoute,
 } as any)
-const ReportesReporteIdRoute = ReportesReporteIdRouteImport.update({
-  id: '/$reporteId',
-  path: '/$reporteId',
-  getParentRoute: () => ReportesRoute,
+const ReportsReportIdRoute = ReportsReportIdRouteImport.update({
+  id: '/$reportId',
+  path: '/$reportId',
+  getParentRoute: () => ReportsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
   '/catalog': typeof CatalogRoute
-  '/reportes': typeof ReportesRouteWithChildren
-  '/reportes/$reporteId': typeof ReportesReporteIdRoute
-  '/reportes/': typeof ReportesIndexRoute
+  '/inventory': typeof InventoryRoute
+  '/orders': typeof OrdersRoute
+  '/reports': typeof ReportsRouteWithChildren
+  '/suppliers': typeof SuppliersRoute
+  '/users': typeof UsersRoute
+  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/reports/': typeof ReportsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
   '/catalog': typeof CatalogRoute
-  '/reportes/$reporteId': typeof ReportesReporteIdRoute
-  '/reportes': typeof ReportesIndexRoute
+  '/inventory': typeof InventoryRoute
+  '/orders': typeof OrdersRoute
+  '/suppliers': typeof SuppliersRoute
+  '/users': typeof UsersRoute
+  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/reports': typeof ReportsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
   '/catalog': typeof CatalogRoute
-  '/reportes': typeof ReportesRouteWithChildren
-  '/reportes/$reporteId': typeof ReportesReporteIdRoute
-  '/reportes/': typeof ReportesIndexRoute
+  '/inventory': typeof InventoryRoute
+  '/orders': typeof OrdersRoute
+  '/reports': typeof ReportsRouteWithChildren
+  '/suppliers': typeof SuppliersRoute
+  '/users': typeof UsersRoute
+  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/reports/': typeof ReportsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/catalog' | '/reportes' | '/reportes/$reporteId' | '/reportes/'
+    | '/'
+    | '/branches'
+    | '/catalog'
+    | '/inventory'
+    | '/orders'
+    | '/reports'
+    | '/suppliers'
+    | '/users'
+    | '/reports/$reportId'
+    | '/reports/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/catalog' | '/reportes/$reporteId' | '/reportes'
+  to:
+    | '/'
+    | '/branches'
+    | '/catalog'
+    | '/inventory'
+    | '/orders'
+    | '/suppliers'
+    | '/users'
+    | '/reports/$reportId'
+    | '/reports'
   id:
     | '__root__'
     | '/'
+    | '/branches'
     | '/catalog'
-    | '/reportes'
-    | '/reportes/$reporteId'
-    | '/reportes/'
+    | '/inventory'
+    | '/orders'
+    | '/reports'
+    | '/suppliers'
+    | '/users'
+    | '/reports/$reportId'
+    | '/reports/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BranchesRoute: typeof BranchesRoute
   CatalogRoute: typeof CatalogRoute
-  ReportesRoute: typeof ReportesRouteWithChildren
+  InventoryRoute: typeof InventoryRoute
+  OrdersRoute: typeof OrdersRoute
+  ReportsRoute: typeof ReportsRouteWithChildren
+  SuppliersRoute: typeof SuppliersRoute
+  UsersRoute: typeof UsersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/branches': {
+      id: '/branches'
+      path: '/branches'
+      fullPath: '/branches'
+      preLoaderRoute: typeof BranchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/catalog': {
       id: '/catalog'
       path: '/catalog'
@@ -99,48 +179,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CatalogRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reportes': {
-      id: '/reportes'
-      path: '/reportes'
-      fullPath: '/reportes'
-      preLoaderRoute: typeof ReportesRouteImport
+    '/inventory': {
+      id: '/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof InventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reportes/': {
-      id: '/reportes/'
-      path: '/'
-      fullPath: '/reportes/'
-      preLoaderRoute: typeof ReportesIndexRouteImport
-      parentRoute: typeof ReportesRoute
+    '/orders': {
+      id: '/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/reportes/$reporteId': {
-      id: '/reportes/$reporteId'
-      path: '/$reporteId'
-      fullPath: '/reportes/$reporteId'
-      preLoaderRoute: typeof ReportesReporteIdRouteImport
-      parentRoute: typeof ReportesRoute
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suppliers': {
+      id: '/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof SuppliersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reports/': {
+      id: '/reports/'
+      path: '/'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof ReportsIndexRouteImport
+      parentRoute: typeof ReportsRoute
+    }
+    '/reports/$reportId': {
+      id: '/reports/$reportId'
+      path: '/$reportId'
+      fullPath: '/reports/$reportId'
+      preLoaderRoute: typeof ReportsReportIdRouteImport
+      parentRoute: typeof ReportsRoute
     }
   }
 }
 
-interface ReportesRouteChildren {
-  ReportesReporteIdRoute: typeof ReportesReporteIdRoute
-  ReportesIndexRoute: typeof ReportesIndexRoute
+interface ReportsRouteChildren {
+  ReportsReportIdRoute: typeof ReportsReportIdRoute
+  ReportsIndexRoute: typeof ReportsIndexRoute
 }
 
-const ReportesRouteChildren: ReportesRouteChildren = {
-  ReportesReporteIdRoute: ReportesReporteIdRoute,
-  ReportesIndexRoute: ReportesIndexRoute,
+const ReportsRouteChildren: ReportsRouteChildren = {
+  ReportsReportIdRoute: ReportsReportIdRoute,
+  ReportsIndexRoute: ReportsIndexRoute,
 }
 
-const ReportesRouteWithChildren = ReportesRoute._addFileChildren(
-  ReportesRouteChildren,
-)
+const ReportsRouteWithChildren =
+  ReportsRoute._addFileChildren(ReportsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BranchesRoute: BranchesRoute,
   CatalogRoute: CatalogRoute,
-  ReportesRoute: ReportesRouteWithChildren,
+  InventoryRoute: InventoryRoute,
+  OrdersRoute: OrdersRoute,
+  ReportsRoute: ReportsRouteWithChildren,
+  SuppliersRoute: SuppliersRoute,
+  UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
