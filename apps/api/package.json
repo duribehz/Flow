@@ -6,6 +6,7 @@
     "dev": "bun --watch src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun src/shared/infrastructure/database/migrate.ts",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "build": "bun run typecheck && bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
@@ -13,6 +14,7 @@
     "format:check": "oxfmt --check ."
   },
   "dependencies": {
+    "@hono/zod-openapi": "^1.6.3",
     "drizzle-orm": "^0.45.3",
     "hono": "^4.13.13",
     "pg": "^8.23.1",
