@@ -40,10 +40,14 @@ type Report = {
   branch: string;
   date: string;
   articleCount: number;
-  status: "Abierto" | "Cerrado";
+  status: "open" | "closed";
 };
 
 const reports: Report[] = [];
+const statusLabels: Record<Report["status"], string> = {
+  open: "Abierto",
+  closed: "Cerrado",
+};
 
 export function ReportsPage() {
   const navigate = useNavigate();
@@ -86,8 +90,8 @@ export function ReportsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="Abierto">Abiertos</SelectItem>
-              <SelectItem value="Cerrado">Cerrados</SelectItem>
+              <SelectItem value="open">Abiertos</SelectItem>
+              <SelectItem value="closed">Cerrados</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -138,7 +142,7 @@ export function ReportsPage() {
                 <TableCell>{report.branch}</TableCell>
                 <TableCell>{report.date}</TableCell>
                 <TableCell>{report.articleCount}</TableCell>
-                <TableCell className="pr-7 text-right">{report.status}</TableCell>
+                <TableCell className="pr-7 text-right">{statusLabels[report.status]}</TableCell>
               </TableRow>
             ))}
             {visibleReports.length === 0 && (

@@ -5,7 +5,7 @@ import { AppShell } from "@/features/layout/app-shell";
 
 export const Route = createRootRoute({
   component: RootLayout,
-  notFoundComponent: () => <main>Page not found</main>,
+  notFoundComponent: () => <main>Página no encontrada</main>,
 });
 
 function RootLayout() {

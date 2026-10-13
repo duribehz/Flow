@@ -67,40 +67,68 @@ export function CatalogPage() {
         </div>
 
         <Card className="gap-0 py-0 shadow-sm">
-          <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:p-6">
-            <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? "all")}>
-              <SelectTrigger
-                className="h-[50px] w-full px-4 text-base sm:w-[280px]"
-                aria-label="Filtrar por categoría"
+          <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:gap-5 sm:p-6">
+            <div className="w-full sm:w-[280px]">
+              <label
+                htmlFor="catalog-category-filter"
+                className="mb-2 block text-sm font-medium text-muted-foreground"
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                Categoría
+              </label>
+              <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? "all")}>
+                <SelectTrigger
+                  id="catalog-category-filter"
+                  className="h-[50px] w-full px-4 text-base"
+                  aria-label="Filtrar por categoría"
+                >
+                  <SelectValue>
+                    {categoryId === "all"
+                      ? "Todas las categorías"
+                      : categories.find((category) => category.id === categoryId)?.name}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select
-              value={status}
-              onValueChange={(value) => setStatus((value as StatusFilter | null) ?? "all")}
-            >
-              <SelectTrigger
-                className="h-[50px] w-full px-4 text-base sm:w-[220px]"
-                aria-label="Filtrar por estado"
+            <div className="w-full sm:w-[220px]">
+              <label
+                htmlFor="catalog-status-filter"
+                className="mb-2 block text-sm font-medium text-muted-foreground"
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
+                Estado
+              </label>
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus((value as StatusFilter | null) ?? "all")}
+              >
+                <SelectTrigger
+                  id="catalog-status-filter"
+                  className="h-[50px] w-full px-4 text-base"
+                  aria-label="Filtrar por estado"
+                >
+                  <SelectValue>
+                    {status === "all"
+                      ? "Todos los estados"
+                      : status === "active"
+                        ? "Activos"
+                        : "Inactivos"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="active">Activos</SelectItem>
+                  <SelectItem value="inactive">Inactivos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <Table className="min-w-[850px]">
