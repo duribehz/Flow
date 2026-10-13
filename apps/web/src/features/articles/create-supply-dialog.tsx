@@ -130,7 +130,9 @@ export function CreateSupplyDialog({
             <Field label="Categoría" htmlFor="supply-category">
               <Select value={categoryId} onValueChange={(value) => setCategoryId(value ?? "")}>
                 <SelectTrigger id="supply-category" className="h-11 w-full px-3">
-                  <SelectValue placeholder="Selecciona una categoría" />
+                  <SelectValue placeholder="Selecciona una categoría">
+                    {categories.find((category) => category.id === categoryId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -144,7 +146,9 @@ export function CreateSupplyDialog({
             <Field label="Unidad" htmlFor="supply-unit">
               <Select value={unitId} onValueChange={(value) => setUnitId(value ?? "")}>
                 <SelectTrigger id="supply-unit" className="h-11 w-full px-3">
-                  <SelectValue placeholder="Selecciona una unidad" />
+                  <SelectValue placeholder="Selecciona una unidad">
+                    {units.find((unit) => unit.id === unitId)?.name}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {units.map((unit) => (

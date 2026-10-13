@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PackageOpen, Plus, RefreshCw } from "lucide-react";
 
+import { useGetCategories } from "@/api/generated/categories/categories";
 import { useGetSupplies } from "@/api/generated/supplies/supplies";
 import type { Supply } from "@/api/generated/models";
 import { ApiError } from "@/api/http-client";
@@ -32,14 +33,27 @@ import { CreateSupplyDialog } from "./create-supply-dialog";
 
 type StatusFilter = "all" | "active" | "inactive";
 
-export function CatalogPage() {
+export function ArticlesPage() {
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const { data, error, isLoading, mutate } = useGetSupplies<ApiError>();
-  const supplies = data?.data.data ?? [];
-  const categories = uniqueById(supplies.map((supply) => supply.category));
+  const {
+    data: suppliesData,
+    error: suppliesError,
+    isLoading: suppliesLoading,
+    mutate: mutateSupplies,
+  } = useGetSupplies<ApiError>();
+  const {
+    data: categoriesData,
+    error: categoriesError,
+    isLoading: categoriesLoading,
+    mutate: mutateCategories,
+  } = useGetCategories<ApiError>();
+  const supplies = suppliesData?.data.data ?? [];
+  const categories = categoriesData?.data.data ?? [];
   const units = uniqueById(supplies.map((supply) => supply.unit));
+  const isLoading = suppliesLoading || categoriesLoading;
+  const error = suppliesError ?? categoriesError;
 
   const visibleSupplies = supplies.filter(
     (supply) =>
@@ -52,7 +66,7 @@ export function CatalogPage() {
       <main className="mx-auto w-full max-w-[1088px] px-5 py-10 sm:px-8 sm:py-11">
         <div className="mb-7 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Catálogo de artículos</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Artículos</h1>
             <p className="mt-2 text-base text-muted-foreground">
               Administra los artículos disponibles para todas las sucursales.
             </p>
@@ -164,7 +178,10 @@ export function CatalogPage() {
                         <EmptyTitle>No pudimos cargar el catálogo</EmptyTitle>
                         <EmptyDescription>{getErrorMessage(error)}</EmptyDescription>
                       </EmptyHeader>
-                      <Button variant="outline" onClick={() => void mutate()}>
+                      <Button
+                        variant="outline"
+                        onClick={() => void Promise.all([mutateSupplies(), mutateCategories()])}
+                      >
                         Intentar de nuevo
                       </Button>
                     </Empty>
@@ -206,7 +223,7 @@ export function CatalogPage() {
           categories={categories}
           units={units.map((unit) => ({ ...unit, detail: unit.symbol }))}
           onClose={() => setIsCreateOpen(false)}
-          onCreated={() => mutate()}
+          onCreated={() => mutateSupplies()}
         />
       )}
     </>

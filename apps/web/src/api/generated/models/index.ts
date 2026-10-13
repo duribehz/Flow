@@ -8,10 +8,14 @@
 
 export * from "./apiError";
 export * from "./apiErrorError";
+export * from "./category";
+export * from "./createCategory";
 export * from "./createSupply";
+export * from "./getCategories200";
 export * from "./getReplenishments200";
 export * from "./getReplenishmentsReplenishmentId200";
 export * from "./getSupplies200";
+export * from "./postCategories201";
 export * from "./postSupplies201";
 export * from "./replenishmentDetail";
 export * from "./replenishmentDetailBranch";

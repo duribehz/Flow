@@ -10,8 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArticlesRouteImport } from './routes/articles'
 import { Route as BranchesRouteImport } from './routes/branches'
-import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as ReportsRouteImport } from './routes/reports'
@@ -25,14 +26,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArticlesRoute = ArticlesRouteImport.update({
+  id: '/articles',
+  path: '/articles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BranchesRoute = BranchesRouteImport.update({
   id: '/branches',
   path: '/branches',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CatalogRoute = CatalogRouteImport.update({
-  id: '/catalog',
-  path: '/catalog',
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventoryRoute = InventoryRouteImport.update({
@@ -73,8 +79,9 @@ const ReportsReportIdRoute = ReportsReportIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
-  '/catalog': typeof CatalogRoute
+  '/categories': typeof CategoriesRoute
   '/inventory': typeof InventoryRoute
   '/orders': typeof OrdersRoute
   '/reports': typeof ReportsRouteWithChildren
@@ -85,8 +92,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
-  '/catalog': typeof CatalogRoute
+  '/categories': typeof CategoriesRoute
   '/inventory': typeof InventoryRoute
   '/orders': typeof OrdersRoute
   '/suppliers': typeof SuppliersRoute
@@ -97,8 +105,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
-  '/catalog': typeof CatalogRoute
+  '/categories': typeof CategoriesRoute
   '/inventory': typeof InventoryRoute
   '/orders': typeof OrdersRoute
   '/reports': typeof ReportsRouteWithChildren
@@ -111,8 +120,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/articles'
     | '/branches'
-    | '/catalog'
+    | '/categories'
     | '/inventory'
     | '/orders'
     | '/reports'
@@ -123,8 +133,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/articles'
     | '/branches'
-    | '/catalog'
+    | '/categories'
     | '/inventory'
     | '/orders'
     | '/suppliers'
@@ -134,8 +145,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/articles'
     | '/branches'
-    | '/catalog'
+    | '/categories'
     | '/inventory'
     | '/orders'
     | '/reports'
@@ -147,8 +159,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArticlesRoute: typeof ArticlesRoute
   BranchesRoute: typeof BranchesRoute
-  CatalogRoute: typeof CatalogRoute
+  CategoriesRoute: typeof CategoriesRoute
   InventoryRoute: typeof InventoryRoute
   OrdersRoute: typeof OrdersRoute
   ReportsRoute: typeof ReportsRouteWithChildren
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/articles': {
+      id: '/articles'
+      path: '/articles'
+      fullPath: '/articles'
+      preLoaderRoute: typeof ArticlesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/branches': {
       id: '/branches'
       path: '/branches'
@@ -172,11 +192,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BranchesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/catalog': {
-      id: '/catalog'
-      path: '/catalog'
-      fullPath: '/catalog'
-      preLoaderRoute: typeof CatalogRouteImport
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -246,8 +266,9 @@ const ReportsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArticlesRoute: ArticlesRoute,
   BranchesRoute: BranchesRoute,
-  CatalogRoute: CatalogRoute,
+  CategoriesRoute: CategoriesRoute,
   InventoryRoute: InventoryRoute,
   OrdersRoute: OrdersRoute,
   ReportsRoute: ReportsRouteWithChildren,

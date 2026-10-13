@@ -10,6 +10,7 @@ import {
   FileChartColumn,
   Menu,
   Store,
+  Tags,
   Truck,
   UsersRound,
   X,
@@ -27,7 +28,15 @@ import { Button } from "@/components/ui/button";
 
 type NavigationItem = {
   label: string;
-  path: "/reports" | "/inventory" | "/orders" | "/catalog" | "/suppliers" | "/branches" | "/users";
+  path:
+    | "/reports"
+    | "/inventory"
+    | "/orders"
+    | "/articles"
+    | "/categories"
+    | "/suppliers"
+    | "/branches"
+    | "/users";
   icon: ComponentType<{ className?: string }>;
 };
 
@@ -43,7 +52,8 @@ const navigationGroups: Array<{ label: string; items: NavigationItem[] }> = [
   {
     label: "Administración",
     items: [
-      { label: "Catálogo", path: "/catalog", icon: Boxes },
+      { label: "Artículos", path: "/articles", icon: Boxes },
+      { label: "Categorías", path: "/categories", icon: Tags },
       { label: "Proveedores", path: "/suppliers", icon: Store },
       { label: "Sucursales", path: "/branches", icon: Building2 },
       { label: "Usuarios", path: "/users", icon: UsersRound },
@@ -55,7 +65,8 @@ const routeLabels: Record<string, string> = {
   reports: "Reportes",
   inventory: "Existencias",
   orders: "Pedidos",
-  catalog: "Catálogo de artículos",
+  articles: "Artículos",
+  categories: "Categorías",
   suppliers: "Proveedores",
   branches: "Sucursales",
   users: "Usuarios",
