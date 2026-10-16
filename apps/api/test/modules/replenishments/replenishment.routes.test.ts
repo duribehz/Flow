@@ -1,0 +1,116 @@
+import { describe, expect, test } from "bun:test";
+import { OpenAPIHono } from "@hono/zod-openapi";
+
+import { ReplenishmentNotFoundError } from "@/modules/replenishments/application/errors/replenishment-not-found.error.js";
+import { createReplenishmentRoutes } from "@/modules/replenishments/presentation/http/replenishment.routes.js";
+import { errorHandler } from "@/shared/presentation/http/error-handler.js";
+import { configureOpenApi } from "@/shared/presentation/http/openapi.js";
+
+const submittedReplenishment = {
+  id: "10000000-0000-4000-8000-000000000001",
+  requestNumber: "REQ-001",
+  branch: { id: "20000000-0000-4000-8000-000000000001", name: "Centro" },
+  status: "submitted" as const,
+  requestedBy: { id: "30000000-0000-4000-8000-000000000001", userName: "requester" },
+  submittedAt: new Date("2026-10-13T12:00:00.000Z"),
+  createdAt: new Date("2026-10-13T11:00:00.000Z"),
+};
+
+const replenishmentDetail = {
+  ...submittedReplenishment,
+  inventoryClosureId: "40000000-0000-4000-8000-000000000001",
+  reviewedBy: null,
+  reviewedAt: null,
+  notes: null,
+  updatedAt: new Date("2026-10-13T12:00:00.000Z"),
+  items: [],
+};
+
+function createTestApp(detailExists = true) {
+  const app = new OpenAPIHono();
+
+  app.onError(errorHandler);
+  app.route(
+    "/replenishments",
+    createReplenishmentRoutes({
+      listSubmitted: {
+        async execute() {
+          return [submittedReplenishment];
+        },
+      },
+      getDetail: {
+        async execute() {
+          if (!detailExists) throw new ReplenishmentNotFoundError();
+          return replenishmentDetail;
+        },
+      },
+    }),
+  );
+  configureOpenApi(app);
+
+  return app;
+}
+
+describe("replenishment routes", () => {
+  test("lists submitted replenishments", async () => {
+    const response = await createTestApp().request("/replenishments");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: [
+        {
+          ...submittedReplenishment,
+          submittedAt: "2026-10-13T12:00:00.000Z",
+          createdAt: "2026-10-13T11:00:00.000Z",
+        },
+      ],
+    });
+  });
+
+  test("gets a replenishment detail", async () => {
+    const response = await createTestApp().request(`/replenishments/${replenishmentDetail.id}`);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: {
+        ...replenishmentDetail,
+        submittedAt: "2026-10-13T12:00:00.000Z",
+        reviewedAt: null,
+        createdAt: "2026-10-13T11:00:00.000Z",
+        updatedAt: "2026-10-13T12:00:00.000Z",
+      },
+    });
+  });
+
+  test("rejects an invalid replenishment ID", async () => {
+    const response = await createTestApp().request("/replenishments/not-a-uuid");
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: { code: "VALIDATION_ERROR", message: "Invalid request parameters" },
+    });
+  });
+
+  test("returns 404 when the replenishment does not exist", async () => {
+    const response = await createTestApp(false).request(
+      "/replenishments/10000000-0000-4000-8000-000000000099",
+    );
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: {
+        code: "REPLENISHMENT_NOT_FOUND",
+        message: "Replenishment request not found",
+      },
+    });
+  });
+
+  test("publishes the replenishment OpenAPI contract", async () => {
+    const response = await createTestApp().request("/openapi.json");
+    const document = (await response.json()) as { paths: Record<string, unknown> };
+
+    expect(response.status).toBe(200);
+    expect(document.paths).toHaveProperty("/replenishments");
+    expect(document.paths).toHaveProperty("/replenishments/{replenishmentId}");
+  });
+});
