@@ -3,7 +3,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import type { CreateSupplyInput, Supply } from "./supplies.repo.js";
+import type { CreateSupplyInput } from "./supplies.dto.js";
+import type { Supply } from "./supplies.repo.js";
 import { createSuppliesRoutes } from "./supplies.js";
 
 const createSupplyInput: CreateSupplyInput = {

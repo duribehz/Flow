@@ -2,14 +2,8 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 
 import type { Executor } from "@/shared/infrastructure/database/client.js";
 import { suppliers as suppliersTable } from "../suppliers/suppliers.schema.js";
+import type { CreateSupplyInput } from "./supplies.dto.js";
 import { categories, supplies, supplySuppliers, units } from "./supplies.schema.js";
-
-type NewSupply = Pick<
-  typeof supplies.$inferInsert,
-  "sku" | "name" | "description" | "unitId" | "unitCost" | "categoryId" | "active"
->;
-
-export type CreateSupplyInput = NewSupply & { supplierIds: string[] };
 
 export class SuppliesRepo {
   constructor(private readonly conn: Executor) {}

@@ -1,5 +1,6 @@
 import { AppError } from "@/shared/errors/app-error.js";
-import type { CreateSupplyInput, SuppliesRepository } from "./supplies.repo.js";
+import type { CreateSupplyInput } from "./supplies.dto.js";
+import type { SuppliesRepository } from "./supplies.repo.js";
 
 export class SuppliesUseCase {
   constructor(private readonly suppliesRepo: SuppliesRepository) {}
