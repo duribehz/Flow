@@ -1,16 +1,10 @@
-import { composeModules } from "./bootstrap/composition-root.js";
-import { loadConfig } from "./bootstrap/config.js";
-import { createApp } from "./bootstrap/create-app.js";
-import { createDatabase } from "./shared/infrastructure/database/client.js";
+import { app } from "./app.js";
 
-const config = loadConfig(process.env);
-const { db } = createDatabase(config.database);
-const modules = composeModules(db);
-const app = createApp({ modules, webOrigin: config.webOrigin });
+const port = Number(process.env.PORT ?? 3000);
 
 Bun.serve({
-  port: config.port,
+  port,
   fetch: app.fetch,
 });
 
-console.log(`Flow API listening on http://localhost:${config.port}`);
+console.log(`Flow API listening on http://localhost:${port}`);

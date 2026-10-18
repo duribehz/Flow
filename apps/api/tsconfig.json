@@ -9,12 +9,12 @@
     "types": ["bun"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "rootDir": ".",
+    "rootDir": "./src",
     "paths": {
       "@/*": ["./src/*"]
     },
     "noEmit": true
   },
-  "include": ["src", "test"],
+  "include": ["src"],
   "exclude": ["node_modules"]
 }
