@@ -4,8 +4,34 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { AppError } from "@/shared/errors/app-error.js";
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import { createReplenishmentsRoutes } from "./replenishments.routes.js";
-import { replenishmentDetail, submittedReplenishment } from "./replenishment.usecase.test.js";
+import type { ReplenishmentDetail, SubmittedReplenishment } from "./replenishments.repo.js";
+import { createReplenishmentsRoutes } from "./replenishments.js";
+
+const submittedReplenishment: SubmittedReplenishment = {
+  id: "10000000-0000-4000-8000-000000000001",
+  requestNumber: "REQ-001",
+  branch: {
+    id: "20000000-0000-4000-8000-000000000001",
+    name: "Centro",
+  },
+  status: "submitted",
+  requestedBy: {
+    id: "30000000-0000-4000-8000-000000000001",
+    userName: "requester",
+  },
+  submittedAt: new Date("2026-10-13T12:00:00.000Z"),
+  createdAt: new Date("2026-10-13T11:00:00.000Z"),
+};
+
+const replenishmentDetail: ReplenishmentDetail = {
+  ...submittedReplenishment,
+  inventoryClosureId: "40000000-0000-4000-8000-000000000001",
+  reviewedBy: null,
+  reviewedAt: null,
+  notes: null,
+  updatedAt: new Date("2026-10-13T12:00:00.000Z"),
+  items: [],
+};
 
 function createTestApp(detailExists = true) {
   const app = new OpenAPIHono();

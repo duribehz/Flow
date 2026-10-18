@@ -3,8 +3,17 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import { createUnitsRoutes } from "./units.routes.js";
-import { unit } from "./units.usecase.test.js";
+import type { Unit } from "./units.repo.js";
+import { createUnitsRoutes } from "./units.js";
+
+const unit: Unit = {
+  id: "10000000-0000-4000-8000-000000000001",
+  name: "Kilogramo",
+  symbol: "kg",
+  active: true,
+  createdAt: new Date("2026-10-13T10:00:00.000Z"),
+  updatedAt: new Date("2026-10-13T10:00:00.000Z"),
+};
 
 function createTestApp() {
   const app = new OpenAPIHono();

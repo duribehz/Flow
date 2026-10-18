@@ -3,8 +3,15 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import { createSuppliersRoutes } from "./suppliers.routes.js";
-import { supplier } from "./suppliers.usecase.test.js";
+import type { Supplier } from "./suppliers.repo.js";
+import { createSuppliersRoutes } from "./suppliers.js";
+
+const supplier: Supplier = {
+  id: "10000000-0000-4000-8000-000000000001",
+  name: "Central de Abastos MX",
+  phoneNumber: "+52 55 1234 5678",
+  email: "ventas@central.example",
+};
 
 function createTestApp() {
   const app = new OpenAPIHono();

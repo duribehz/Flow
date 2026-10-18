@@ -3,8 +3,49 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import { createSuppliesRoutes } from "./supplies.routes.js";
-import { createSupplyInput, supply } from "./supplies.usecase.test.js";
+import type { CreateSupplyInput, Supply } from "./supplies.repo.js";
+import { createSuppliesRoutes } from "./supplies.js";
+
+const createSupplyInput: CreateSupplyInput = {
+  sku: "COC-001",
+  name: "Aceite vegetal",
+  description: "Aceite para cocina",
+  unitId: "10000000-0000-4000-8000-000000000001",
+  unitCost: 4200,
+  categoryId: "20000000-0000-4000-8000-000000000001",
+  supplierIds: ["40000000-0000-4000-8000-000000000001", "40000000-0000-4000-8000-000000000002"],
+  active: true,
+};
+
+const supply: Supply = {
+  id: "30000000-0000-4000-8000-000000000001",
+  sku: createSupplyInput.sku,
+  name: createSupplyInput.name,
+  description: createSupplyInput.description ?? null,
+  unitCost: createSupplyInput.unitCost ?? 0,
+  active: createSupplyInput.active ?? true,
+  category: {
+    id: createSupplyInput.categoryId,
+    name: "Aceites",
+  },
+  unit: {
+    id: createSupplyInput.unitId,
+    name: "Litro",
+    symbol: "L",
+  },
+  suppliers: [
+    {
+      id: createSupplyInput.supplierIds[0]!,
+      name: "Central de Abastos MX",
+    },
+    {
+      id: createSupplyInput.supplierIds[1]!,
+      name: "Distribuidora Gourmet",
+    },
+  ],
+  createdAt: new Date("2026-10-13T10:00:00.000Z"),
+  updatedAt: new Date("2026-10-13T10:00:00.000Z"),
+};
 
 function createTestApp() {
   const app = new OpenAPIHono();

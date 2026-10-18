@@ -3,8 +3,13 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { errorHandler } from "@/shared/errors/error-handler.js";
 import { configureOpenApi } from "@/shared/http/openapi.js";
-import { createCategoriesRoutes } from "./categories.routes.js";
-import { category } from "./categories.usecase.test.js";
+import type { Category } from "./categories.repo.js";
+import { createCategoriesRoutes } from "./categories.js";
+
+const category: Category = {
+  id: "10000000-0000-4000-8000-000000000001",
+  name: "Aceites",
+};
 
 function createTestApp() {
   const app = new OpenAPIHono();
