@@ -35,7 +35,7 @@ export type getSuppliersResponseSuccess = getSuppliersResponse200 & {
 export type getSuppliersResponse = getSuppliersResponseSuccess;
 
 export const getGetSuppliersUrl = () => {
-  return `/suppliers`;
+  return `/v1/suppliers`;
 };
 
 /**
@@ -50,7 +50,7 @@ export const getSuppliers = async (
   });
 };
 
-export const getGetSuppliersKey = () => [`/suppliers`] as const;
+export const getGetSuppliersKey = () => [`/v1/suppliers`] as const;
 
 export type GetSuppliersQueryResult = NonNullable<Awaited<ReturnType<typeof getSuppliers>>>;
 
@@ -102,7 +102,7 @@ export type postSuppliersResponseError = (postSuppliersResponse400 | postSupplie
 export type postSuppliersResponse = postSuppliersResponseSuccess | postSuppliersResponseError;
 
 export const getPostSuppliersUrl = () => {
-  return `/suppliers`;
+  return `/v1/suppliers`;
 };
 
 /**
@@ -144,7 +144,7 @@ export const getPostSuppliersMutationFetcher = (options?: SecondParameter<typeof
     return postSuppliers(arg, options);
   };
 };
-export const getPostSuppliersMutationKey = () => [`/suppliers`] as const;
+export const getPostSuppliersMutationKey = () => [`/v1/suppliers`] as const;
 
 export type PostSuppliersMutationResult = NonNullable<Awaited<ReturnType<typeof postSuppliers>>>;
 
@@ -203,7 +203,7 @@ export type getSuppliersSupplierIdResponse =
   | getSuppliersSupplierIdResponseError;
 
 export const getGetSuppliersSupplierIdUrl = (supplierId: string) => {
-  return `/suppliers/${supplierId}`;
+  return `/v1/suppliers/${supplierId}`;
 };
 
 /**
@@ -220,7 +220,7 @@ export const getSuppliersSupplierId = async (
 };
 
 export const getGetSuppliersSupplierIdKey = (supplierId: string) =>
-  [`/suppliers/${supplierId}`] as const;
+  [`/v1/suppliers/${supplierId}`] as const;
 
 export type GetSuppliersSupplierIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getSuppliersSupplierId>>

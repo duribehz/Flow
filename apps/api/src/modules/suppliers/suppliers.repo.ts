@@ -33,9 +33,3 @@ export class SuppliersRepo {
 }
 
 export type Supplier = Awaited<ReturnType<SuppliersRepo["getSuppliers"]>>[number];
-
-export interface SuppliersRepository {
-  getSuppliers(): Promise<Supplier[]>;
-  getSupplierById(supplierId: string): Promise<Supplier | undefined>;
-  createSupplier(input: CreateSupplierInput): Promise<Supplier | undefined>;
-}

@@ -161,14 +161,3 @@ export class SuppliesRepo {
 }
 
 export type Supply = Awaited<ReturnType<SuppliesRepo["getSupplies"]>>[number];
-
-export interface SuppliesRepository {
-  getSupplies(): Promise<Supply[]>;
-  getSupplyById(supplyId: string): Promise<Supply | undefined>;
-  createSupply(input: CreateSupplyInput): Promise<Supply | undefined>;
-  replaceSupplySuppliers(supplyId: string, supplierIds: string[]): Promise<Supply | undefined>;
-  categoryExists(categoryId: string): Promise<boolean>;
-  activeUnitExists(unitId: string): Promise<boolean>;
-  suppliersExist(supplierIds: string[]): Promise<boolean>;
-  supplyExists(supplyId: string): Promise<boolean>;
-}

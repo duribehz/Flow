@@ -30,7 +30,7 @@ export type getReplenishmentsResponseSuccess = getReplenishmentsResponse200 & {
 export type getReplenishmentsResponse = getReplenishmentsResponseSuccess;
 
 export const getGetReplenishmentsUrl = () => {
-  return `/replenishments`;
+  return `/v1/replenishments`;
 };
 
 /**
@@ -45,7 +45,7 @@ export const getReplenishments = async (
   });
 };
 
-export const getGetReplenishmentsKey = () => [`/replenishments`] as const;
+export const getGetReplenishmentsKey = () => [`/v1/replenishments`] as const;
 
 export type GetReplenishmentsQueryResult = NonNullable<
   Awaited<ReturnType<typeof getReplenishments>>
@@ -105,7 +105,7 @@ export type getReplenishmentsReplenishmentIdResponse =
   | getReplenishmentsReplenishmentIdResponseError;
 
 export const getGetReplenishmentsReplenishmentIdUrl = (replenishmentId: string) => {
-  return `/replenishments/${replenishmentId}`;
+  return `/v1/replenishments/${replenishmentId}`;
 };
 
 /**
@@ -125,7 +125,7 @@ export const getReplenishmentsReplenishmentId = async (
 };
 
 export const getGetReplenishmentsReplenishmentIdKey = (replenishmentId: string) =>
-  [`/replenishments/${replenishmentId}`] as const;
+  [`/v1/replenishments/${replenishmentId}`] as const;
 
 export type GetReplenishmentsReplenishmentIdQueryResult = NonNullable<
   Awaited<ReturnType<typeof getReplenishmentsReplenishmentId>>

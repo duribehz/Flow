@@ -30,12 +30,12 @@ export const pool = new Pool({
   ssl: databaseEnvironment.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
-export const db = drizzle(pool, {
+export const DB = drizzle(pool, {
   schema,
   casing: "snake_case",
 });
 
-export type Database = typeof db;
+export type Database = typeof DB;
 
 type TransactionCallBack = Parameters<Database["transaction"]>[0];
 

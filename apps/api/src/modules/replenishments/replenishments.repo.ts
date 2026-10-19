@@ -116,8 +116,3 @@ export type SubmittedReplenishment = Awaited<
 export type ReplenishmentDetail = NonNullable<
   Awaited<ReturnType<ReplenishmentsRepo["getReplenishmentById"]>>
 >;
-
-export interface ReplenishmentsRepository {
-  getSubmittedReplenishments(): Promise<SubmittedReplenishment[]>;
-  getReplenishmentById(replenishmentId: string): Promise<ReplenishmentDetail | undefined>;
-}

@@ -29,7 +29,7 @@ export type getCategoriesResponseSuccess = getCategoriesResponse200 & {
 export type getCategoriesResponse = getCategoriesResponseSuccess;
 
 export const getGetCategoriesUrl = () => {
-  return `/categories`;
+  return `/v1/categories`;
 };
 
 /**
@@ -44,7 +44,7 @@ export const getCategories = async (
   });
 };
 
-export const getGetCategoriesKey = () => [`/categories`] as const;
+export const getGetCategoriesKey = () => [`/v1/categories`] as const;
 
 export type GetCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getCategories>>>;
 
@@ -99,7 +99,7 @@ export type postCategoriesResponseError = (
 export type postCategoriesResponse = postCategoriesResponseSuccess | postCategoriesResponseError;
 
 export const getPostCategoriesUrl = () => {
-  return `/categories`;
+  return `/v1/categories`;
 };
 
 /**
@@ -141,7 +141,7 @@ export const getPostCategoriesMutationFetcher = (options?: SecondParameter<typeo
     return postCategories(arg, options);
   };
 };
-export const getPostCategoriesMutationKey = () => [`/categories`] as const;
+export const getPostCategoriesMutationKey = () => [`/v1/categories`] as const;
 
 export type PostCategoriesMutationResult = NonNullable<Awaited<ReturnType<typeof postCategories>>>;
 

@@ -29,7 +29,7 @@ export type getUnitsResponseSuccess = getUnitsResponse200 & {
 export type getUnitsResponse = getUnitsResponseSuccess;
 
 export const getGetUnitsUrl = () => {
-  return `/units`;
+  return `/v1/units`;
 };
 
 /**
@@ -44,7 +44,7 @@ export const getUnits = async (
   });
 };
 
-export const getGetUnitsKey = () => [`/units`] as const;
+export const getGetUnitsKey = () => [`/v1/units`] as const;
 
 export type GetUnitsQueryResult = NonNullable<Awaited<ReturnType<typeof getUnits>>>;
 
@@ -96,7 +96,7 @@ export type postUnitsResponseError = (postUnitsResponse400 | postUnitsResponse40
 export type postUnitsResponse = postUnitsResponseSuccess | postUnitsResponseError;
 
 export const getPostUnitsUrl = () => {
-  return `/units`;
+  return `/v1/units`;
 };
 
 /**
@@ -138,7 +138,7 @@ export const getPostUnitsMutationFetcher = (options?: SecondParameter<typeof api
     return postUnits(arg, options);
   };
 };
-export const getPostUnitsMutationKey = () => [`/units`] as const;
+export const getPostUnitsMutationKey = () => [`/v1/units`] as const;
 
 export type PostUnitsMutationResult = NonNullable<Awaited<ReturnType<typeof postUnits>>>;
 
@@ -195,7 +195,7 @@ export type getUnitsUnitIdResponseError = (
 export type getUnitsUnitIdResponse = getUnitsUnitIdResponseSuccess | getUnitsUnitIdResponseError;
 
 export const getGetUnitsUnitIdUrl = (unitId: string) => {
-  return `/units/${unitId}`;
+  return `/v1/units/${unitId}`;
 };
 
 /**
@@ -211,7 +211,7 @@ export const getUnitsUnitId = async (
   });
 };
 
-export const getGetUnitsUnitIdKey = (unitId: string) => [`/units/${unitId}`] as const;
+export const getGetUnitsUnitIdKey = (unitId: string) => [`/v1/units/${unitId}`] as const;
 
 export type GetUnitsUnitIdQueryResult = NonNullable<Awaited<ReturnType<typeof getUnitsUnitId>>>;
 

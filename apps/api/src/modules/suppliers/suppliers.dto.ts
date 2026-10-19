@@ -1,15 +1,9 @@
 import { z } from "@hono/zod-openapi";
+import { createSelectSchema } from "drizzle-zod";
 
-export const supplierSchema = z
-  .object({
-    id: z.uuid(),
-    name: z.string(),
-    phoneNumber: z.string().nullable(),
-    email: z.string().nullable(),
-  })
-  .openapi("Supplier");
+import { suppliers } from "./suppliers.schema.js";
 
-export const createSupplierSchema = z
+export const createSupplierDto = z
   .object({
     name: z.string().trim().min(1).max(200),
     phoneNumber: z.string().trim().min(1).max(30).nullable().optional(),
@@ -17,6 +11,8 @@ export const createSupplierSchema = z
   })
   .openapi("CreateSupplier");
 
-export const supplierIdParamsSchema = z.object({
+export const supplierDto = createSelectSchema(suppliers).openapi("Supplier");
+
+export const supplierIdParamsDto = z.object({
   supplierId: z.uuid().openapi({ param: { name: "supplierId", in: "path" } }),
 });

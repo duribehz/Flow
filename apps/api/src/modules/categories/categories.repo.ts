@@ -24,8 +24,3 @@ export class CategoriesRepo {
 }
 
 export type Category = Awaited<ReturnType<CategoriesRepo["getCategories"]>>[number];
-
-export interface CategoriesRepository {
-  getCategories(): Promise<Category[]>;
-  createCategory(input: CreateCategoryInput): Promise<Category | undefined>;
-}
