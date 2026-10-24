@@ -96,3 +96,41 @@ export const inventoryClosureItems = pgTable(
     ),
   ],
 );
+
+export const inventoryReceiptIncident = pgEnum("inventory_receipt_incident", [
+  "none",
+  "shortage",
+  "surplus",
+  "damaged",
+]);
+
+export const inventoryReceipts = pgTable(
+  "inventory_receipts",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    inventoryShiftId: uuid("inventory_shift_id")
+      .notNull()
+      .references(() => inventoryShifts.id),
+    supplyId: uuid("supply_id")
+      .notNull()
+      .references(() => supplies.id),
+    purchaseId: uuid("purchase_id"),
+    expectedQuantity: bigint("expected_quantity", { mode: "number" }),
+    receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull(),
+    incidentType: inventoryReceiptIncident("incident_type").notNull().default("none"),
+    notes: text(),
+    receivedBy: uuid("received_by")
+      .notNull()
+      .references(() => users.id),
+    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("inventory_receipts_shift_id_idx").on(table.inventoryShiftId),
+    index("inventory_receipts_supply_id_idx").on(table.supplyId),
+    check(
+      "inventory_receipts_quantities_check",
+      sql`${table.receivedQuantity} >= 0 and (${table.expectedQuantity} is null or ${table.expectedQuantity} >= 0)`,
+    ),
+  ],
+);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { PlaceholderPage } from "@/features/layout/placeholder-page";
+import { ComingSoonPage } from "@/features/layout/coming-soon-page";
 
 export const Route = createFileRoute("/users")({
   component: UsersPage,
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/users")({
 
 function UsersPage() {
   return (
-    <PlaceholderPage
+    <ComingSoonPage
       title="Usuarios"
       description="Administra usuarios, accesos y responsabilidades del equipo."
     />

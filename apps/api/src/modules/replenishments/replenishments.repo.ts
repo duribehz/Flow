@@ -1,13 +1,32 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import type { Executor } from "@/shared/infrastructure/database/client.js";
 import { branches } from "../branches/branches.schema.js";
 import { categories, supplies, units } from "../supplies/supplies.schema.js";
 import { users } from "../users/users.schema.js";
-import { replenishmentRequestItems, replenishmentRequests } from "./replenishments.schema.js";
+import {
+  replenishmentRequestCounters,
+  replenishmentRequestItems,
+  replenishmentRequests,
+} from "./replenishments.schema.js";
 
 const reviewers = alias(users, "reviewers");
+
+export type CreateReplenishmentRequestItemInput = {
+  supplyId: string;
+  suggestedQuantity: number;
+  requestedQuantity: number;
+  notes?: string | null;
+};
+
+export type CreateReplenishmentRequestInput = {
+  requestNumber: string;
+  branchId: string;
+  inventoryClosureId: string;
+  requestedBy: string;
+  notes?: string | null;
+};
 
 export class ReplenishmentsRepo {
   constructor(private readonly conn: Executor) {}
@@ -107,6 +126,70 @@ export class ReplenishmentsRepo {
       .orderBy(asc(supplies.name));
 
     return { ...replenishment, items };
+  }
+
+  async nextRequestCounter(branchIdPrefix: string): Promise<number> {
+    const [row] = await this.conn
+      .insert(replenishmentRequestCounters)
+      .values({ branchIdPrefix, lastSeq: 1 })
+      .onConflictDoUpdate({
+        target: replenishmentRequestCounters.branchIdPrefix,
+        set: {
+          lastSeq: sql`${replenishmentRequestCounters.lastSeq} + 1`,
+        },
+      })
+      .returning({ lastSeq: replenishmentRequestCounters.lastSeq });
+    return row!.lastSeq;
+  }
+
+  async createRequestWithItems(
+    request: CreateReplenishmentRequestInput,
+    items: CreateReplenishmentRequestItemInput[],
+  ) {
+    const [created] = await this.conn
+      .insert(replenishmentRequests)
+      .values({
+        requestNumber: request.requestNumber,
+        branchId: request.branchId,
+        inventoryClosureId: request.inventoryClosureId,
+        requestedBy: request.requestedBy,
+        notes: request.notes ?? null,
+      })
+      .returning();
+
+    if (items.length === 0) {
+      return created!;
+    }
+
+    await this.conn.insert(replenishmentRequestItems).values(
+      items.map((item) => ({
+        replenishmentRequestId: created!.id,
+        supplyId: item.supplyId,
+        suggestedQuantity: item.suggestedQuantity,
+        requestedQuantity: item.requestedQuantity,
+        notes: item.notes ?? null,
+      })),
+    );
+
+    return created!;
+  }
+
+  async getReplenishmentByClosureId(inventoryClosureId: string) {
+    const [row] = await this.conn
+      .select()
+      .from(replenishmentRequests)
+      .where(eq(replenishmentRequests.inventoryClosureId, inventoryClosureId));
+    return row;
+  }
+
+  async listItemsByReplenishmentId(replenishmentRequestId: string) {
+    return this.conn
+      .select({
+        supplyId: replenishmentRequestItems.supplyId,
+        requestedQuantity: replenishmentRequestItems.requestedQuantity,
+      })
+      .from(replenishmentRequestItems)
+      .where(eq(replenishmentRequestItems.replenishmentRequestId, replenishmentRequestId));
   }
 }
 

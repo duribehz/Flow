@@ -3,6 +3,7 @@ import {
   bigint,
   check,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -84,3 +85,12 @@ export const replenishmentRequestItems = pgTable(
     ),
   ],
 );
+
+export const replenishmentRequestCounters = pgTable(
+  "replenishment_request_counters",
+  {
+    branchIdPrefix: text("branch_id_prefix").primaryKey(),
+    lastSeq: integer("last_seq").notNull().default(0),
+  },
+);
+

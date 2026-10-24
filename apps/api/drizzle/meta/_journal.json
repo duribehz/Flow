@@ -15,6 +15,27 @@
       "when": 1791913078433,
       "tag": "0001_hot_pet_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792437315661,
+      "tag": "0002_stiff_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792439035265,
+      "tag": "0003_overconfident_shard",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792441868697,
+      "tag": "0004_polite_mother_askani",
+      "breakpoints": true
     }
   ]
 }

@@ -1,16 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { PlaceholderPage } from "@/features/layout/placeholder-page";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/inventory")({
-  component: InventoryPage,
+  component: Outlet,
 });
-
-function InventoryPage() {
-  return (
-    <PlaceholderPage
-      title="Existencias"
-      description="Consulta y administra las existencias disponibles en cada sucursal."
-    />
-  );
-}

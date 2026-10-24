@@ -18,8 +18,13 @@ import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SuppliersRouteImport } from './routes/suppliers'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as InventoryIndexRouteImport } from './routes/inventory.index'
+import { Route as InventoryClosuresRouteImport } from './routes/inventory.closures'
 import { Route as ReportsIndexRouteImport } from './routes/reports.index'
 import { Route as ReportsReportIdRouteImport } from './routes/reports.$reportId'
+import { Route as InventoryClosuresIndexRouteImport } from './routes/inventory.closures.index'
+import { Route as InventoryClosuresClosureIdRouteImport } from './routes/inventory.closures.$closureId'
+import { Route as InventoryShiftsShiftIdRouteImport } from './routes/inventory.shifts.$shiftId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -66,6 +71,16 @@ const UsersRoute = UsersRouteImport.update({
   path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryIndexRoute = InventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InventoryRoute,
+} as any)
+const InventoryClosuresRoute = InventoryClosuresRouteImport.update({
+  id: '/closures',
+  path: '/closures',
+  getParentRoute: () => InventoryRoute,
+} as any)
 const ReportsIndexRoute = ReportsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -76,31 +91,55 @@ const ReportsReportIdRoute = ReportsReportIdRouteImport.update({
   path: '/$reportId',
   getParentRoute: () => ReportsRoute,
 } as any)
+const InventoryClosuresIndexRoute = InventoryClosuresIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => InventoryClosuresRoute,
+} as any)
+const InventoryClosuresClosureIdRoute =
+  InventoryClosuresClosureIdRouteImport.update({
+    id: '/$closureId',
+    path: '/$closureId',
+    getParentRoute: () => InventoryClosuresRoute,
+  } as any)
+const InventoryShiftsShiftIdRoute = InventoryShiftsShiftIdRouteImport.update({
+  id: '/shifts/$shiftId',
+  path: '/shifts/$shiftId',
+  getParentRoute: () => InventoryRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
   '/categories': typeof CategoriesRoute
-  '/inventory': typeof InventoryRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/orders': typeof OrdersRoute
   '/reports': typeof ReportsRouteWithChildren
   '/suppliers': typeof SuppliersRoute
   '/users': typeof UsersRoute
+  '/inventory/closures': typeof InventoryClosuresRouteWithChildren
   '/reports/$reportId': typeof ReportsReportIdRoute
+  '/inventory/': typeof InventoryIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
+  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
+  '/inventory/closures/': typeof InventoryClosuresIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
   '/categories': typeof CategoriesRoute
-  '/inventory': typeof InventoryRoute
   '/orders': typeof OrdersRoute
   '/suppliers': typeof SuppliersRoute
   '/users': typeof UsersRoute
   '/reports/$reportId': typeof ReportsReportIdRoute
+  '/inventory': typeof InventoryIndexRoute
   '/reports': typeof ReportsIndexRoute
+  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
+  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
+  '/inventory/closures': typeof InventoryClosuresIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -108,13 +147,18 @@ export interface FileRoutesById {
   '/articles': typeof ArticlesRoute
   '/branches': typeof BranchesRoute
   '/categories': typeof CategoriesRoute
-  '/inventory': typeof InventoryRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/orders': typeof OrdersRoute
   '/reports': typeof ReportsRouteWithChildren
   '/suppliers': typeof SuppliersRoute
   '/users': typeof UsersRoute
+  '/inventory/closures': typeof InventoryClosuresRouteWithChildren
   '/reports/$reportId': typeof ReportsReportIdRoute
+  '/inventory/': typeof InventoryIndexRoute
   '/reports/': typeof ReportsIndexRoute
+  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
+  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
+  '/inventory/closures/': typeof InventoryClosuresIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,20 +172,28 @@ export interface FileRouteTypes {
     | '/reports'
     | '/suppliers'
     | '/users'
+    | '/inventory/closures'
     | '/reports/$reportId'
+    | '/inventory/'
     | '/reports/'
+    | '/inventory/closures/$closureId'
+    | '/inventory/shifts/$shiftId'
+    | '/inventory/closures/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/articles'
     | '/branches'
     | '/categories'
-    | '/inventory'
     | '/orders'
     | '/suppliers'
     | '/users'
     | '/reports/$reportId'
+    | '/inventory'
     | '/reports'
+    | '/inventory/closures/$closureId'
+    | '/inventory/shifts/$shiftId'
+    | '/inventory/closures'
   id:
     | '__root__'
     | '/'
@@ -153,8 +205,13 @@ export interface FileRouteTypes {
     | '/reports'
     | '/suppliers'
     | '/users'
+    | '/inventory/closures'
     | '/reports/$reportId'
+    | '/inventory/'
     | '/reports/'
+    | '/inventory/closures/$closureId'
+    | '/inventory/shifts/$shiftId'
+    | '/inventory/closures/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -162,7 +219,7 @@ export interface RootRouteChildren {
   ArticlesRoute: typeof ArticlesRoute
   BranchesRoute: typeof BranchesRoute
   CategoriesRoute: typeof CategoriesRoute
-  InventoryRoute: typeof InventoryRoute
+  InventoryRoute: typeof InventoryRouteWithChildren
   OrdersRoute: typeof OrdersRoute
   ReportsRoute: typeof ReportsRouteWithChildren
   SuppliersRoute: typeof SuppliersRoute
@@ -234,6 +291,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory/': {
+      id: '/inventory/'
+      path: '/'
+      fullPath: '/inventory/'
+      preLoaderRoute: typeof InventoryIndexRouteImport
+      parentRoute: typeof InventoryRoute
+    }
+    '/inventory/closures': {
+      id: '/inventory/closures'
+      path: '/closures'
+      fullPath: '/inventory/closures'
+      preLoaderRoute: typeof InventoryClosuresRouteImport
+      parentRoute: typeof InventoryRoute
+    }
     '/reports/': {
       id: '/reports/'
       path: '/'
@@ -248,8 +319,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsReportIdRouteImport
       parentRoute: typeof ReportsRoute
     }
+    '/inventory/closures/': {
+      id: '/inventory/closures/'
+      path: '/'
+      fullPath: '/inventory/closures/'
+      preLoaderRoute: typeof InventoryClosuresIndexRouteImport
+      parentRoute: typeof InventoryClosuresRoute
+    }
+    '/inventory/closures/$closureId': {
+      id: '/inventory/closures/$closureId'
+      path: '/$closureId'
+      fullPath: '/inventory/closures/$closureId'
+      preLoaderRoute: typeof InventoryClosuresClosureIdRouteImport
+      parentRoute: typeof InventoryClosuresRoute
+    }
+    '/inventory/shifts/$shiftId': {
+      id: '/inventory/shifts/$shiftId'
+      path: '/shifts/$shiftId'
+      fullPath: '/inventory/shifts/$shiftId'
+      preLoaderRoute: typeof InventoryShiftsShiftIdRouteImport
+      parentRoute: typeof InventoryRoute
+    }
   }
 }
+
+interface InventoryClosuresRouteChildren {
+  InventoryClosuresClosureIdRoute: typeof InventoryClosuresClosureIdRoute
+  InventoryClosuresIndexRoute: typeof InventoryClosuresIndexRoute
+}
+
+const InventoryClosuresRouteChildren: InventoryClosuresRouteChildren = {
+  InventoryClosuresClosureIdRoute: InventoryClosuresClosureIdRoute,
+  InventoryClosuresIndexRoute: InventoryClosuresIndexRoute,
+}
+
+const InventoryClosuresRouteWithChildren =
+  InventoryClosuresRoute._addFileChildren(InventoryClosuresRouteChildren)
+
+interface InventoryRouteChildren {
+  InventoryClosuresRoute: typeof InventoryClosuresRouteWithChildren
+  InventoryIndexRoute: typeof InventoryIndexRoute
+  InventoryShiftsShiftIdRoute: typeof InventoryShiftsShiftIdRoute
+}
+
+const InventoryRouteChildren: InventoryRouteChildren = {
+  InventoryClosuresRoute: InventoryClosuresRouteWithChildren,
+  InventoryIndexRoute: InventoryIndexRoute,
+  InventoryShiftsShiftIdRoute: InventoryShiftsShiftIdRoute,
+}
+
+const InventoryRouteWithChildren = InventoryRoute._addFileChildren(
+  InventoryRouteChildren,
+)
 
 interface ReportsRouteChildren {
   ReportsReportIdRoute: typeof ReportsReportIdRoute
@@ -269,7 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArticlesRoute: ArticlesRoute,
   BranchesRoute: BranchesRoute,
   CategoriesRoute: CategoriesRoute,
-  InventoryRoute: InventoryRoute,
+  InventoryRoute: InventoryRouteWithChildren,
   OrdersRoute: OrdersRoute,
   ReportsRoute: ReportsRouteWithChildren,
   SuppliersRoute: SuppliersRoute,
