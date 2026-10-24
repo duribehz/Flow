@@ -252,6 +252,31 @@ export class InventoryRepo {
         throw new AppError(409, "INVENTORY_COUNT_NOT_DRAFT", "Inventory count is not a draft");
       }
 
+      const [day] = await conn
+        .select({ status: inventoryDays.status })
+        .from(inventoryDays)
+        .where(eq(inventoryDays.id, current.inventoryDayId))
+        .for("update");
+      if (!day || day.status !== "open") {
+        throw new AppError(409, "INVENTORY_DAY_CLOSED", "Inventory day is closed");
+      }
+      const [activeReceipt] = await conn
+        .select({ id: receipts.id })
+        .from(receipts)
+        .where(
+          and(
+            eq(receipts.inventoryDayId, current.inventoryDayId),
+            inArray(receipts.status, ["pending", "in_progress"]),
+          ),
+        );
+      if (activeReceipt) {
+        throw new AppError(
+          409,
+          "RECEIPT_IN_PROGRESS",
+          "Complete or cancel receipts before submitting the inventory count",
+        );
+      }
+
       const receivedBySupply = await this.sumReceivedByDay(current.inventoryDayId, conn);
       for (const item of current.items) {
         await conn

@@ -17,7 +17,6 @@ import {
   replenishmentRequests,
 } from "../replenishments/replenishments.schema.js";
 import { supplies } from "../supplies/supplies.schema.js";
-import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
 import { users } from "../users/users.schema.js";
 
 export const shipmentStatus = pgEnum("shipment_status", [
@@ -38,9 +37,6 @@ export const shipments = pgTable(
     replenishmentRequestId: uuid("replenishment_request_id")
       .notNull()
       .references(() => replenishmentRequests.id),
-    usagePurposeId: uuid("usage_purpose_id")
-      .notNull()
-      .references(() => usagePurposes.id),
     status: shipmentStatus().notNull().default("preparing"),
     preparedBy: uuid("prepared_by")
       .notNull()
@@ -54,6 +50,7 @@ export const shipments = pgTable(
   },
   (table) => [
     uniqueIndex("shipments_shipment_number_unique").on(table.shipmentNumber),
+    uniqueIndex("shipments_replenishment_request_unique").on(table.replenishmentRequestId),
     index("shipments_branch_id_idx").on(table.branchId),
     index("shipments_replenishment_request_id_idx").on(table.replenishmentRequestId),
     index("shipments_status_idx").on(table.status),
@@ -86,7 +83,7 @@ export const shipmentItems = pgTable(
     index("shipment_items_request_item_id_idx").on(table.replenishmentRequestItemId),
     check(
       "shipment_items_quantities_check",
-      sql`${table.plannedQuantity} > 0 and ${table.shippedQuantity} >= 0`,
+      sql`${table.plannedQuantity} > 0 and ${table.shippedQuantity} >= 0 and ${table.shippedQuantity} <= ${table.plannedQuantity}`,
     ),
   ],
 );
