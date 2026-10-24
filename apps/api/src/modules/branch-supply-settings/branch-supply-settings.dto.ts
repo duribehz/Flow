@@ -1,8 +1,7 @@
 import { z } from "@hono/zod-openapi";
+import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const branchSupplySettingModeValues = ["fixed", "on_demand"] as const;
-
-const quantityDTO = z.number().int().safe().nonnegative();
 
 export const branchSupplySettingsParamsDTO = z.object({
   branchId: z.uuid().openapi({ param: { name: "branchId", in: "path" } }),
@@ -14,7 +13,7 @@ export const branchSupplySettingParamsDTO = branchSupplySettingsParamsDTO.extend
 
 export const weeklyTargetDTO = z.object({
   weekday: z.number().int().min(1).max(7),
-  targetQuantity: quantityDTO,
+  targetQuantity: storedQuantitySchema,
 });
 
 export const upsertBranchSupplySettingDTO = z

@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const shipmentStatusValues = ["preparing", "dispatched", "delivered", "cancelled"] as const;
 
@@ -17,8 +18,8 @@ export const shipmentItemDTO = z
     supply: z.object({ id: z.uuid(), sku: z.string(), name: z.string() }),
     usagePurposeId: z.uuid(),
     usagePurposeName: z.string(),
-    plannedQuantity: z.number().int().safe().positive(),
-    shippedQuantity: z.number().int().safe().nonnegative(),
+    plannedQuantity: storedQuantitySchema.refine((value) => value > 0),
+    shippedQuantity: storedQuantitySchema,
     createdAt: z.iso.datetime(),
   })
   .openapi("ShipmentItem");

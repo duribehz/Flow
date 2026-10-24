@@ -4,6 +4,7 @@ import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
 import {
   createInventoryCountDTO,
+  createInventoryDayDTO,
   inventoryCountDetailDTO,
   inventoryCountDTO,
   inventoryCountIdParamsDTO,
@@ -19,6 +20,7 @@ import { getInventoryCountUseCase } from "./use-cases/get-inventory-count.usecas
 import { getInventoryDayUseCase } from "./use-cases/get-inventory-day.usecase.js";
 import { listInventoryCountsUseCase } from "./use-cases/list-inventory-counts.usecase.js";
 import { listInventoryDaysUseCase } from "./use-cases/list-inventory-days.usecase.js";
+import { openInventoryDayUseCase } from "./use-cases/open-inventory-day.usecase.js";
 import { reviewInventoryCountUseCase } from "./use-cases/review-inventory-count.usecase.js";
 import { submitInventoryCountUseCase } from "./use-cases/submit-inventory-count.usecase.js";
 import { updateInventoryCountUseCase } from "./use-cases/update-inventory-count.usecase.js";
@@ -45,6 +47,40 @@ export const inventoryRouter = new OpenAPIHono<State>({
     }
   },
 });
+
+inventoryRouter.openapi(
+  createRoute({
+    method: "post",
+    path: "/inventory-days",
+    operationId: "postInventoryDays",
+    tags: ["Inventory"],
+    summary: "Open or get an operational day",
+    request: {
+      body: { required: true, content: { "application/json": { schema: createInventoryDayDTO } } },
+    },
+    responses: {
+      200: {
+        description: "Existing operational day returned",
+        content: { "application/json": { schema: z.object({ data: inventoryDayDTO }) } },
+      },
+      201: {
+        description: "Operational day opened",
+        content: { "application/json": { schema: z.object({ data: inventoryDayDTO }) } },
+      },
+      400: errors[400],
+      404: errors[404],
+      409: errors[409],
+    },
+  }),
+  async (ctx) => {
+    const result = await openInventoryDayUseCase(
+      ctx.get("userId"),
+      ctx.req.valid("json"),
+      ctx.get("db"),
+    );
+    return ctx.json({ data: toDayResponse(result.day) }, result.created ? 201 : 200);
+  },
+);
 
 inventoryRouter.openapi(
   createRoute({

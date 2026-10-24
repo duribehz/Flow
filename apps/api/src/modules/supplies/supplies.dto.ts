@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { moneyCentsSchema } from "@/shared/domain/quantities.js";
 
 export const supplierIdsSchema = z
   .array(z.uuid())
@@ -13,7 +14,7 @@ export const createSupplySchema = z
     name: z.string().trim().min(1).max(200),
     description: z.string().trim().min(1).nullable().optional(),
     unitId: z.uuid(),
-    unitCost: z.number().int().nonnegative().default(0),
+    unitCost: moneyCentsSchema.default(0),
     categoryId: z.uuid(),
     supplierIds: supplierIdsSchema,
     active: z.boolean().default(true),
@@ -36,7 +37,7 @@ export const supplySchema = z
     sku: z.string(),
     name: z.string(),
     description: z.string().nullable(),
-    unitCost: z.number().int().nonnegative(),
+    unitCost: moneyCentsSchema,
     active: z.boolean(),
     category: z.object({
       id: z.uuid(),

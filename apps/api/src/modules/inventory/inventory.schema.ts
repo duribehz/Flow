@@ -109,7 +109,7 @@ export const inventoryCountItems = pgTable(
     index("inventory_count_items_supply_id_idx").on(table.supplyId),
     check(
       "inventory_count_items_quantities_check",
-      sql`${table.openingQuantity} >= 0 and ${table.receivedQuantity} >= 0 and (${table.closingQuantity} is null or ${table.closingQuantity} >= 0)`,
+      sql`${table.openingQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and (${table.closingQuantity} is null or ${table.closingQuantity} between 0 and 9007199254740991)`,
     ),
     check(
       "inventory_count_items_counted_check",

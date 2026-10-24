@@ -84,7 +84,7 @@ export const replenishmentRequestItems = pgTable(
     index("replenishment_request_items_usage_purpose_id_idx").on(table.usagePurposeId),
     check(
       "replenishment_request_items_quantities_check",
-      sql`(${table.suggestedQuantity} is null or ${table.suggestedQuantity} >= 0) and ${table.requestedQuantity} >= 0 and (${table.approvedQuantity} is null or ${table.approvedQuantity} >= 0) and ${table.fulfilledQuantity} >= 0 and ${table.unitCost} >= 0 and ${table.lineTotal} >= 0`,
+      sql`(${table.suggestedQuantity} is null or ${table.suggestedQuantity} between 0 and 9007199254740991) and ${table.requestedQuantity} between 0 and 9007199254740991 and (${table.approvedQuantity} is null or ${table.approvedQuantity} between 0 and 9007199254740991) and ${table.fulfilledQuantity} between 0 and 9007199254740991 and ${table.unitCost} between 0 and 9007199254740991 and ${table.lineTotal} between 0 and 9007199254740991`,
     ),
   ],
 );

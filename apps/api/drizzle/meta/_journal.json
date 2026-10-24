@@ -43,6 +43,13 @@
       "when": 1792841436315,
       "tag": "0005_sweet_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792866964010,
+      "tag": "0006_sparkling_toro",
+      "breakpoints": true
     }
   ]
 }

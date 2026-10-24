@@ -4,6 +4,7 @@ import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
 import {
   addReplenishmentItemDto,
+  approvedReplenishmentDto,
   draftReplenishmentDto,
   replenishmentDto,
   replenishmentIdParamsDto,
@@ -13,9 +14,11 @@ import {
   updateReplenishmentNotesDto,
 } from "./replenishments.dto.js";
 import { addReplenishmentItemUseCase } from "./use-cases/add-replenishment-item.usecase.js";
+import { approveReplenishmentUseCase } from "./use-cases/approve-replenishment.usecase.js";
 import { deleteReplenishmentItemUseCase } from "./use-cases/delete-replenishment-item.usecase.js";
 import { getReplenishmentUseCase } from "./use-cases/get-replenishment.usecase.js";
 import { getDraftReplenishmentsUseCase } from "./use-cases/get-draft-replenishments.usecase.js";
+import { getApprovedReplenishmentsUseCase } from "./use-cases/get-approved-replenishments.usecase.js";
 import { getSubmittedReplenishmentsUseCase } from "./use-cases/get-submitted-replenishments.usecase.js";
 import { submitReplenishmentUseCase } from "./use-cases/submit-replenishment.usecase.js";
 import { updateReplenishmentItemUseCase } from "./use-cases/update-replenishment-item.usecase.js";
@@ -46,6 +49,38 @@ const mutationResponses = {
     content: { "application/json": { schema: errorSchema } },
   },
 } as const;
+
+replenishmentsRouter.openapi(
+  createRoute({
+    method: "get",
+    path: "/approved",
+    operationId: "getApprovedReplenishments",
+    tags: ["Replenishments"],
+    summary: "List replenishment requests approved for shipment",
+    responses: {
+      200: {
+        description: "Approved replenishment requests",
+        content: {
+          "application/json": { schema: z.object({ data: z.array(approvedReplenishmentDto) }) },
+        },
+      },
+    },
+  }),
+  async (context) => {
+    const replenishments = await getApprovedReplenishmentsUseCase(context.get("db"));
+    return context.json(
+      {
+        data: replenishments.map((replenishment) => ({
+          ...replenishment,
+          status: "approved" as const,
+          reviewedAt: replenishment.reviewedAt?.toISOString() ?? null,
+          createdAt: replenishment.createdAt.toISOString(),
+        })),
+      },
+      200,
+    );
+  },
+);
 
 replenishmentsRouter.openapi(
   createRoute({
@@ -258,6 +293,32 @@ replenishmentsRouter.openapi(
   async (context) => {
     const { replenishmentId, itemId } = context.req.valid("param");
     const detail = await deleteReplenishmentItemUseCase(replenishmentId, itemId, context.get("db"));
+    return context.json({ data: serializeDetail(detail) }, 200);
+  },
+);
+
+replenishmentsRouter.openapi(
+  createRoute({
+    method: "post",
+    path: "/{replenishmentId}/approve",
+    operationId: "postReplenishmentsReplenishmentIdApprove",
+    tags: ["Replenishments"],
+    summary: "Approve all requested quantities and allow shipment preparation",
+    request: { params: replenishmentIdParamsDto },
+    responses: {
+      200: {
+        description: "Replenishment approved",
+        content: { "application/json": { schema: z.object({ data: replenishmentDto }) } },
+      },
+      ...mutationResponses,
+    },
+  }),
+  async (context) => {
+    const detail = await approveReplenishmentUseCase(
+      context.req.valid("param").replenishmentId,
+      context.get("userId"),
+      context.get("db"),
+    );
     return context.json({ data: serializeDetail(detail) }, 200);
   },
 );

@@ -104,7 +104,7 @@ export const receiptItems = pgTable(
     ),
     check(
       "receipt_items_quantities_check",
-      sql`${table.expectedQuantity} >= 0 and ${table.receivedQuantity} >= 0 and ${table.acceptedQuantity} >= 0 and ${table.rejectedQuantity} >= 0 and ${table.acceptedQuantity} + ${table.rejectedQuantity} <= ${table.receivedQuantity}`,
+      sql`${table.expectedQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and ${table.acceptedQuantity} between 0 and 9007199254740991 and ${table.rejectedQuantity} between 0 and 9007199254740991 and ${table.acceptedQuantity} + ${table.rejectedQuantity} <= ${table.receivedQuantity}`,
     ),
   ],
 );

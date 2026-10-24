@@ -83,7 +83,7 @@ export const shipmentItems = pgTable(
     index("shipment_items_request_item_id_idx").on(table.replenishmentRequestItemId),
     check(
       "shipment_items_quantities_check",
-      sql`${table.plannedQuantity} > 0 and ${table.shippedQuantity} >= 0 and ${table.shippedQuantity} <= ${table.plannedQuantity}`,
+      sql`${table.plannedQuantity} between 1 and 9007199254740991 and ${table.shippedQuantity} between 0 and ${table.plannedQuantity}`,
     ),
   ],
 );

@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const receiptStatusValues = ["pending", "in_progress", "completed", "cancelled"] as const;
 export const receiptConditionValues = ["good", "damaged", "expired", "incorrect"] as const;
@@ -24,9 +25,9 @@ export const updateReceiptNotesDTO = z
 
 export const updateReceiptItemDTO = z
   .object({
-    receivedQuantity: z.number().int().safe().nonnegative(),
-    acceptedQuantity: z.number().int().safe().nonnegative(),
-    rejectedQuantity: z.number().int().safe().nonnegative(),
+    receivedQuantity: storedQuantitySchema,
+    acceptedQuantity: storedQuantitySchema,
+    rejectedQuantity: storedQuantitySchema,
     condition: z.enum(receiptConditionValues).nullable(),
     notes: z.string().trim().min(1).max(1000).nullable().optional(),
   })
@@ -44,10 +45,10 @@ export const receiptItemDTO = z
     supply: z.object({ id: z.uuid(), sku: z.string(), name: z.string() }),
     usagePurposeId: z.uuid(),
     usagePurposeName: z.string(),
-    expectedQuantity: z.number().int().safe().nonnegative(),
-    receivedQuantity: z.number().int().safe().nonnegative(),
-    acceptedQuantity: z.number().int().safe().nonnegative(),
-    rejectedQuantity: z.number().int().safe().nonnegative(),
+    expectedQuantity: storedQuantitySchema,
+    receivedQuantity: storedQuantitySchema,
+    acceptedQuantity: storedQuantitySchema,
+    rejectedQuantity: storedQuantitySchema,
     condition: z.enum(receiptConditionValues).nullable(),
     checkedAt: z.iso.datetime().nullable(),
     notes: z.string().nullable(),

@@ -34,11 +34,11 @@ export class ShipmentsRepo {
       if (!request) {
         throw new AppError(404, "REPLENISHMENT_NOT_FOUND", "Replenishment request not found");
       }
-      if (request.status !== "submitted") {
+      if (request.status !== "approved") {
         throw new AppError(
           409,
-          "REPLENISHMENT_NOT_SUBMITTED",
-          "Only submitted requests can be shipped",
+          "REPLENISHMENT_NOT_APPROVED",
+          "Only approved requests can be shipped",
         );
       }
 
@@ -46,7 +46,7 @@ export class ShipmentsRepo {
         .select({
           id: replenishmentRequestItems.id,
           supplyId: replenishmentRequestItems.supplyId,
-          requestedQuantity: replenishmentRequestItems.requestedQuantity,
+          approvedQuantity: replenishmentRequestItems.approvedQuantity,
         })
         .from(replenishmentRequestItems)
         .where(eq(replenishmentRequestItems.replenishmentRequestId, replenishmentRequestId));
@@ -55,6 +55,15 @@ export class ShipmentsRepo {
           409,
           "REPLENISHMENT_HAS_NO_ITEMS",
           "A request without items cannot be shipped",
+        );
+      }
+      if (
+        requestItems.some((item) => item.approvedQuantity === null || item.approvedQuantity <= 0)
+      ) {
+        throw new AppError(
+          409,
+          "REPLENISHMENT_APPROVED_QUANTITIES_REQUIRED",
+          "Approved request items must have positive approved quantities",
         );
       }
 
@@ -81,7 +90,7 @@ export class ShipmentsRepo {
           shipmentId: shipment.id,
           supplyId: item.supplyId,
           replenishmentRequestItemId: item.id,
-          plannedQuantity: item.requestedQuantity,
+          plannedQuantity: item.approvedQuantity!,
           shippedQuantity: 0,
         })),
       );

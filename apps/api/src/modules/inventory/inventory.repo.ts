@@ -2,10 +2,16 @@ import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 
 import { AppError } from "@/shared/errors/app-error.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
+import { assertSafeStoredQuantity } from "@/shared/domain/quantities.js";
+import { branches } from "../branches/branches.schema.js";
 import { receiptItems, receipts } from "../receipts/receipts.schema.js";
 import { ReplenishmentsRepo } from "../replenishments/replenishments.repo.js";
 import { branchSupplySettings, supplies } from "../supplies/supplies.schema.js";
-import type { CreateInventoryCountInput, UpdateInventoryCountInput } from "./inventory.dto.js";
+import type {
+  CreateInventoryCountInput,
+  CreateInventoryDayInput,
+  UpdateInventoryCountInput,
+} from "./inventory.dto.js";
 import { inventoryCountItems, inventoryCounts, inventoryDays } from "./inventory.schema.js";
 
 export type ListInventoryDaysFilters = {
@@ -23,21 +29,27 @@ export type ListInventoryCountsFilters = {
 export class InventoryRepo {
   constructor(private readonly conn: Executor) {}
 
-  createInventoryCount(actorId: string, input: CreateInventoryCountInput) {
+  openInventoryDay(actorId: string, input: CreateInventoryDayInput) {
     return this.runInTransaction(async (conn) => {
-      const [createdDay] = await conn
+      const [branch] = await conn
+        .select({ id: branches.id })
+        .from(branches)
+        .where(eq(branches.id, input.branchId));
+      if (!branch) throw new AppError(404, "BRANCH_NOT_FOUND", "Branch not found");
+
+      const [created] = await conn
         .insert(inventoryDays)
         .values({
           branchId: input.branchId,
           businessDate: input.businessDate,
           openedBy: actorId,
-          notes: input.dayNotes ?? null,
+          notes: input.notes ?? null,
         })
         .onConflictDoNothing({ target: [inventoryDays.branchId, inventoryDays.businessDate] })
         .returning();
 
       const day =
-        createdDay ??
+        created ??
         (
           await conn
             .select()
@@ -48,9 +60,26 @@ export class InventoryRepo {
                 eq(inventoryDays.businessDate, input.businessDate),
               ),
             )
+            .for("update")
         )[0];
+      if (!day)
+        throw new AppError(500, "INVENTORY_DAY_CREATE_FAILED", "Could not open inventory day");
+      if (day.status !== "open") {
+        throw new AppError(409, "INVENTORY_DAY_CLOSED", "Inventory day is closed");
+      }
+      return { day, created: created !== undefined };
+    });
+  }
 
-      if (!day || day.status !== "open") {
+  createInventoryCount(actorId: string, input: CreateInventoryCountInput) {
+    return this.runInTransaction(async (conn) => {
+      const [day] = await conn
+        .select()
+        .from(inventoryDays)
+        .where(eq(inventoryDays.id, input.inventoryDayId))
+        .for("update");
+      if (!day) throw new AppError(404, "INVENTORY_DAY_NOT_FOUND", "Inventory day not found");
+      if (day.status !== "open") {
         throw new AppError(409, "INVENTORY_DAY_CLOSED", "Inventory day is closed");
       }
 
@@ -58,7 +87,7 @@ export class InventoryRepo {
         .insert(inventoryCounts)
         .values({
           inventoryDayId: day.id,
-          branchId: input.branchId,
+          branchId: day.branchId,
           notes: input.notes ?? null,
           createdBy: actorId,
         })
@@ -79,7 +108,7 @@ export class InventoryRepo {
         .innerJoin(supplies, eq(branchSupplySettings.supplyId, supplies.id))
         .where(
           and(
-            eq(branchSupplySettings.branchId, input.branchId),
+            eq(branchSupplySettings.branchId, day.branchId),
             eq(branchSupplySettings.active, true),
             eq(supplies.active, true),
           ),
@@ -101,11 +130,11 @@ export class InventoryRepo {
         .innerJoin(inventoryDays, eq(inventoryCounts.inventoryDayId, inventoryDays.id))
         .where(
           and(
-            eq(inventoryCounts.branchId, input.branchId),
+            eq(inventoryCounts.branchId, day.branchId),
             inArray(inventoryCounts.status, ["submitted", "reviewed"]),
             eq(inventoryCountItems.counted, true),
             inArray(inventoryCountItems.supplyId, supplyIds),
-            lt(inventoryDays.businessDate, input.businessDate),
+            lt(inventoryDays.businessDate, day.businessDate),
           ),
         )
         .orderBy(desc(inventoryDays.businessDate), desc(inventoryCounts.submittedAt));
@@ -347,7 +376,19 @@ export class InventoryRepo {
       .innerJoin(receipts, eq(receiptItems.receiptId, receipts.id))
       .where(and(eq(receipts.inventoryDayId, dayId), eq(receipts.status, "completed")))
       .groupBy(receiptItems.supplyId);
-    return new Map(rows.map((row) => [row.supplyId, Number(row.total)]));
+    return new Map(
+      rows.map((row) => {
+        try {
+          return [row.supplyId, assertSafeStoredQuantity(Number(row.total))] as const;
+        } catch {
+          throw new AppError(
+            500,
+            "RECEIVED_QUANTITY_OVERFLOW",
+            "Accepted receipt total exceeds the safe quantity range",
+          );
+        }
+      }),
+    );
   }
 
   private runInTransaction<T>(callback: (conn: Executor) => Promise<T>) {

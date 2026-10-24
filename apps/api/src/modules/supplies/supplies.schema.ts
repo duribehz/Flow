@@ -67,7 +67,7 @@ export const supplies = pgTable(
     uniqueIndex("supplies_sku_unique").on(table.sku),
     index("supplies_unit_id_idx").on(table.unitId),
     index("supplies_category_id_idx").on(table.categoryId),
-    check("supplies_unit_cost_check", sql`${table.unitCost} >= 0`),
+    check("supplies_unit_cost_check", sql`${table.unitCost} between 0 and 9007199254740991`),
   ],
 );
 
@@ -125,6 +125,9 @@ export const branchSupplyWeeklyTargets = pgTable(
   (table) => [
     primaryKey({ columns: [table.branchSupplySettingId, table.weekday] }),
     check("branch_supply_weekly_targets_weekday_check", sql`${table.weekday} between 1 and 7`),
-    check("branch_supply_weekly_targets_target_quantity_check", sql`${table.targetQuantity} >= 0`),
+    check(
+      "branch_supply_weekly_targets_target_quantity_check",
+      sql`${table.targetQuantity} between 0 and 9007199254740991`,
+    ),
   ],
 );

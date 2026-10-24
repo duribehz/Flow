@@ -142,6 +142,16 @@ describe("supply routes", () => {
     });
   });
 
+  test("rejects unit costs outside the safe integer range", async () => {
+    const response = await createTestApp().request("/v1/supplies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...createSupplyInput, unitCost: Number.MAX_SAFE_INTEGER + 1 }),
+    });
+
+    expect(response.status).toBe(400);
+  });
+
   test("rejects creating a supply without suppliers", async () => {
     const response = await createTestApp().request("/v1/supplies", {
       method: "POST",

@@ -73,7 +73,7 @@ export const purchaseOrderItems = pgTable(
     ),
     check(
       "purchase_order_items_quantities_check",
-      sql`${table.orderedQuantity} > 0 and ${table.receivedQuantity} >= 0 and ${table.unitPrice} >= 0`,
+      sql`${table.orderedQuantity} between 1 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and ${table.unitPrice} between 0 and 9007199254740991`,
     ),
   ],
 );

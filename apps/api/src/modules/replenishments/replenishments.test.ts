@@ -44,9 +44,16 @@ const draftReplenishment = {
   createdAt: replenishmentDetail.createdAt,
   updatedAt: replenishmentDetail.updatedAt,
 };
+const actorId = "00000000-0000-4000-8000-000000000001";
+const approvedReplenishment = {
+  ...submittedReplenishment,
+  status: "approved" as const,
+  reviewedAt: new Date("2026-10-13T13:00:00.000Z"),
+};
 
 const getSubmittedReplenishmentsUseCase = mock(async (_db: Executor) => [submittedReplenishment]);
 const getDraftReplenishmentsUseCase = mock(async (_db: Executor) => [draftReplenishment]);
+const getApprovedReplenishmentsUseCase = mock(async (_db: Executor) => [approvedReplenishment]);
 const getReplenishmentUseCase = mock(
   async (_replenishmentId: string, _db: Executor) => replenishmentDetail,
 );
@@ -63,12 +70,24 @@ const deleteReplenishmentItemUseCase = mock(
   async (_id: string, _itemId: string, _db: Executor) => replenishmentDetail,
 );
 const submitReplenishmentUseCase = mock(async (_id: string, _db: Executor) => replenishmentDetail);
+const approveReplenishmentUseCase = mock(async (_id: string, _actorId: string, _db: Executor) => ({
+  ...replenishmentDetail,
+  status: "approved" as const,
+  reviewedBy: { id: actorId, userName: "reviewer" },
+  reviewedAt: new Date("2026-10-13T13:00:00.000Z"),
+}));
 
 mock.module("./use-cases/get-submitted-replenishments.usecase.js", () => ({
   getSubmittedReplenishmentsUseCase,
 }));
 mock.module("./use-cases/get-draft-replenishments.usecase.js", () => ({
   getDraftReplenishmentsUseCase,
+}));
+mock.module("./use-cases/get-approved-replenishments.usecase.js", () => ({
+  getApprovedReplenishmentsUseCase,
+}));
+mock.module("./use-cases/approve-replenishment.usecase.js", () => ({
+  approveReplenishmentUseCase,
 }));
 mock.module("./use-cases/update-replenishment-notes.usecase.js", () => ({
   updateReplenishmentNotesUseCase,
@@ -104,6 +123,7 @@ function createTestApp(detailExists = true) {
 
   app.use("*", async (context, next) => {
     context.set("db", {} as Executor);
+    context.set("userId", actorId);
     await next();
   });
   app.onError(errorHandler);
@@ -138,6 +158,37 @@ describe("replenishment routes", () => {
       status: "draft",
       createdAt: draftReplenishment.createdAt.toISOString(),
     });
+  });
+
+  test("lists approved requests for shipment preparation", async () => {
+    const response = await createTestApp().request("/v1/replenishments/approved");
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).data[0]).toMatchObject({
+      id: approvedReplenishment.id,
+      status: "approved",
+      reviewedAt: approvedReplenishment.reviewedAt.toISOString(),
+    });
+  });
+
+  test("approves all requested quantities and exposes the approval route", async () => {
+    const app = createTestApp();
+    const response = await app.request(`/v1/replenishments/${replenishmentDetail.id}/approve`, {
+      method: "POST",
+    });
+    const document = (await (await app.request("/v1/openapi.json")).json()) as {
+      paths: Record<string, unknown>;
+    };
+
+    expect(response.status).toBe(200);
+    expect((await response.json()).data.status).toBe("approved");
+    expect(approveReplenishmentUseCase).toHaveBeenCalledWith(
+      replenishmentDetail.id,
+      actorId,
+      expect.anything(),
+    );
+    expect(document.paths).toHaveProperty("/v1/replenishments/{replenishmentId}/approve");
+    expect(document.paths).toHaveProperty("/v1/replenishments/approved");
   });
 
   test("gets a replenishment detail", async () => {

@@ -58,6 +58,7 @@ let createItems = [item];
 let updateInput: unknown;
 
 const createInventoryCountUseCase = mock(async () => ({ ...count, items: createItems }));
+const openInventoryDayUseCase = mock(async () => ({ day, created: true }));
 const listInventoryDaysUseCase = mock(async () => [day]);
 const getInventoryDayUseCase = mock(async () => day);
 const listInventoryCountsUseCase = mock(async () => [count]);
@@ -98,6 +99,7 @@ const reviewInventoryCountUseCase = mock(async () => ({
 mock.module("./use-cases/create-inventory-count.usecase.js", () => ({
   createInventoryCountUseCase,
 }));
+mock.module("./use-cases/open-inventory-day.usecase.js", () => ({ openInventoryDayUseCase }));
 mock.module("./use-cases/list-inventory-days.usecase.js", () => ({ listInventoryDaysUseCase }));
 mock.module("./use-cases/get-inventory-day.usecase.js", () => ({ getInventoryDayUseCase }));
 mock.module("./use-cases/list-inventory-counts.usecase.js", () => ({
@@ -133,6 +135,7 @@ beforeEach(() => {
   createItems = [item];
   updateInput = undefined;
   createInventoryCountUseCase.mockClear();
+  openInventoryDayUseCase.mockClear();
   listInventoryDaysUseCase.mockClear();
   getInventoryDayUseCase.mockClear();
   listInventoryCountsUseCase.mockClear();
@@ -154,12 +157,33 @@ describe("inventory routes", () => {
     expect((await getResponse.json()).data.id).toBe(dayId);
   });
 
+  test("opens an operational day explicitly and returns an existing open day idempotently", async () => {
+    const app = createTestApp();
+    const body = { branchId, businessDate: "2026-10-24" };
+    const opened = await app.request("/v1/inventory-days", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    openInventoryDayUseCase.mockImplementationOnce(async () => ({ day, created: false }));
+    const existing = await app.request("/v1/inventory-days", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    expect(opened.status).toBe(201);
+    expect(existing.status).toBe(200);
+    expect((await opened.json()).data.id).toBe(dayId);
+    expect(openInventoryDayUseCase).toHaveBeenCalledWith(actorId, body, expect.anything());
+  });
+
   test("creates a draft with an empty snapshot", async () => {
     createItems = [];
     const response = await createTestApp().request("/v1/inventory-counts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ branchId, businessDate: "2026-10-24" }),
+      body: JSON.stringify({ inventoryDayId: dayId }),
     });
 
     expect(response.status).toBe(201);
@@ -272,18 +296,29 @@ describe("inventory routes", () => {
     const response = await createTestApp().request("/v1/openapi.json");
     const document = (await response.json()) as {
       paths: Record<string, Record<string, { operationId?: string }>>;
+      components: {
+        schemas: {
+          InventoryCountItem: {
+            properties: { closingQuantity: { description?: string } };
+          };
+        };
+      };
     };
 
     expect(document.paths["/v1/inventory-days"]?.get.operationId).toBe("getInventoryDays");
     expect(document.paths["/v1/inventory-days/{dayId}"]?.get.operationId).toBe(
       "getInventoryDaysDayId",
     );
+    expect(document.paths["/v1/inventory-days"]?.post.operationId).toBe("postInventoryDays");
     expect(document.paths["/v1/inventory-counts"]?.post.operationId).toBe("postInventoryCounts");
     expect(document.paths["/v1/inventory-counts/{countId}"]?.patch.operationId).toBe(
       "patchInventoryCountsCountId",
     );
     expect(document.paths["/v1/inventory-counts/{countId}/submit"]?.post).toBeDefined();
     expect(document.paths["/v1/inventory-counts/{countId}/review"]?.post).toBeDefined();
+    expect(
+      document.components.schemas.InventoryCountItem.properties.closingQuantity.description,
+    ).toContain("hundredths of the base unit");
     expect(document.paths["/v1/inventory-shifts"]).toBeUndefined();
     expect(document.paths["/v1/inventory-closures"]).toBeUndefined();
   });

@@ -1,15 +1,23 @@
 import { z } from "@hono/zod-openapi";
+import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const inventoryDayStatusValues = ["open", "closed"] as const;
 export const inventoryCountStatusValues = ["draft", "submitted", "reviewed"] as const;
 
 const notesSchema = z.string().trim().min(1).max(1000);
-const quantitySchema = z.number().int().safe().nonnegative();
 const dateTimeSchema = z.iso.datetime();
 
 export const inventoryDayIdParamsDTO = z.object({
   dayId: z.uuid().openapi({ param: { name: "dayId", in: "path" } }),
 });
+
+export const createInventoryDayDTO = z
+  .object({
+    branchId: z.uuid(),
+    businessDate: z.iso.date(),
+    notes: notesSchema.nullable().optional(),
+  })
+  .openapi("CreateInventoryDay");
 
 export const inventoryCountIdParamsDTO = z.object({
   countId: z.uuid().openapi({ param: { name: "countId", in: "path" } }),
@@ -29,16 +37,14 @@ export const listInventoryCountsQueryDTO = z.object({
 
 export const createInventoryCountDTO = z
   .object({
-    branchId: z.uuid(),
-    businessDate: z.iso.date(),
-    dayNotes: notesSchema.nullable().optional(),
+    inventoryDayId: z.uuid(),
     notes: notesSchema.nullable().optional(),
   })
   .openapi("CreateInventoryCount");
 
 export const updateInventoryCountItemDTO = z.object({
   supplyId: z.uuid(),
-  closingQuantity: quantitySchema.nullable(),
+  closingQuantity: storedQuantitySchema.nullable(),
 });
 
 export const updateInventoryCountDTO = z
@@ -77,9 +83,9 @@ export const inventoryCountItemDTO = z
     inventoryCountId: z.uuid(),
     supplyId: z.uuid(),
     counted: z.boolean(),
-    openingQuantity: quantitySchema,
-    receivedQuantity: quantitySchema,
-    closingQuantity: quantitySchema.nullable(),
+    openingQuantity: storedQuantitySchema,
+    receivedQuantity: storedQuantitySchema,
+    closingQuantity: storedQuantitySchema.nullable(),
     lastCountedAt: dateTimeSchema.nullable(),
     createdAt: dateTimeSchema,
   })
@@ -105,5 +111,6 @@ export const inventoryCountDetailDTO = inventoryCountDTO
   .extend({ items: z.array(inventoryCountItemDTO) })
   .openapi("InventoryCountDetail");
 
+export type CreateInventoryDayInput = z.infer<typeof createInventoryDayDTO>;
 export type CreateInventoryCountInput = z.infer<typeof createInventoryCountDTO>;
 export type UpdateInventoryCountInput = z.infer<typeof updateInventoryCountDTO>;

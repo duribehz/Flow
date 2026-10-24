@@ -1,4 +1,5 @@
 import { z } from "@hono/zod-openapi";
+import { moneyCentsSchema, storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 const userDto = z.object({
   id: z.uuid(),
@@ -24,13 +25,13 @@ const replenishmentItemDto = z
       name: z.string(),
       symbol: z.string(),
     }),
-    existenceQuantity: z.number().int().safe().nonnegative().nullable(),
-    suggestedQuantity: z.number().int().safe().nonnegative().nullable(),
-    requestedQuantity: z.number().int().safe().nonnegative(),
-    approvedQuantity: z.number().int().nonnegative().nullable(),
-    fulfilledQuantity: z.number().int().nonnegative(),
-    unitCost: z.number().int().safe().nonnegative(),
-    lineTotal: z.number().int().safe().nonnegative(),
+    existenceQuantity: storedQuantitySchema.nullable(),
+    suggestedQuantity: storedQuantitySchema.nullable(),
+    requestedQuantity: storedQuantitySchema,
+    approvedQuantity: storedQuantitySchema.nullable(),
+    fulfilledQuantity: storedQuantitySchema,
+    unitCost: moneyCentsSchema,
+    lineTotal: moneyCentsSchema,
     createdAt: z.iso.datetime(),
   })
   .openapi("ReplenishmentItem");
@@ -80,14 +81,14 @@ export const addReplenishmentItemDto = z
   .object({
     supplyId: z.uuid(),
     usagePurposeId: z.uuid(),
-    requestedQuantity: z.number().int().safe().nonnegative(),
+    requestedQuantity: storedQuantitySchema,
   })
   .openapi("AddReplenishmentItem");
 
 export const updateReplenishmentItemDto = z
   .object({
     usagePurposeId: z.uuid().optional(),
-    requestedQuantity: z.number().int().safe().nonnegative().optional(),
+    requestedQuantity: storedQuantitySchema.optional(),
   })
   .refine((value) => value.usagePurposeId !== undefined || value.requestedQuantity !== undefined, {
     message: "At least one field is required",
@@ -124,3 +125,15 @@ export const draftReplenishmentDto = z
     updatedAt: z.iso.datetime(),
   })
   .openapi("DraftReplenishment");
+
+export const approvedReplenishmentDto = z
+  .object({
+    id: z.uuid(),
+    requestNumber: z.string(),
+    branch: z.object({ id: z.uuid(), name: z.string() }),
+    requestedBy: userDto,
+    status: z.literal("approved"),
+    reviewedAt: z.iso.datetime().nullable(),
+    createdAt: z.iso.datetime(),
+  })
+  .openapi("ApprovedReplenishment");

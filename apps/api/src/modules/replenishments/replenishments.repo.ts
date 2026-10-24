@@ -1,8 +1,9 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { AppError } from "@/shared/errors/app-error.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
+import { calculateLineTotal } from "@/shared/domain/quantities.js";
 import { branches } from "../branches/branches.schema.js";
 import {
   inventoryCountItems,
@@ -17,6 +18,7 @@ import {
   units,
 } from "../supplies/supplies.schema.js";
 import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
+import { shipments } from "../shipments/shipments.schema.js";
 import { users } from "../users/users.schema.js";
 import {
   replenishmentRequestCounters,
@@ -126,7 +128,7 @@ export class ReplenishmentsRepo {
             approvedQuantity: null,
             fulfilledQuantity: 0,
             unitCost: item.unitCost,
-            lineTotal: calculateReplenishmentLineTotal(item.unitCost, requestedQuantity),
+            lineTotal: calculateLineTotalOrAppError(requestedQuantity, item.unitCost),
           };
         }),
       );
@@ -184,6 +186,24 @@ export class ReplenishmentsRepo {
       ...replenishment,
       status: "draft" as const,
     }));
+  }
+
+  async getApprovedReplenishments() {
+    return this.conn
+      .select({
+        id: replenishmentRequests.id,
+        requestNumber: replenishmentRequests.requestNumber,
+        branch: { id: branches.id, name: branches.name },
+        requestedBy: { id: users.id, userName: users.userName },
+        reviewedAt: replenishmentRequests.reviewedAt,
+        createdAt: replenishmentRequests.createdAt,
+      })
+      .from(replenishmentRequests)
+      .innerJoin(branches, eq(replenishmentRequests.branchId, branches.id))
+      .innerJoin(users, eq(replenishmentRequests.requestedBy, users.id))
+      .leftJoin(shipments, eq(shipments.replenishmentRequestId, replenishmentRequests.id))
+      .where(and(eq(replenishmentRequests.status, "approved"), isNull(shipments.id)))
+      .orderBy(asc(replenishmentRequests.reviewedAt), asc(replenishmentRequests.createdAt));
   }
 
   async getReplenishmentById(replenishmentId: string, conn: Executor = this.conn) {
@@ -304,7 +324,7 @@ export class ReplenishmentsRepo {
         approvedQuantity: null,
         fulfilledQuantity: 0,
         unitCost: supply.unitCost,
-        lineTotal: calculateReplenishmentLineTotal(supply.unitCost, input.requestedQuantity),
+        lineTotal: calculateLineTotalOrAppError(input.requestedQuantity, supply.unitCost),
       });
       await this.touchRequest(replenishmentId, conn);
       return (await this.getReplenishmentById(replenishmentId, conn))!;
@@ -345,9 +365,9 @@ export class ReplenishmentsRepo {
         .set({
           requestedQuantity: requestedQuantity ?? item.requestedQuantity,
           usagePurposeId: usagePurposeId ?? item.usagePurposeId,
-          lineTotal: calculateReplenishmentLineTotal(
-            item.unitCost,
+          lineTotal: calculateLineTotalOrAppError(
             requestedQuantity ?? item.requestedQuantity,
+            item.unitCost,
           ),
         })
         .where(eq(replenishmentRequestItems.id, itemId));
@@ -406,6 +426,65 @@ export class ReplenishmentsRepo {
     });
   }
 
+  async approve(replenishmentId: string, actorId: string) {
+    return this.runInTransaction(async (conn) => {
+      const [request] = await conn
+        .select({ status: replenishmentRequests.status })
+        .from(replenishmentRequests)
+        .where(eq(replenishmentRequests.id, replenishmentId))
+        .for("update");
+      if (!request) throw new AppError(404, "REPLENISHMENT_NOT_FOUND", "Replenishment not found");
+      if (request.status !== "submitted") {
+        throw new AppError(
+          409,
+          "REPLENISHMENT_NOT_SUBMITTED",
+          "Only submitted requests can be approved",
+        );
+      }
+
+      const items = await conn
+        .select({
+          id: replenishmentRequestItems.id,
+          requestedQuantity: replenishmentRequestItems.requestedQuantity,
+        })
+        .from(replenishmentRequestItems)
+        .where(eq(replenishmentRequestItems.replenishmentRequestId, replenishmentId));
+      if (items.length === 0 || items.some((item) => item.requestedQuantity <= 0)) {
+        throw new AppError(
+          409,
+          "REPLENISHMENT_CANNOT_BE_APPROVED",
+          "Request items must have positive quantities",
+        );
+      }
+
+      for (const item of items) {
+        await conn
+          .update(replenishmentRequestItems)
+          .set({ approvedQuantity: item.requestedQuantity })
+          .where(eq(replenishmentRequestItems.id, item.id));
+      }
+      const reviewedAt = new Date();
+      const [approved] = await conn
+        .update(replenishmentRequests)
+        .set({ status: "approved", reviewedBy: actorId, reviewedAt, updatedAt: reviewedAt })
+        .where(
+          and(
+            eq(replenishmentRequests.id, replenishmentId),
+            eq(replenishmentRequests.status, "submitted"),
+          ),
+        )
+        .returning({ id: replenishmentRequests.id });
+      if (!approved) {
+        throw new AppError(
+          409,
+          "REPLENISHMENT_NOT_SUBMITTED",
+          "Only submitted requests can be approved",
+        );
+      }
+      return (await this.getReplenishmentById(replenishmentId, conn))!;
+    });
+  }
+
   async getReplenishmentByCountId(inventoryCountId: string) {
     const [row] = await this.conn
       .select()
@@ -456,20 +535,15 @@ function getNextWeekday(businessDate: string) {
   return weekday === 0 ? 7 : weekday;
 }
 
-export function calculateReplenishmentLineTotal(unitCost: number, quantityInHundredths: number) {
-  if (
-    !Number.isSafeInteger(unitCost) ||
-    !Number.isSafeInteger(quantityInHundredths) ||
-    unitCost < 0 ||
-    quantityInHundredths < 0
-  ) {
-    throw new AppError(400, "INVALID_REPLENISHMENT_AMOUNT", "Amounts must be safe integers");
+function calculateLineTotalOrAppError(storedQuantity: number, unitCostCents: number) {
+  try {
+    return calculateLineTotal(storedQuantity, unitCostCents);
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError(400, "INVALID_REPLENISHMENT_AMOUNT", error.message);
+    }
+    throw error;
   }
-  const total = (BigInt(unitCost) * BigInt(quantityInHundredths) + 50n) / 100n;
-  if (total > BigInt(Number.MAX_SAFE_INTEGER)) {
-    throw new AppError(400, "REPLENISHMENT_LINE_TOTAL_OVERFLOW", "Line total is too large");
-  }
-  return Number(total);
 }
 
 function draftConflict() {
@@ -478,6 +552,9 @@ function draftConflict() {
 
 export type SubmittedReplenishment = Awaited<
   ReturnType<ReplenishmentsRepo["getSubmittedReplenishments"]>
+>[number];
+export type ApprovedReplenishment = Awaited<
+  ReturnType<ReplenishmentsRepo["getApprovedReplenishments"]>
 >[number];
 export type ReplenishmentDetail = NonNullable<
   Awaited<ReturnType<ReplenishmentsRepo["getReplenishmentById"]>>
