@@ -1,161 +1,109 @@
 import { z } from "@hono/zod-openapi";
-import { createSelectSchema } from "drizzle-zod";
 
-import {
-  inventoryClosureItems,
-  inventoryClosures,
-  inventoryReceipts,
-  inventoryShifts,
-} from "./inventory.schema.js";
+export const inventoryDayStatusValues = ["open", "closed"] as const;
+export const inventoryCountStatusValues = ["draft", "submitted", "reviewed"] as const;
 
-export const shiftNameValues = ["morning", "afternoon", "night"] as const;
-export const shiftStatusValues = ["open", "closed"] as const;
-export const inventoryIncidentValues = ["none", "shortage", "surplus", "damaged"] as const;
+const notesSchema = z.string().trim().min(1).max(1000);
+const quantitySchema = z.number().int().safe().nonnegative();
+const dateTimeSchema = z.iso.datetime();
 
-export const createInventoryShiftDTO = z
+export const inventoryDayIdParamsDTO = z.object({
+  dayId: z.uuid().openapi({ param: { name: "dayId", in: "path" } }),
+});
+
+export const inventoryCountIdParamsDTO = z.object({
+  countId: z.uuid().openapi({ param: { name: "countId", in: "path" } }),
+});
+
+export const listInventoryDaysQueryDTO = z.object({
+  branchId: z.uuid().optional(),
+  businessDate: z.iso.date().optional(),
+  status: z.enum(inventoryDayStatusValues).optional(),
+});
+
+export const listInventoryCountsQueryDTO = z.object({
+  inventoryDayId: z.uuid().optional(),
+  branchId: z.uuid().optional(),
+  status: z.enum(inventoryCountStatusValues).optional(),
+});
+
+export const createInventoryCountDTO = z
   .object({
     branchId: z.uuid(),
     businessDate: z.iso.date(),
-    shiftName: z.enum(shiftNameValues),
-    notes: z.string().trim().min(1).max(1000).optional(),
+    dayNotes: notesSchema.nullable().optional(),
+    notes: notesSchema.nullable().optional(),
   })
-  .openapi("CreateInventoryShift");
+  .openapi("CreateInventoryCount");
 
-export const inventoryShiftIdParamsDTO = z.object({
-  shiftId: z.uuid().openapi({ param: { name: "shiftId", in: "path" } }),
-});
-
-export const listInventoryShiftsQueryDTO = z.object({
-  branchId: z.uuid().optional(),
-  businessDate: z.iso.date().optional(),
-  shiftName: z.enum(shiftNameValues).optional(),
-});
-
-export const inventoryClosureIdParamsDTO = z.object({
-  closureId: z.uuid().openapi({ param: { name: "closureId", in: "path" } }),
-});
-
-export const listInventoryClosuresQueryDTO = z.object({
-  branchId: z.uuid().optional(),
-  businessDate: z.iso.date().optional(),
-});
-
-export const recordInventoryReceiptDTO = z
-  .object({
-    supplyId: z.uuid(),
-    expectedQuantity: z.number().int().nonnegative().optional(),
-    receivedQuantity: z.number().int().nonnegative(),
-    incidentType: z.enum(inventoryIncidentValues).default("none"),
-    notes: z.string().trim().min(1).max(1000).optional(),
-  })
-  .openapi("RecordInventoryReceipt");
-
-export const inventoryShiftDto = createSelectSchema(inventoryShifts).openapi("InventoryShift");
-export const inventoryReceiptDto = createSelectSchema(inventoryReceipts).openapi(
-  "InventoryReceipt",
-);
-export const inventoryClosureDto = createSelectSchema(inventoryClosures).openapi(
-  "InventoryClosure",
-);
-export const inventoryClosureItemDto = createSelectSchema(inventoryClosureItems).openapi(
-  "InventoryClosureItem",
-);
-export const inventoryClosureDetailDto = inventoryClosureDto
-  .extend({
-    items: z.array(inventoryClosureItemDto),
-  })
-  .openapi("InventoryClosureDetail");
-
-export const closeInventoryShiftItemDTO = z.object({
+export const updateInventoryCountItemDTO = z.object({
   supplyId: z.uuid(),
-  closingQuantity: z.number().int().nonnegative(),
+  closingQuantity: quantitySchema.nullable(),
 });
 
-export const closeInventoryShiftDTO = z
+export const updateInventoryCountDTO = z
   .object({
-    closingItems: z.array(closeInventoryShiftItemDTO).min(1),
-    notes: z.string().trim().min(1).max(1000).optional(),
+    notes: notesSchema.nullable().optional(),
+    items: z.array(updateInventoryCountItemDTO).optional(),
   })
-  .openapi("CloseInventoryShift");
-
-export const closeShiftResultDto = z
-  .object({
-    closure: inventoryClosureDto,
-    replenishmentRequest: z
-      .object({
-        id: z.uuid(),
-        requestNumber: z.string(),
-        status: z.enum([
-          "draft",
-          "submitted",
-          "approved",
-          "rejected",
-          "partially_fulfilled",
-          "fulfilled",
-          "cancelled",
-        ]),
-        branchId: z.uuid(),
-        inventoryClosureId: z.uuid(),
-        requestedBy: z.uuid(),
-        notes: z.string().nullable(),
-        items: z.array(
-          z.object({
-            supplyId: z.uuid(),
-            suggestedQuantity: z.number().int(),
-            requestedQuantity: z.number().int(),
-          }),
-        ),
-      })
-      .nullable(),
+  .refine((value) => value.notes !== undefined || value.items !== undefined, {
+    message: "At least one field is required",
   })
-  .openapi("CloseShiftResult");
+  .refine(
+    (value) =>
+      !value.items || new Set(value.items.map((item) => item.supplyId)).size === value.items.length,
+    { message: "Each supply may appear only once", path: ["items"] },
+  )
+  .openapi("UpdateInventoryCount");
 
-export const inventoryClosureReportSupplyDto = z
+export const inventoryDayDTO = z
   .object({
     id: z.uuid(),
-    sku: z.string(),
-    name: z.string(),
+    branchId: z.uuid(),
+    businessDate: z.iso.date(),
+    status: z.enum(inventoryDayStatusValues),
+    openedBy: z.uuid(),
+    closedBy: z.uuid().nullable(),
+    openedAt: dateTimeSchema,
+    closedAt: dateTimeSchema.nullable(),
+    notes: z.string().nullable(),
+    createdAt: dateTimeSchema,
   })
-  .openapi("InventoryClosureReportSupply");
+  .openapi("InventoryDay");
 
-export const inventoryClosureReportItemDto = z
+export const inventoryCountItemDTO = z
   .object({
-    closureItem: inventoryClosureItemDto,
-    supply: inventoryClosureReportSupplyDto,
-    targetQuantity: z.number().int().nonnegative().nullable(),
-    receivedQuantityInShift: z.number().int().nonnegative(),
-    requestedQuantity: z.number().int().nonnegative().nullable(),
+    id: z.uuid(),
+    inventoryCountId: z.uuid(),
+    supplyId: z.uuid(),
+    counted: z.boolean(),
+    openingQuantity: quantitySchema,
+    receivedQuantity: quantitySchema,
+    closingQuantity: quantitySchema.nullable(),
+    lastCountedAt: dateTimeSchema.nullable(),
+    createdAt: dateTimeSchema,
   })
-  .openapi("InventoryClosureReportItem");
+  .openapi("InventoryCountItem");
 
-export const inventoryClosureReportDto = z
+export const inventoryCountDTO = z
   .object({
-    closure: inventoryClosureDto,
-    shift: inventoryShiftDto,
-    items: z.array(inventoryClosureReportItemDto),
-    replenishmentRequest: z
-      .object({
-        id: z.uuid(),
-        requestNumber: z.string(),
-        status: z.enum([
-          "draft",
-          "submitted",
-          "approved",
-          "rejected",
-          "partially_fulfilled",
-          "fulfilled",
-          "cancelled",
-        ]),
-        items: z.array(
-          z.object({
-            supplyId: z.uuid(),
-            requestedQuantity: z.number().int().nonnegative(),
-          }),
-        ),
-      })
-      .nullable(),
+    id: z.uuid(),
+    inventoryDayId: z.uuid(),
+    branchId: z.uuid(),
+    status: z.enum(inventoryCountStatusValues),
+    notes: z.string().nullable(),
+    createdBy: z.uuid(),
+    submittedBy: z.uuid().nullable(),
+    reviewedBy: z.uuid().nullable(),
+    submittedAt: dateTimeSchema.nullable(),
+    reviewedAt: dateTimeSchema.nullable(),
+    createdAt: dateTimeSchema,
   })
-  .openapi("InventoryClosureReport");
+  .openapi("InventoryCount");
 
-export type CreateInventoryShiftInput = z.infer<typeof createInventoryShiftDTO>;
-export type RecordInventoryReceiptInput = z.infer<typeof recordInventoryReceiptDTO>;
+export const inventoryCountDetailDTO = inventoryCountDTO
+  .extend({ items: z.array(inventoryCountItemDTO) })
+  .openapi("InventoryCountDetail");
+
+export type CreateInventoryCountInput = z.infer<typeof createInventoryCountDTO>;
+export type UpdateInventoryCountInput = z.infer<typeof updateInventoryCountDTO>;

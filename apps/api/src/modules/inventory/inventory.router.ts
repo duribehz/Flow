@@ -3,26 +3,40 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
 import {
-  closeInventoryShiftDTO,
-  closeShiftResultDto,
-  createInventoryShiftDTO,
-  inventoryClosureDetailDto,
-  inventoryClosureIdParamsDTO,
-  inventoryClosureDto,
-  inventoryClosureReportDto,
-  inventoryReceiptDto,
-  inventoryShiftDto,
-  inventoryShiftIdParamsDTO,
-  listInventoryClosuresQueryDTO,
-  listInventoryShiftsQueryDTO,
-  recordInventoryReceiptDTO,
+  createInventoryCountDTO,
+  inventoryCountDetailDTO,
+  inventoryCountDTO,
+  inventoryCountIdParamsDTO,
+  inventoryDayDTO,
+  inventoryDayIdParamsDTO,
+  listInventoryCountsQueryDTO,
+  listInventoryDaysQueryDTO,
+  updateInventoryCountDTO,
 } from "./inventory.dto.js";
-import { closeShiftUseCase } from "./use-cases/close-shift.usecase.js";
-import { createShiftUseCase } from "./use-cases/create-shift.usecase.js";
-import { getClosureReportUseCase } from "./use-cases/get-closure-report.usecase.js";
-import { getInventoryClosureUseCase, listInventoryClosuresUseCase } from "./use-cases/list-closures.usecase.js";
-import { getShiftUseCase, listShiftsUseCase } from "./use-cases/list-shifts.usecase.js";
-import { recordReceiptUseCase } from "./use-cases/record-receipt.usecase.js";
+import type { InventoryCount, InventoryDay } from "./inventory.repo.js";
+import { createInventoryCountUseCase } from "./use-cases/create-inventory-count.usecase.js";
+import { getInventoryCountUseCase } from "./use-cases/get-inventory-count.usecase.js";
+import { getInventoryDayUseCase } from "./use-cases/get-inventory-day.usecase.js";
+import { listInventoryCountsUseCase } from "./use-cases/list-inventory-counts.usecase.js";
+import { listInventoryDaysUseCase } from "./use-cases/list-inventory-days.usecase.js";
+import { reviewInventoryCountUseCase } from "./use-cases/review-inventory-count.usecase.js";
+import { submitInventoryCountUseCase } from "./use-cases/submit-inventory-count.usecase.js";
+import { updateInventoryCountUseCase } from "./use-cases/update-inventory-count.usecase.js";
+
+const errors = {
+  400: {
+    description: "Invalid request",
+    content: { "application/json": { schema: errorSchema } },
+  },
+  404: {
+    description: "Inventory resource not found",
+    content: { "application/json": { schema: errorSchema } },
+  },
+  409: {
+    description: "Inventory state conflict",
+    content: { "application/json": { schema: errorSchema } },
+  },
+} as const;
 
 export const inventoryRouter = new OpenAPIHono<State>({
   defaultHook: (result, ctx) => {
@@ -34,275 +48,253 @@ export const inventoryRouter = new OpenAPIHono<State>({
 
 inventoryRouter.openapi(
   createRoute({
-    method: "post",
-    path: "/inventory-shifts",
-    operationId: "postInventoryShifts",
+    method: "get",
+    path: "/inventory-days",
+    operationId: "getInventoryDays",
     tags: ["Inventory"],
-    summary: "Open an inventory shift",
-    request: {
-      body: {
-        required: true,
-        content: { "application/json": { schema: createInventoryShiftDTO } },
-      },
-    },
+    summary: "List inventory days",
+    request: { query: listInventoryDaysQueryDTO },
     responses: {
-      201: {
-        description: "Shift opened",
-        content: { "application/json": { schema: z.object({ data: inventoryShiftDto }) } },
+      200: {
+        description: "Inventory days",
+        content: { "application/json": { schema: z.object({ data: z.array(inventoryDayDTO) }) } },
       },
-      400: {
-        description: "Invalid request",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      409: {
-        description: "A shift already exists for this branch, date and shift name",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
     },
   }),
   async (ctx) => {
-    const actorId = ctx.get("userId");
-    const shift = await createShiftUseCase(actorId, ctx.req.valid("json"), ctx.get("db"));
-    return ctx.json({ data: shift }, 201);
+    const days = await listInventoryDaysUseCase(ctx.req.valid("query"), ctx.get("db"));
+    return ctx.json({ data: days.map(toDayResponse) }, 200);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
     method: "get",
-    path: "/inventory-shifts",
-    operationId: "getInventoryShifts",
+    path: "/inventory-days/{dayId}",
+    operationId: "getInventoryDaysDayId",
     tags: ["Inventory"],
-    summary: "List inventory shifts",
-    request: { query: listInventoryShiftsQueryDTO },
+    summary: "Get an inventory day",
+    request: { params: inventoryDayIdParamsDTO },
     responses: {
       200: {
-        description: "Inventory shifts",
-        content: { "application/json": { schema: z.object({ data: z.array(inventoryShiftDto) }) } },
+        description: "Inventory day",
+        content: { "application/json": { schema: z.object({ data: inventoryDayDTO }) } },
       },
-      400: {
-        description: "Invalid query",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
+      404: errors[404],
     },
   }),
   async (ctx) => {
-    const query = ctx.req.valid("query");
-    const shifts = await listShiftsUseCase(query, ctx.get("db"));
-    return ctx.json({ data: shifts }, 200);
-  },
-);
-
-inventoryRouter.openapi(
-  createRoute({
-    method: "get",
-    path: "/inventory-shifts/{shiftId}",
-    operationId: "getInventoryShiftsShiftId",
-    tags: ["Inventory"],
-    summary: "Get an inventory shift by id",
-    request: { params: inventoryShiftIdParamsDTO },
-    responses: {
-      200: {
-        description: "Inventory shift",
-        content: { "application/json": { schema: z.object({ data: inventoryShiftDto }) } },
-      },
-      400: {
-        description: "Invalid shift id",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      404: {
-        description: "Shift not found",
-        content: { "application/json": { schema: errorSchema } },
-      },
-    },
-  }),
-  async (ctx) => {
-    const { shiftId } = ctx.req.valid("param");
-    const shift = await getShiftUseCase(shiftId, ctx.get("db"));
-    return ctx.json({ data: shift }, 200);
+    const day = await getInventoryDayUseCase(ctx.req.valid("param").dayId, ctx.get("db"));
+    return ctx.json({ data: toDayResponse(day) }, 200);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
     method: "post",
-    path: "/inventory-shifts/{shiftId}/receipts",
-    operationId: "postInventoryShiftsShiftIdReceipts",
+    path: "/inventory-counts",
+    operationId: "postInventoryCounts",
     tags: ["Inventory"],
-    summary: "Record a supply receipt for an open shift",
+    summary: "Create a draft inventory count",
     request: {
-      params: inventoryShiftIdParamsDTO,
       body: {
         required: true,
-        content: { "application/json": { schema: recordInventoryReceiptDTO } },
+        content: { "application/json": { schema: createInventoryCountDTO } },
       },
     },
     responses: {
       201: {
-        description: "Receipt recorded",
-        content: { "application/json": { schema: z.object({ data: inventoryReceiptDto }) } },
+        description: "Inventory count created",
+        content: {
+          "application/json": { schema: z.object({ data: inventoryCountDetailDTO }) },
+        },
       },
-      400: {
-        description: "Invalid request",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      404: {
-        description: "Shift not found",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      409: {
-        description: "Shift is closed",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
+      409: errors[409],
     },
   }),
   async (ctx) => {
-    const { shiftId } = ctx.req.valid("param");
-    const actorId = ctx.get("userId");
-    const receipt = await recordReceiptUseCase(
-      actorId,
-      shiftId,
+    const count = await createInventoryCountUseCase(
+      ctx.get("userId"),
       ctx.req.valid("json"),
       ctx.get("db"),
     );
-    return ctx.json({ data: receipt }, 201);
+    return ctx.json({ data: toCountResponse(count) }, 201);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
     method: "get",
-    path: "/inventory-closures",
-    operationId: "getInventoryClosures",
+    path: "/inventory-counts",
+    operationId: "getInventoryCounts",
     tags: ["Inventory"],
-    summary: "List inventory closures",
-    request: { query: listInventoryClosuresQueryDTO },
+    summary: "List inventory counts",
+    request: { query: listInventoryCountsQueryDTO },
     responses: {
       200: {
-        description: "Inventory closures",
+        description: "Inventory counts",
         content: {
-          "application/json": { schema: z.object({ data: z.array(inventoryClosureDto) }) },
+          "application/json": { schema: z.object({ data: z.array(inventoryCountDTO) }) },
         },
       },
-      400: {
-        description: "Invalid query",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
     },
   }),
   async (ctx) => {
-    const query = ctx.req.valid("query");
-    const closures = await listInventoryClosuresUseCase(query, ctx.get("db"));
-    return ctx.json({ data: closures }, 200);
+    const counts = await listInventoryCountsUseCase(ctx.req.valid("query"), ctx.get("db"));
+    return ctx.json({ data: counts.map(toCountSummaryResponse) }, 200);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
     method: "get",
-    path: "/inventory-closures/{closureId}",
-    operationId: "getInventoryClosuresClosureId",
+    path: "/inventory-counts/{countId}",
+    operationId: "getInventoryCountsCountId",
     tags: ["Inventory"],
-    summary: "Get an inventory closure by id with its items",
-    request: { params: inventoryClosureIdParamsDTO },
+    summary: "Get an inventory count",
+    request: { params: inventoryCountIdParamsDTO },
     responses: {
       200: {
-        description: "Inventory closure with items",
+        description: "Inventory count",
         content: {
-          "application/json": { schema: z.object({ data: inventoryClosureDetailDto }) },
+          "application/json": { schema: z.object({ data: inventoryCountDetailDTO }) },
         },
       },
-      400: {
-        description: "Invalid closure id",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      404: {
-        description: "Closure not found",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
+      404: errors[404],
     },
   }),
   async (ctx) => {
-    const { closureId } = ctx.req.valid("param");
-    const { closure, items } = await getInventoryClosureUseCase(closureId, ctx.get("db"));
-    return ctx.json({ data: { ...closure, items } }, 200);
+    const count = await getInventoryCountUseCase(ctx.req.valid("param").countId, ctx.get("db"));
+    return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
-    method: "get",
-    path: "/inventory-closures/{closureId}/report",
-    operationId: "getInventoryClosuresClosureIdReport",
+    method: "patch",
+    path: "/inventory-counts/{countId}",
+    operationId: "patchInventoryCountsCountId",
     tags: ["Inventory"],
-    summary: "Get the closure report viewed by the admin",
-    request: { params: inventoryClosureIdParamsDTO },
+    summary: "Update a draft inventory count",
+    request: {
+      params: inventoryCountIdParamsDTO,
+      body: {
+        required: true,
+        content: { "application/json": { schema: updateInventoryCountDTO } },
+      },
+    },
     responses: {
       200: {
-        description: "Closure report",
+        description: "Inventory count updated",
         content: {
-          "application/json": { schema: z.object({ data: inventoryClosureReportDto }) },
+          "application/json": { schema: z.object({ data: inventoryCountDetailDTO }) },
         },
       },
-      400: {
-        description: "Invalid closure id",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      404: {
-        description: "Closure not found",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
+      404: errors[404],
+      409: errors[409],
     },
   }),
   async (ctx) => {
-    const { closureId } = ctx.req.valid("param");
-    const report = await getClosureReportUseCase(closureId, ctx.get("db"));
-    return ctx.json({ data: report }, 200);
+    const count = await updateInventoryCountUseCase(
+      ctx.req.valid("param").countId,
+      ctx.req.valid("json"),
+      ctx.get("db"),
+    );
+    return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );
 
 inventoryRouter.openapi(
   createRoute({
     method: "post",
-    path: "/inventory-shifts/{shiftId}/close",
-    operationId: "postInventoryShiftsShiftIdClose",
+    path: "/inventory-counts/{countId}/submit",
+    operationId: "postInventoryCountsCountIdSubmit",
     tags: ["Inventory"],
-    summary: "Close a shift and generate a replenishment request automatically",
-    request: {
-      params: inventoryShiftIdParamsDTO,
-      body: {
-        required: true,
-        content: { "application/json": { schema: closeInventoryShiftDTO } },
-      },
-    },
+    summary: "Submit an inventory count and close its day",
+    request: { params: inventoryCountIdParamsDTO },
     responses: {
-      201: {
-        description: "Shift closed",
-        content: { "application/json": { schema: z.object({ data: closeShiftResultDto }) } },
+      200: {
+        description: "Inventory count submitted",
+        content: {
+          "application/json": { schema: z.object({ data: inventoryCountDetailDTO }) },
+        },
       },
-      400: {
-        description: "Invalid request",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      404: {
-        description: "Shift not found",
-        content: { "application/json": { schema: errorSchema } },
-      },
-      409: {
-        description: "Shift already closed",
-        content: { "application/json": { schema: errorSchema } },
-      },
+      400: errors[400],
+      404: errors[404],
+      409: errors[409],
     },
   }),
   async (ctx) => {
-    const { shiftId } = ctx.req.valid("param");
-    const actorId = ctx.get("userId");
-    const result = await closeShiftUseCase(
-      actorId,
-      shiftId,
-      ctx.req.valid("json"),
+    const count = await submitInventoryCountUseCase(
+      ctx.get("userId"),
+      ctx.req.valid("param").countId,
       ctx.get("db"),
     );
-    return ctx.json({ data: result }, 201);
+    return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );
+
+inventoryRouter.openapi(
+  createRoute({
+    method: "post",
+    path: "/inventory-counts/{countId}/review",
+    operationId: "postInventoryCountsCountIdReview",
+    tags: ["Inventory"],
+    summary: "Review a submitted inventory count",
+    request: { params: inventoryCountIdParamsDTO },
+    responses: {
+      200: {
+        description: "Inventory count reviewed",
+        content: {
+          "application/json": { schema: z.object({ data: inventoryCountDetailDTO }) },
+        },
+      },
+      400: errors[400],
+      404: errors[404],
+      409: errors[409],
+    },
+  }),
+  async (ctx) => {
+    const count = await reviewInventoryCountUseCase(
+      ctx.get("userId"),
+      ctx.req.valid("param").countId,
+      ctx.get("db"),
+    );
+    return ctx.json({ data: toCountResponse(count) }, 200);
+  },
+);
+
+function toDayResponse(day: InventoryDay) {
+  return {
+    ...day,
+    openedAt: day.openedAt.toISOString(),
+    closedAt: day.closedAt?.toISOString() ?? null,
+    createdAt: day.createdAt.toISOString(),
+  };
+}
+
+function toCountSummaryResponse(count: Omit<InventoryCount, "items">) {
+  return {
+    ...count,
+    submittedAt: count.submittedAt?.toISOString() ?? null,
+    reviewedAt: count.reviewedAt?.toISOString() ?? null,
+    createdAt: count.createdAt.toISOString(),
+  };
+}
+
+function toCountResponse(count: InventoryCount) {
+  return {
+    ...toCountSummaryResponse(count),
+    items: count.items.map((item) => ({
+      ...item,
+      lastCountedAt: item.lastCountedAt?.toISOString() ?? null,
+      createdAt: item.createdAt.toISOString(),
+    })),
+  };
+}

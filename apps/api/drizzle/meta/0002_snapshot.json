@@ -1,5 +1,5 @@
 {
-  "id": "44ce0c1b-ac90-4891-8214-7c2b876331a5",
+  "id": "6d6f4e62-80b8-4bfd-a9f9-8ae1e817299c",
   "prevId": "f7c4fc18-6743-4987-8246-a247b0385790",
   "version": "7",
   "dialect": "postgresql",
@@ -175,8 +175,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.inventory_closure_items": {
-      "name": "inventory_closure_items",
+    "public.inventory_count_items": {
+      "name": "inventory_count_items",
       "schema": "",
       "columns": {
         "id": {
@@ -186,8 +186,8 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "inventory_closure_id": {
-          "name": "inventory_closure_id",
+        "inventory_count_id": {
+          "name": "inventory_count_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -198,17 +198,38 @@
           "primaryKey": false,
           "notNull": true
         },
+        "counted": {
+          "name": "counted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "opening_quantity": {
           "name": "opening_quantity",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": 0
+        },
+        "received_quantity": {
+          "name": "received_quantity",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "closing_quantity": {
           "name": "closing_quantity",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "last_counted_at": {
+          "name": "last_counted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -219,11 +240,11 @@
         }
       },
       "indexes": {
-        "inventory_closure_items_closure_supply_unique": {
-          "name": "inventory_closure_items_closure_supply_unique",
+        "inventory_count_items_count_supply_unique": {
+          "name": "inventory_count_items_count_supply_unique",
           "columns": [
             {
-              "expression": "inventory_closure_id",
+              "expression": "inventory_count_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -239,269 +260,9 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        }
-      },
-      "foreignKeys": {
-        "inventory_closure_items_inventory_closure_id_inventory_closures_id_fk": {
-          "name": "inventory_closure_items_inventory_closure_id_inventory_closures_id_fk",
-          "tableFrom": "inventory_closure_items",
-          "tableTo": "inventory_closures",
-          "columnsFrom": [
-            "inventory_closure_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
         },
-        "inventory_closure_items_supply_id_supplies_id_fk": {
-          "name": "inventory_closure_items_supply_id_supplies_id_fk",
-          "tableFrom": "inventory_closure_items",
-          "tableTo": "supplies",
-          "columnsFrom": [
-            "supply_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "inventory_closure_items_quantities_check": {
-          "name": "inventory_closure_items_quantities_check",
-          "value": "\"inventory_closure_items\".\"opening_quantity\" >= 0 and \"inventory_closure_items\".\"closing_quantity\" >= 0"
-        }
-      },
-      "isRLSEnabled": false
-    },
-    "public.inventory_closures": {
-      "name": "inventory_closures",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "inventory_shift_id": {
-          "name": "inventory_shift_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "branch_id": {
-          "name": "branch_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "closed_by": {
-          "name": "closed_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "closed_at": {
-          "name": "closed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "inventory_closures_shift_unique": {
-          "name": "inventory_closures_shift_unique",
-          "columns": [
-            {
-              "expression": "inventory_shift_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "inventory_closures_branch_id_idx": {
-          "name": "inventory_closures_branch_id_idx",
-          "columns": [
-            {
-              "expression": "branch_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "inventory_closures_inventory_shift_id_inventory_shifts_id_fk": {
-          "name": "inventory_closures_inventory_shift_id_inventory_shifts_id_fk",
-          "tableFrom": "inventory_closures",
-          "tableTo": "inventory_shifts",
-          "columnsFrom": [
-            "inventory_shift_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "inventory_closures_branch_id_branches_id_fk": {
-          "name": "inventory_closures_branch_id_branches_id_fk",
-          "tableFrom": "inventory_closures",
-          "tableTo": "branches",
-          "columnsFrom": [
-            "branch_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "inventory_closures_closed_by_users_id_fk": {
-          "name": "inventory_closures_closed_by_users_id_fk",
-          "tableFrom": "inventory_closures",
-          "tableTo": "users",
-          "columnsFrom": [
-            "closed_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.inventory_receipts": {
-      "name": "inventory_receipts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "inventory_shift_id": {
-          "name": "inventory_shift_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "supply_id": {
-          "name": "supply_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "purchase_id": {
-          "name": "purchase_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "expected_quantity": {
-          "name": "expected_quantity",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "received_quantity": {
-          "name": "received_quantity",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "incident_type": {
-          "name": "incident_type",
-          "type": "inventory_receipt_incident",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'none'"
-        },
-        "notes": {
-          "name": "notes",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "received_by": {
-          "name": "received_by",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "received_at": {
-          "name": "received_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "inventory_receipts_shift_id_idx": {
-          "name": "inventory_receipts_shift_id_idx",
-          "columns": [
-            {
-              "expression": "inventory_shift_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "inventory_receipts_supply_id_idx": {
-          "name": "inventory_receipts_supply_id_idx",
+        "inventory_count_items_supply_id_idx": {
+          "name": "inventory_count_items_supply_id_idx",
           "columns": [
             {
               "expression": "supply_id",
@@ -517,38 +278,25 @@
         }
       },
       "foreignKeys": {
-        "inventory_receipts_inventory_shift_id_inventory_shifts_id_fk": {
-          "name": "inventory_receipts_inventory_shift_id_inventory_shifts_id_fk",
-          "tableFrom": "inventory_receipts",
-          "tableTo": "inventory_shifts",
+        "inventory_count_items_inventory_count_id_inventory_counts_id_fk": {
+          "name": "inventory_count_items_inventory_count_id_inventory_counts_id_fk",
+          "tableFrom": "inventory_count_items",
+          "tableTo": "inventory_counts",
           "columnsFrom": [
-            "inventory_shift_id"
+            "inventory_count_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "inventory_receipts_supply_id_supplies_id_fk": {
-          "name": "inventory_receipts_supply_id_supplies_id_fk",
-          "tableFrom": "inventory_receipts",
+        "inventory_count_items_supply_id_supplies_id_fk": {
+          "name": "inventory_count_items_supply_id_supplies_id_fk",
+          "tableFrom": "inventory_count_items",
           "tableTo": "supplies",
           "columnsFrom": [
             "supply_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "inventory_receipts_received_by_users_id_fk": {
-          "name": "inventory_receipts_received_by_users_id_fk",
-          "tableFrom": "inventory_receipts",
-          "tableTo": "users",
-          "columnsFrom": [
-            "received_by"
           ],
           "columnsTo": [
             "id"
@@ -561,15 +309,219 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {
-        "inventory_receipts_quantities_check": {
-          "name": "inventory_receipts_quantities_check",
-          "value": "\"inventory_receipts\".\"received_quantity\" >= 0 and (\"inventory_receipts\".\"expected_quantity\" is null or \"inventory_receipts\".\"expected_quantity\" >= 0)"
+        "inventory_count_items_quantities_check": {
+          "name": "inventory_count_items_quantities_check",
+          "value": "\"inventory_count_items\".\"opening_quantity\" >= 0 and \"inventory_count_items\".\"received_quantity\" >= 0 and (\"inventory_count_items\".\"closing_quantity\" is null or \"inventory_count_items\".\"closing_quantity\" >= 0)"
+        },
+        "inventory_count_items_counted_check": {
+          "name": "inventory_count_items_counted_check",
+          "value": "(\"inventory_count_items\".\"counted\" and \"inventory_count_items\".\"closing_quantity\" is not null) or (not \"inventory_count_items\".\"counted\" and \"inventory_count_items\".\"closing_quantity\" is null)"
         }
       },
       "isRLSEnabled": false
     },
-    "public.inventory_shifts": {
-      "name": "inventory_shifts",
+    "public.inventory_counts": {
+      "name": "inventory_counts",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inventory_day_id": {
+          "name": "inventory_day_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branch_id": {
+          "name": "branch_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "inventory_count_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submitted_by": {
+          "name": "submitted_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_by": {
+          "name": "reviewed_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "submitted_at": {
+          "name": "submitted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reviewed_at": {
+          "name": "reviewed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inventory_counts_day_unique": {
+          "name": "inventory_counts_day_unique",
+          "columns": [
+            {
+              "expression": "inventory_day_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "inventory_counts_branch_id_idx": {
+          "name": "inventory_counts_branch_id_idx",
+          "columns": [
+            {
+              "expression": "branch_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "inventory_counts_status_idx": {
+          "name": "inventory_counts_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "inventory_counts_inventory_day_id_inventory_days_id_fk": {
+          "name": "inventory_counts_inventory_day_id_inventory_days_id_fk",
+          "tableFrom": "inventory_counts",
+          "tableTo": "inventory_days",
+          "columnsFrom": [
+            "inventory_day_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "inventory_counts_branch_id_branches_id_fk": {
+          "name": "inventory_counts_branch_id_branches_id_fk",
+          "tableFrom": "inventory_counts",
+          "tableTo": "branches",
+          "columnsFrom": [
+            "branch_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_counts_created_by_users_id_fk": {
+          "name": "inventory_counts_created_by_users_id_fk",
+          "tableFrom": "inventory_counts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "created_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_counts_submitted_by_users_id_fk": {
+          "name": "inventory_counts_submitted_by_users_id_fk",
+          "tableFrom": "inventory_counts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "submitted_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_counts_reviewed_by_users_id_fk": {
+          "name": "inventory_counts_reviewed_by_users_id_fk",
+          "tableFrom": "inventory_counts",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reviewed_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "inventory_counts_status_check": {
+          "name": "inventory_counts_status_check",
+          "value": "(\"inventory_counts\".\"status\" = 'draft' and \"inventory_counts\".\"submitted_by\" is null and \"inventory_counts\".\"submitted_at\" is null and \"inventory_counts\".\"reviewed_by\" is null and \"inventory_counts\".\"reviewed_at\" is null) or (\"inventory_counts\".\"status\" = 'submitted' and \"inventory_counts\".\"submitted_by\" is not null and \"inventory_counts\".\"submitted_at\" is not null and \"inventory_counts\".\"reviewed_by\" is null and \"inventory_counts\".\"reviewed_at\" is null) or (\"inventory_counts\".\"status\" = 'reviewed' and \"inventory_counts\".\"submitted_by\" is not null and \"inventory_counts\".\"submitted_at\" is not null and \"inventory_counts\".\"reviewed_by\" is not null and \"inventory_counts\".\"reviewed_at\" is not null)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "public.inventory_days": {
+      "name": "inventory_days",
       "schema": "",
       "columns": {
         "id": {
@@ -591,16 +543,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "shift_name": {
-          "name": "shift_name",
-          "type": "shift_name",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
         "status": {
           "name": "status",
-          "type": "inventory_shift_status",
+          "type": "inventory_day_status",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
@@ -646,8 +591,8 @@
         }
       },
       "indexes": {
-        "inventory_shifts_branch_date_name_unique": {
-          "name": "inventory_shifts_branch_date_name_unique",
+        "inventory_days_branch_date_unique": {
+          "name": "inventory_days_branch_date_unique",
           "columns": [
             {
               "expression": "branch_id",
@@ -660,12 +605,6 @@
               "isExpression": false,
               "asc": true,
               "nulls": "last"
-            },
-            {
-              "expression": "shift_name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
             }
           ],
           "isUnique": true,
@@ -673,8 +612,8 @@
           "method": "btree",
           "with": {}
         },
-        "inventory_shifts_status_idx": {
-          "name": "inventory_shifts_status_idx",
+        "inventory_days_status_idx": {
+          "name": "inventory_days_status_idx",
           "columns": [
             {
               "expression": "status",
@@ -690,9 +629,9 @@
         }
       },
       "foreignKeys": {
-        "inventory_shifts_branch_id_branches_id_fk": {
-          "name": "inventory_shifts_branch_id_branches_id_fk",
-          "tableFrom": "inventory_shifts",
+        "inventory_days_branch_id_branches_id_fk": {
+          "name": "inventory_days_branch_id_branches_id_fk",
+          "tableFrom": "inventory_days",
           "tableTo": "branches",
           "columnsFrom": [
             "branch_id"
@@ -703,9 +642,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "inventory_shifts_opened_by_users_id_fk": {
-          "name": "inventory_shifts_opened_by_users_id_fk",
-          "tableFrom": "inventory_shifts",
+        "inventory_days_opened_by_users_id_fk": {
+          "name": "inventory_days_opened_by_users_id_fk",
+          "tableFrom": "inventory_days",
           "tableTo": "users",
           "columnsFrom": [
             "opened_by"
@@ -716,9 +655,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "inventory_shifts_closed_by_users_id_fk": {
-          "name": "inventory_shifts_closed_by_users_id_fk",
-          "tableFrom": "inventory_shifts",
+        "inventory_days_closed_by_users_id_fk": {
+          "name": "inventory_days_closed_by_users_id_fk",
+          "tableFrom": "inventory_days",
           "tableTo": "users",
           "columnsFrom": [
             "closed_by"
@@ -733,7 +672,12 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "inventory_days_status_check": {
+          "name": "inventory_days_status_check",
+          "value": "(\"inventory_days\".\"status\" = 'open' and \"inventory_days\".\"closed_by\" is null and \"inventory_days\".\"closed_at\" is null) or (\"inventory_days\".\"status\" = 'closed' and \"inventory_days\".\"closed_by\" is not null and \"inventory_days\".\"closed_at\" is not null)"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.purchase_order_items": {
@@ -1405,8 +1349,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "inventory_shift_id": {
-          "name": "inventory_shift_id",
+        "inventory_day_id": {
+          "name": "inventory_day_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1495,11 +1439,11 @@
           "method": "btree",
           "with": {}
         },
-        "receipts_inventory_shift_id_idx": {
-          "name": "receipts_inventory_shift_id_idx",
+        "receipts_inventory_day_id_idx": {
+          "name": "receipts_inventory_day_id_idx",
           "columns": [
             {
-              "expression": "inventory_shift_id",
+              "expression": "inventory_day_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1555,12 +1499,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "receipts_inventory_shift_id_inventory_shifts_id_fk": {
-          "name": "receipts_inventory_shift_id_inventory_shifts_id_fk",
+        "receipts_inventory_day_id_inventory_days_id_fk": {
+          "name": "receipts_inventory_day_id_inventory_days_id_fk",
           "tableFrom": "receipts",
-          "tableTo": "inventory_shifts",
+          "tableTo": "inventory_days",
           "columnsFrom": [
-            "inventory_shift_id"
+            "inventory_day_id"
           ],
           "columnsTo": [
             "id"
@@ -1595,6 +1539,32 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.replenishment_request_counters": {
+      "name": "replenishment_request_counters",
+      "schema": "",
+      "columns": {
+        "branch_id_prefix": {
+          "name": "branch_id_prefix",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "last_seq": {
+          "name": "last_seq",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1749,8 +1719,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "inventory_closure_id": {
-          "name": "inventory_closure_id",
+        "inventory_count_id": {
+          "name": "inventory_count_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -1824,11 +1794,11 @@
           "method": "btree",
           "with": {}
         },
-        "replenishment_requests_inventory_closure_unique": {
-          "name": "replenishment_requests_inventory_closure_unique",
+        "replenishment_requests_inventory_count_unique": {
+          "name": "replenishment_requests_inventory_count_unique",
           "columns": [
             {
-              "expression": "inventory_closure_id",
+              "expression": "inventory_count_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1884,12 +1854,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "replenishment_requests_inventory_closure_id_inventory_closures_id_fk": {
-          "name": "replenishment_requests_inventory_closure_id_inventory_closures_id_fk",
+        "replenishment_requests_inventory_count_id_inventory_counts_id_fk": {
+          "name": "replenishment_requests_inventory_count_id_inventory_counts_id_fk",
           "tableFrom": "replenishment_requests",
-          "tableTo": "inventory_closures",
+          "tableTo": "inventory_counts",
           "columnsFrom": [
-            "inventory_closure_id"
+            "inventory_count_id"
           ],
           "columnsTo": [
             "id"
@@ -3005,31 +2975,21 @@
     }
   },
   "enums": {
-    "public.inventory_receipt_incident": {
-      "name": "inventory_receipt_incident",
+    "public.inventory_count_status": {
+      "name": "inventory_count_status",
       "schema": "public",
       "values": [
-        "none",
-        "shortage",
-        "surplus",
-        "damaged"
+        "draft",
+        "submitted",
+        "reviewed"
       ]
     },
-    "public.inventory_shift_status": {
-      "name": "inventory_shift_status",
+    "public.inventory_day_status": {
+      "name": "inventory_day_status",
       "schema": "public",
       "values": [
         "open",
         "closed"
-      ]
-    },
-    "public.shift_name": {
-      "name": "shift_name",
-      "schema": "public",
-      "values": [
-        "morning",
-        "afternoon",
-        "night"
       ]
     },
     "public.purchase_order_status": {

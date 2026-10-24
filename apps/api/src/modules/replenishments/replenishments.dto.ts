@@ -35,7 +35,7 @@ export const replenishmentDto = z
   .object({
     id: z.uuid(),
     requestNumber: z.string(),
-    inventoryClosureId: z.uuid(),
+    inventoryCountId: z.uuid(),
     status: z.enum([
       "draft",
       "submitted",

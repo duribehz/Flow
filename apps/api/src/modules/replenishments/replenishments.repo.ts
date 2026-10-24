@@ -23,7 +23,7 @@ export type CreateReplenishmentRequestItemInput = {
 export type CreateReplenishmentRequestInput = {
   requestNumber: string;
   branchId: string;
-  inventoryClosureId: string;
+  inventoryCountId: string;
   requestedBy: string;
   notes?: string | null;
 };
@@ -64,7 +64,7 @@ export class ReplenishmentsRepo {
       .select({
         id: replenishmentRequests.id,
         requestNumber: replenishmentRequests.requestNumber,
-        inventoryClosureId: replenishmentRequests.inventoryClosureId,
+        inventoryCountId: replenishmentRequests.inventoryCountId,
         status: replenishmentRequests.status,
         branch: {
           id: branches.id,
@@ -151,7 +151,7 @@ export class ReplenishmentsRepo {
       .values({
         requestNumber: request.requestNumber,
         branchId: request.branchId,
-        inventoryClosureId: request.inventoryClosureId,
+        inventoryCountId: request.inventoryCountId,
         requestedBy: request.requestedBy,
         notes: request.notes ?? null,
       })
@@ -174,11 +174,11 @@ export class ReplenishmentsRepo {
     return created!;
   }
 
-  async getReplenishmentByClosureId(inventoryClosureId: string) {
+  async getReplenishmentByCountId(inventoryCountId: string) {
     const [row] = await this.conn
       .select()
       .from(replenishmentRequests)
-      .where(eq(replenishmentRequests.inventoryClosureId, inventoryClosureId));
+      .where(eq(replenishmentRequests.inventoryCountId, inventoryCountId));
     return row;
   }
 

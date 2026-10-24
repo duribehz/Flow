@@ -36,6 +36,6 @@ app.route("/v1/supplies", suppliesRouter);
 app.route("/v1/suppliers", suppliersRouter);
 app.route("/v1/units", unitsRouter);
 
-app.route("/", inventoryRouter);
+app.route("/v1", inventoryRouter);
 
 configureOpenApi(app);

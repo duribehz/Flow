@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   check,
   date,
   index,
@@ -16,19 +17,22 @@ import { branches } from "../branches/branches.schema.js";
 import { supplies } from "../supplies/supplies.schema.js";
 import { users } from "../users/users.schema.js";
 
-export const inventoryShiftStatus = pgEnum("inventory_shift_status", ["open", "closed"]);
-export const shiftName = pgEnum("shift_name", ["morning", "afternoon", "night"]);
+export const inventoryDayStatus = pgEnum("inventory_day_status", ["open", "closed"]);
+export const inventoryCountStatus = pgEnum("inventory_count_status", [
+  "draft",
+  "submitted",
+  "reviewed",
+]);
 
-export const inventoryShifts = pgTable(
-  "inventory_shifts",
+export const inventoryDays = pgTable(
+  "inventory_days",
   {
     id: uuid().primaryKey().defaultRandom(),
     branchId: uuid("branch_id")
       .notNull()
       .references(() => branches.id),
     businessDate: date("business_date").notNull(),
-    shiftName: shiftName("shift_name").notNull(),
-    status: inventoryShiftStatus().notNull().default("open"),
+    status: inventoryDayStatus().notNull().default("open"),
     openedBy: uuid("opened_by")
       .notNull()
       .references(() => users.id),
@@ -39,98 +43,77 @@ export const inventoryShifts = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("inventory_shifts_branch_date_name_unique").on(
-      table.branchId,
-      table.businessDate,
-      table.shiftName,
+    uniqueIndex("inventory_days_branch_date_unique").on(table.branchId, table.businessDate),
+    index("inventory_days_status_idx").on(table.status),
+    check(
+      "inventory_days_status_check",
+      sql`(${table.status} = 'open' and ${table.closedBy} is null and ${table.closedAt} is null) or (${table.status} = 'closed' and ${table.closedBy} is not null and ${table.closedAt} is not null)`,
     ),
-    index("inventory_shifts_status_idx").on(table.status),
   ],
 );
 
-export const inventoryClosures = pgTable(
-  "inventory_closures",
+export const inventoryCounts = pgTable(
+  "inventory_counts",
   {
     id: uuid().primaryKey().defaultRandom(),
-    inventoryShiftId: uuid("inventory_shift_id")
+    inventoryDayId: uuid("inventory_day_id")
       .notNull()
-      .references(() => inventoryShifts.id),
+      .references(() => inventoryDays.id, { onDelete: "cascade" }),
     branchId: uuid("branch_id")
       .notNull()
       .references(() => branches.id),
-    closedBy: uuid("closed_by")
+    status: inventoryCountStatus().notNull().default("draft"),
+    notes: text(),
+    createdBy: uuid("created_by")
       .notNull()
       .references(() => users.id),
-    closedAt: timestamp("closed_at", { withTimezone: true }).notNull(),
-    notes: text(),
+    submittedBy: uuid("submitted_by").references(() => users.id),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("inventory_closures_shift_unique").on(table.inventoryShiftId),
-    index("inventory_closures_branch_id_idx").on(table.branchId),
+    uniqueIndex("inventory_counts_day_unique").on(table.inventoryDayId),
+    index("inventory_counts_branch_id_idx").on(table.branchId),
+    index("inventory_counts_status_idx").on(table.status),
+    check(
+      "inventory_counts_status_check",
+      sql`(${table.status} = 'draft' and ${table.submittedBy} is null and ${table.submittedAt} is null and ${table.reviewedBy} is null and ${table.reviewedAt} is null) or (${table.status} = 'submitted' and ${table.submittedBy} is not null and ${table.submittedAt} is not null and ${table.reviewedBy} is null and ${table.reviewedAt} is null) or (${table.status} = 'reviewed' and ${table.submittedBy} is not null and ${table.submittedAt} is not null and ${table.reviewedBy} is not null and ${table.reviewedAt} is not null)`,
+    ),
   ],
 );
 
-export const inventoryClosureItems = pgTable(
-  "inventory_closure_items",
+export const inventoryCountItems = pgTable(
+  "inventory_count_items",
   {
     id: uuid().primaryKey().defaultRandom(),
-    inventoryClosureId: uuid("inventory_closure_id")
+    inventoryCountId: uuid("inventory_count_id")
       .notNull()
-      .references(() => inventoryClosures.id, { onDelete: "cascade" }),
+      .references(() => inventoryCounts.id, { onDelete: "cascade" }),
     supplyId: uuid("supply_id")
       .notNull()
       .references(() => supplies.id),
-    openingQuantity: bigint("opening_quantity", { mode: "number" }).notNull(),
-    closingQuantity: bigint("closing_quantity", { mode: "number" }).notNull(),
+    counted: boolean().notNull().default(false),
+    openingQuantity: bigint("opening_quantity", { mode: "number" }).notNull().default(0),
+    receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull().default(0),
+    closingQuantity: bigint("closing_quantity", { mode: "number" }),
+    lastCountedAt: timestamp("last_counted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("inventory_closure_items_closure_supply_unique").on(
-      table.inventoryClosureId,
+    uniqueIndex("inventory_count_items_count_supply_unique").on(
+      table.inventoryCountId,
       table.supplyId,
     ),
+    index("inventory_count_items_supply_id_idx").on(table.supplyId),
     check(
-      "inventory_closure_items_quantities_check",
-      sql`${table.openingQuantity} >= 0 and ${table.closingQuantity} >= 0`,
+      "inventory_count_items_quantities_check",
+      sql`${table.openingQuantity} >= 0 and ${table.receivedQuantity} >= 0 and (${table.closingQuantity} is null or ${table.closingQuantity} >= 0)`,
     ),
-  ],
-);
-
-export const inventoryReceiptIncident = pgEnum("inventory_receipt_incident", [
-  "none",
-  "shortage",
-  "surplus",
-  "damaged",
-]);
-
-export const inventoryReceipts = pgTable(
-  "inventory_receipts",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    inventoryShiftId: uuid("inventory_shift_id")
-      .notNull()
-      .references(() => inventoryShifts.id),
-    supplyId: uuid("supply_id")
-      .notNull()
-      .references(() => supplies.id),
-    purchaseId: uuid("purchase_id"),
-    expectedQuantity: bigint("expected_quantity", { mode: "number" }),
-    receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull(),
-    incidentType: inventoryReceiptIncident("incident_type").notNull().default("none"),
-    notes: text(),
-    receivedBy: uuid("received_by")
-      .notNull()
-      .references(() => users.id),
-    receivedAt: timestamp("received_at", { withTimezone: true }).notNull().defaultNow(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [
-    index("inventory_receipts_shift_id_idx").on(table.inventoryShiftId),
-    index("inventory_receipts_supply_id_idx").on(table.supplyId),
     check(
-      "inventory_receipts_quantities_check",
-      sql`${table.receivedQuantity} >= 0 and (${table.expectedQuantity} is null or ${table.expectedQuantity} >= 0)`,
+      "inventory_count_items_counted_check",
+      sql`(${table.counted} and ${table.closingQuantity} is not null) or (not ${table.counted} and ${table.closingQuantity} is null)`,
     ),
   ],
 );

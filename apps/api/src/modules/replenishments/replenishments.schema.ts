@@ -13,7 +13,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { branches } from "../branches/branches.schema.js";
-import { inventoryClosures } from "../inventory/inventory.schema.js";
+import { inventoryCounts } from "../inventory/inventory.schema.js";
 import { supplies } from "../supplies/supplies.schema.js";
 import { users } from "../users/users.schema.js";
 
@@ -35,9 +35,9 @@ export const replenishmentRequests = pgTable(
     branchId: uuid("branch_id")
       .notNull()
       .references(() => branches.id),
-    inventoryClosureId: uuid("inventory_closure_id")
+    inventoryCountId: uuid("inventory_count_id")
       .notNull()
-      .references(() => inventoryClosures.id),
+      .references(() => inventoryCounts.id),
     status: replenishmentRequestStatus().notNull().default("draft"),
     requestedBy: uuid("request_by")
       .notNull()
@@ -51,7 +51,7 @@ export const replenishmentRequests = pgTable(
   },
   (table) => [
     uniqueIndex("replenishment_requests_request_number_unique").on(table.requestNumber),
-    uniqueIndex("replenishment_requests_inventory_closure_unique").on(table.inventoryClosureId),
+    uniqueIndex("replenishment_requests_inventory_count_unique").on(table.inventoryCountId),
     index("replenishment_requests_branch_id_idx").on(table.branchId),
     index("replenishment_requests_status_idx").on(table.status),
   ],
@@ -86,11 +86,7 @@ export const replenishmentRequestItems = pgTable(
   ],
 );
 
-export const replenishmentRequestCounters = pgTable(
-  "replenishment_request_counters",
-  {
-    branchIdPrefix: text("branch_id_prefix").primaryKey(),
-    lastSeq: integer("last_seq").notNull().default(0),
-  },
-);
-
+export const replenishmentRequestCounters = pgTable("replenishment_request_counters", {
+  branchIdPrefix: text("branch_id_prefix").primaryKey(),
+  lastSeq: integer("last_seq").notNull().default(0),
+});

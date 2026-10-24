@@ -26,7 +26,7 @@ const submittedReplenishment: SubmittedReplenishment = {
 
 const replenishmentDetail: ReplenishmentDetail = {
   ...submittedReplenishment,
-  inventoryClosureId: "40000000-0000-4000-8000-000000000001",
+  inventoryCountId: "40000000-0000-4000-8000-000000000001",
   reviewedBy: null,
   reviewedAt: null,
   notes: null,
