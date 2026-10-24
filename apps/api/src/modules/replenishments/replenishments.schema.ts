@@ -15,6 +15,7 @@ import {
 import { branches } from "../branches/branches.schema.js";
 import { inventoryCounts } from "../inventory/inventory.schema.js";
 import { supplies } from "../supplies/supplies.schema.js";
+import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
 import { users } from "../users/users.schema.js";
 
 export const replenishmentRequestStatus = pgEnum("replenishment_request_status", [
@@ -67,21 +68,23 @@ export const replenishmentRequestItems = pgTable(
     supplyId: uuid("supply_id")
       .notNull()
       .references(() => supplies.id),
-    suggestedQuantity: bigint("suggested_quantity", { mode: "number" }).notNull().default(0),
+    usagePurposeId: uuid("usage_purpose_id")
+      .notNull()
+      .references(() => usagePurposes.id),
+    suggestedQuantity: bigint("suggested_quantity", { mode: "number" }),
     requestedQuantity: bigint("requested_quantity", { mode: "number" }).notNull(),
     approvedQuantity: bigint("approved_quantity", { mode: "number" }),
     fulfilledQuantity: bigint("fulfilled_quantity", { mode: "number" }).notNull().default(0),
-    notes: text(),
+    unitCost: bigint("unit_cost", { mode: "number" }).notNull(),
+    lineTotal: bigint("line_total", { mode: "number" }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("replenishment_request_items_request_supply_unique").on(
-      table.replenishmentRequestId,
-      table.supplyId,
-    ),
+    index("replenishment_request_items_request_id_idx").on(table.replenishmentRequestId),
+    index("replenishment_request_items_usage_purpose_id_idx").on(table.usagePurposeId),
     check(
       "replenishment_request_items_quantities_check",
-      sql`${table.suggestedQuantity} >= 0 and ${table.requestedQuantity} > 0 and (${table.approvedQuantity} is null or ${table.approvedQuantity} >= 0) and ${table.fulfilledQuantity} >= 0`,
+      sql`(${table.suggestedQuantity} is null or ${table.suggestedQuantity} >= 0) and ${table.requestedQuantity} >= 0 and (${table.approvedQuantity} is null or ${table.approvedQuantity} >= 0) and ${table.fulfilledQuantity} >= 0 and ${table.unitCost} >= 0 and ${table.lineTotal} >= 0`,
     ),
   ],
 );

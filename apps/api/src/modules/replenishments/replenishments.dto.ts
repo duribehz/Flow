@@ -13,6 +13,8 @@ const replenishmentItemDto = z
       sku: z.string(),
       name: z.string(),
     }),
+    usagePurposeId: z.uuid(),
+    usagePurposeName: z.string(),
     category: z.object({
       id: z.uuid(),
       name: z.string(),
@@ -22,11 +24,13 @@ const replenishmentItemDto = z
       name: z.string(),
       symbol: z.string(),
     }),
-    suggestedQuantity: z.number().int().nonnegative(),
-    requestedQuantity: z.number().int().positive(),
+    existenceQuantity: z.number().int().safe().nonnegative().nullable(),
+    suggestedQuantity: z.number().int().safe().nonnegative().nullable(),
+    requestedQuantity: z.number().int().safe().nonnegative(),
     approvedQuantity: z.number().int().nonnegative().nullable(),
     fulfilledQuantity: z.number().int().nonnegative(),
-    notes: z.string().nullable(),
+    unitCost: z.number().int().safe().nonnegative(),
+    lineTotal: z.number().int().safe().nonnegative(),
     createdAt: z.iso.datetime(),
   })
   .openapi("ReplenishmentItem");
@@ -64,6 +68,32 @@ export const replenishmentIdParamsDto = z.object({
   replenishmentId: z.uuid().openapi({ param: { name: "replenishmentId", in: "path" } }),
 });
 
+export const replenishmentItemParamsDto = replenishmentIdParamsDto.extend({
+  itemId: z.uuid().openapi({ param: { name: "itemId", in: "path" } }),
+});
+
+export const updateReplenishmentNotesDto = z
+  .object({ notes: z.string().trim().min(1).max(2000).nullable() })
+  .openapi("UpdateReplenishmentNotes");
+
+export const addReplenishmentItemDto = z
+  .object({
+    supplyId: z.uuid(),
+    usagePurposeId: z.uuid(),
+    requestedQuantity: z.number().int().safe().nonnegative(),
+  })
+  .openapi("AddReplenishmentItem");
+
+export const updateReplenishmentItemDto = z
+  .object({
+    usagePurposeId: z.uuid().optional(),
+    requestedQuantity: z.number().int().safe().nonnegative().optional(),
+  })
+  .refine((value) => value.usagePurposeId !== undefined || value.requestedQuantity !== undefined, {
+    message: "At least one field is required",
+  })
+  .openapi("UpdateReplenishmentItem");
+
 export const submittedReplenishmentDto = z
   .object({
     id: z.uuid(),
@@ -81,3 +111,16 @@ export const submittedReplenishmentDto = z
     createdAt: z.iso.datetime(),
   })
   .openapi("SubmittedReplenishment");
+
+export const draftReplenishmentDto = z
+  .object({
+    id: z.uuid(),
+    requestNumber: z.string(),
+    inventoryCountId: z.uuid(),
+    branch: z.object({ id: z.uuid(), name: z.string() }),
+    status: z.literal("draft"),
+    requestedBy: userDto,
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
+  })
+  .openapi("DraftReplenishment");

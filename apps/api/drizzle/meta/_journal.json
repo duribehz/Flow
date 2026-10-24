@@ -29,6 +29,13 @@
       "when": 1792836790236,
       "tag": "0003_round_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792839789130,
+      "tag": "0004_breezy_blazing_skull",
+      "breakpoints": true
     }
   ]
 }

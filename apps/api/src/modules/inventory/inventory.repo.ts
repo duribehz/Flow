@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { AppError } from "@/shared/errors/app-error.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
 import { receiptItems, receipts } from "../receipts/receipts.schema.js";
+import { ReplenishmentsRepo } from "../replenishments/replenishments.repo.js";
 import { branchSupplySettings, supplies } from "../supplies/supplies.schema.js";
 import type { CreateInventoryCountInput, UpdateInventoryCountInput } from "./inventory.dto.js";
 import { inventoryCountItems, inventoryCounts, inventoryDays } from "./inventory.schema.js";
@@ -277,6 +278,8 @@ export class InventoryRepo {
       if (!closedDay) {
         throw new AppError(409, "INVENTORY_DAY_CLOSED", "Inventory day is closed");
       }
+
+      await new ReplenishmentsRepo(conn).createDraftFromSubmittedCount(countId, actorId);
 
       return (await this.getInventoryCount(countId, conn))!;
     });

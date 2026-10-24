@@ -79,7 +79,10 @@ export const shipmentItems = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    uniqueIndex("shipment_items_shipment_supply_unique").on(table.shipmentId, table.supplyId),
+    uniqueIndex("shipment_items_shipment_request_item_unique").on(
+      table.shipmentId,
+      table.replenishmentRequestItemId,
+    ),
     index("shipment_items_request_item_id_idx").on(table.replenishmentRequestItemId),
     check(
       "shipment_items_quantities_check",

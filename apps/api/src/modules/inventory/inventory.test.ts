@@ -221,6 +221,7 @@ describe("inventory routes", () => {
     });
     expect(reviewResponse.status).toBe(200);
     expect((await reviewResponse.json()).data.status).toBe("reviewed");
+    expect(submitInventoryCountUseCase).toHaveBeenCalledWith(actorId, countId, expect.anything());
   });
 
   test("returns domain conflicts through the global error handler", async () => {
