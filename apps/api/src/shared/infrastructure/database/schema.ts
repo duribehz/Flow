@@ -7,4 +7,5 @@ export * from "../../../modules/replenishments/replenishments.schema.js";
 export * from "../../../modules/shipments/shipments.schema.js";
 export * from "../../../modules/suppliers/suppliers.schema.js";
 export * from "../../../modules/supplies/supplies.schema.js";
+export * from "../../../modules/usage-purposes/usage-purposes.schema.js";
 export * from "../../../modules/users/users.schema.js";

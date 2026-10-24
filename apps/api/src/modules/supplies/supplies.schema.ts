@@ -4,7 +4,10 @@ import {
   boolean,
   check,
   index,
+  pgEnum,
   pgTable,
+  primaryKey,
+  smallint,
   text,
   timestamp,
   uniqueIndex,
@@ -13,6 +16,9 @@ import {
 
 import { branches } from "../branches/branches.schema.js";
 import { suppliers } from "../suppliers/suppliers.schema.js";
+import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
+
+export const branchSupplySettingMode = pgEnum("branch_supply_setting_mode", ["fixed", "on_demand"]);
 
 export const categories = pgTable(
   "categories",
@@ -93,17 +99,32 @@ export const branchSupplySettings = pgTable(
     supplyId: uuid("supply_id")
       .notNull()
       .references(() => supplies.id, { onDelete: "cascade" }),
-    minimumQuantity: bigint("minimum_quantity", { mode: "number" }).notNull().default(0),
-    targetQuantity: bigint("target_quantity", { mode: "number" }).notNull().default(0),
+    mode: branchSupplySettingMode().notNull(),
+    defaultUsagePurposeId: uuid("default_usage_purpose_id")
+      .notNull()
+      .references(() => usagePurposes.id),
     active: boolean().notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex("branch_supply_settings_branch_supply_unique").on(table.branchId, table.supplyId),
-    check(
-      "branch_supply_settings_quantities_check",
-      sql`${table.minimumQuantity} >= 0 and ${table.targetQuantity} >= ${table.minimumQuantity}`,
-    ),
+    index("branch_supply_settings_default_usage_purpose_id_idx").on(table.defaultUsagePurposeId),
+  ],
+);
+
+export const branchSupplyWeeklyTargets = pgTable(
+  "branch_supply_weekly_targets",
+  {
+    branchSupplySettingId: uuid("branch_supply_setting_id")
+      .notNull()
+      .references(() => branchSupplySettings.id, { onDelete: "cascade" }),
+    weekday: smallint().notNull(),
+    targetQuantity: bigint("target_quantity", { mode: "number" }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.branchSupplySettingId, table.weekday] }),
+    check("branch_supply_weekly_targets_weekday_check", sql`${table.weekday} between 1 and 7`),
+    check("branch_supply_weekly_targets_target_quantity_check", sql`${table.targetQuantity} >= 0`),
   ],
 );

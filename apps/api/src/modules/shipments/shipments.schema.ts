@@ -1,7 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
-  boolean,
   check,
   index,
   pgEnum,
@@ -18,6 +17,7 @@ import {
   replenishmentRequests,
 } from "../replenishments/replenishments.schema.js";
 import { supplies } from "../supplies/supplies.schema.js";
+import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
 import { users } from "../users/users.schema.js";
 
 export const shipmentStatus = pgEnum("shipment_status", [
@@ -26,23 +26,6 @@ export const shipmentStatus = pgEnum("shipment_status", [
   "delivered",
   "cancelled",
 ]);
-
-export const packagePurposes = pgTable(
-  "package_purpose",
-  {
-    id: uuid().primaryKey().defaultRandom(),
-    code: text().notNull(),
-    name: text().notNull(),
-    description: text(),
-    active: boolean().notNull().default(true),
-    createdBy: uuid("created_by")
-      .notNull()
-      .references(() => users.id),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => [uniqueIndex("package_purpose_code_unique").on(table.code)],
-);
 
 export const shipments = pgTable(
   "shipments",
@@ -55,9 +38,9 @@ export const shipments = pgTable(
     replenishmentRequestId: uuid("replenishment_request_id")
       .notNull()
       .references(() => replenishmentRequests.id),
-    packagePurposeId: uuid("package_purpose_id")
+    usagePurposeId: uuid("usage_purpose_id")
       .notNull()
-      .references(() => packagePurposes.id),
+      .references(() => usagePurposes.id),
     status: shipmentStatus().notNull().default("preparing"),
     preparedBy: uuid("prepared_by")
       .notNull()
