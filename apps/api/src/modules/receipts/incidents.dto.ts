@@ -17,7 +17,7 @@ export const incidentIdParamsDTO = z.object({
 export const createIncidentDTO = z
   .object({
     receiptId: z.uuid(),
-    receiptItemId: z.uuid().nullable().optional(),
+    receiptItemId: z.uuid(),
     type: z.enum(incidentTypeValues),
     description: z.string().trim().min(1).max(4000),
   })

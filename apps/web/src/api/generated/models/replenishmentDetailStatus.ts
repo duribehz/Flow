@@ -12,9 +12,7 @@ export type ReplenishmentDetailStatus =
 export const ReplenishmentDetailStatus = {
   draft: "draft",
   submitted: "submitted",
-  approved: "approved",
   rejected: "rejected",
-  partially_fulfilled: "partially_fulfilled",
   fulfilled: "fulfilled",
   cancelled: "cancelled",
 } as const;

@@ -37,11 +37,8 @@ const receipt: ReceiptDetail = {
       usagePurposeName: "Cocina general",
       expectedQuantity: 300,
       receivedQuantity: 0,
-      acceptedQuantity: 0,
-      rejectedQuantity: 0,
-      condition: null,
+      condition: "good",
       checkedAt: null,
-      notes: null,
       createdAt: now,
     },
   ],
@@ -130,8 +127,6 @@ describe("receipt routes", () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         receivedQuantity: 250,
-        acceptedQuantity: 220,
-        rejectedQuantity: 30,
         condition: "damaged",
       }),
     });
@@ -147,22 +142,20 @@ describe("receipt routes", () => {
     expect(updateReceiptItemUseCase).toHaveBeenCalledWith(
       receiptId,
       receiptItemId,
-      { receivedQuantity: 250, acceptedQuantity: 220, rejectedQuantity: 30, condition: "damaged" },
+      { receivedQuantity: 250, condition: "damaged" },
       expect.anything(),
     );
     expect((await complete.json()).data.status).toBe("completed");
   });
 
-  test("rejects invalid classifications and closed-day conflicts", async () => {
+  test("rejects a nonzero quantity for items that did not arrive", async () => {
     const app = createTestApp();
     const invalid = await app.request(`/v1/receipts/${receiptId}/items/${receiptItemId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         receivedQuantity: 10,
-        acceptedQuantity: 8,
-        rejectedQuantity: 3,
-        condition: "good",
+        condition: "not_arrived",
       }),
     });
     completeReceiptUseCase.mockImplementationOnce(async () => {

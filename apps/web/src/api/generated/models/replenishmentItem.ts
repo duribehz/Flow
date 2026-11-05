@@ -12,20 +12,41 @@ import type { ReplenishmentItemUnit } from "./replenishmentItemUnit";
 export interface ReplenishmentItem {
   id: string;
   supply: ReplenishmentItemSupply;
+  usagePurposeId: string;
+  usagePurposeName: string;
   category: ReplenishmentItemCategory;
   unit: ReplenishmentItemUnit;
-  /** @minimum 0 */
-  suggestedQuantity: number;
-  /** @exclusiveMinimum 0 */
-  requestedQuantity: number;
   /**
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
    * @minimum 0
    * @nullable
    */
-  approvedQuantity: number | null;
-  /** @minimum 0 */
+  existenceQuantity: number | null;
+  /**
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   * @nullable
+   */
+  suggestedQuantity: number | null;
+  /**
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
+  requestedQuantity: number;
+  /**
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   fulfilledQuantity: number;
-  /** @nullable */
-  notes: string | null;
+  /**
+   * Money amount in integer cents.
+   * @minimum 0
+   */
+  unitCost: number;
+  /**
+   * Money amount in integer cents.
+   * @minimum 0
+   */
+  lineTotal: number;
   createdAt: string;
 }

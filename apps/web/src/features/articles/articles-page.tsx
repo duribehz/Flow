@@ -37,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatMoney } from "@/lib/operational-format";
 import { CreateSupplyDialog } from "./create-supply-dialog";
 import { ManageSuppliersDialog } from "./manage-suppliers-dialog";
 
@@ -302,9 +303,7 @@ function SupplyRow({ supply, onManage }: { supply: Supply; onManage: () => void 
       <TableCell className="text-base text-muted-foreground">
         {supply.unit.name} ({supply.unit.symbol})
       </TableCell>
-      <TableCell className="text-base font-semibold">
-        {new Intl.NumberFormat("es-MX").format(supply.unitCost)}
-      </TableCell>
+      <TableCell className="text-base font-semibold">{formatMoney(supply.unitCost)}</TableCell>
       <TableCell>
         <span className="inline-flex h-8 items-center rounded-full border bg-muted/70 px-3 text-sm font-semibold">
           {supply.active ? "Activo" : "Inactivo"}

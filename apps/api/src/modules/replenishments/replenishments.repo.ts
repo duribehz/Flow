@@ -1,5 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import { AppError } from "@/shared/errors/app-error.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
@@ -18,15 +17,12 @@ import {
   units,
 } from "../supplies/supplies.schema.js";
 import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
-import { shipments } from "../shipments/shipments.schema.js";
 import { users } from "../users/users.schema.js";
 import {
   replenishmentRequestCounters,
   replenishmentRequestItems,
   replenishmentRequests,
 } from "./replenishments.schema.js";
-
-const reviewers = alias(users, "reviewers");
 
 export type AddReplenishmentRequestItemInput = {
   supplyId: string;
@@ -125,7 +121,6 @@ export class ReplenishmentsRepo {
             usagePurposeId: item.usagePurposeId,
             suggestedQuantity,
             requestedQuantity,
-            approvedQuantity: null,
             fulfilledQuantity: 0,
             unitCost: item.unitCost,
             lineTotal: calculateLineTotalOrAppError(requestedQuantity, item.unitCost),
@@ -188,24 +183,6 @@ export class ReplenishmentsRepo {
     }));
   }
 
-  async getApprovedReplenishments() {
-    return this.conn
-      .select({
-        id: replenishmentRequests.id,
-        requestNumber: replenishmentRequests.requestNumber,
-        branch: { id: branches.id, name: branches.name },
-        requestedBy: { id: users.id, userName: users.userName },
-        reviewedAt: replenishmentRequests.reviewedAt,
-        createdAt: replenishmentRequests.createdAt,
-      })
-      .from(replenishmentRequests)
-      .innerJoin(branches, eq(replenishmentRequests.branchId, branches.id))
-      .innerJoin(users, eq(replenishmentRequests.requestedBy, users.id))
-      .leftJoin(shipments, eq(shipments.replenishmentRequestId, replenishmentRequests.id))
-      .where(and(eq(replenishmentRequests.status, "approved"), isNull(shipments.id)))
-      .orderBy(asc(replenishmentRequests.reviewedAt), asc(replenishmentRequests.createdAt));
-  }
-
   async getReplenishmentById(replenishmentId: string, conn: Executor = this.conn) {
     const [replenishment] = await conn
       .select({
@@ -221,12 +198,7 @@ export class ReplenishmentsRepo {
           id: users.id,
           userName: users.userName,
         },
-        reviewedBy: {
-          id: reviewers.id,
-          userName: reviewers.userName,
-        },
         submittedAt: replenishmentRequests.submittedAt,
-        reviewedAt: replenishmentRequests.reviewedAt,
         notes: replenishmentRequests.notes,
         createdAt: replenishmentRequests.createdAt,
         updatedAt: replenishmentRequests.updatedAt,
@@ -234,7 +206,6 @@ export class ReplenishmentsRepo {
       .from(replenishmentRequests)
       .innerJoin(branches, eq(replenishmentRequests.branchId, branches.id))
       .innerJoin(users, eq(replenishmentRequests.requestedBy, users.id))
-      .leftJoin(reviewers, eq(replenishmentRequests.reviewedBy, reviewers.id))
       .where(eq(replenishmentRequests.id, replenishmentId));
 
     if (!replenishment) return undefined;
@@ -261,7 +232,6 @@ export class ReplenishmentsRepo {
         existenceQuantity: inventoryCountItems.closingQuantity,
         suggestedQuantity: replenishmentRequestItems.suggestedQuantity,
         requestedQuantity: replenishmentRequestItems.requestedQuantity,
-        approvedQuantity: replenishmentRequestItems.approvedQuantity,
         fulfilledQuantity: replenishmentRequestItems.fulfilledQuantity,
         unitCost: replenishmentRequestItems.unitCost,
         lineTotal: replenishmentRequestItems.lineTotal,
@@ -321,7 +291,6 @@ export class ReplenishmentsRepo {
         usagePurposeId: purpose.id,
         suggestedQuantity: null,
         requestedQuantity: input.requestedQuantity,
-        approvedQuantity: null,
         fulfilledQuantity: 0,
         unitCost: supply.unitCost,
         lineTotal: calculateLineTotalOrAppError(input.requestedQuantity, supply.unitCost),
@@ -413,7 +382,11 @@ export class ReplenishmentsRepo {
       const submittedAt = new Date();
       const [updated] = await conn
         .update(replenishmentRequests)
-        .set({ status: "submitted", submittedAt, updatedAt: submittedAt })
+        .set({
+          status: "submitted",
+          submittedAt,
+          updatedAt: submittedAt,
+        })
         .where(
           and(
             eq(replenishmentRequests.id, replenishmentId),
@@ -422,65 +395,6 @@ export class ReplenishmentsRepo {
         )
         .returning({ id: replenishmentRequests.id });
       if (!updated) throw draftConflict();
-      return (await this.getReplenishmentById(replenishmentId, conn))!;
-    });
-  }
-
-  async approve(replenishmentId: string, actorId: string) {
-    return this.runInTransaction(async (conn) => {
-      const [request] = await conn
-        .select({ status: replenishmentRequests.status })
-        .from(replenishmentRequests)
-        .where(eq(replenishmentRequests.id, replenishmentId))
-        .for("update");
-      if (!request) throw new AppError(404, "REPLENISHMENT_NOT_FOUND", "Replenishment not found");
-      if (request.status !== "submitted") {
-        throw new AppError(
-          409,
-          "REPLENISHMENT_NOT_SUBMITTED",
-          "Only submitted requests can be approved",
-        );
-      }
-
-      const items = await conn
-        .select({
-          id: replenishmentRequestItems.id,
-          requestedQuantity: replenishmentRequestItems.requestedQuantity,
-        })
-        .from(replenishmentRequestItems)
-        .where(eq(replenishmentRequestItems.replenishmentRequestId, replenishmentId));
-      if (items.length === 0 || items.some((item) => item.requestedQuantity <= 0)) {
-        throw new AppError(
-          409,
-          "REPLENISHMENT_CANNOT_BE_APPROVED",
-          "Request items must have positive quantities",
-        );
-      }
-
-      for (const item of items) {
-        await conn
-          .update(replenishmentRequestItems)
-          .set({ approvedQuantity: item.requestedQuantity })
-          .where(eq(replenishmentRequestItems.id, item.id));
-      }
-      const reviewedAt = new Date();
-      const [approved] = await conn
-        .update(replenishmentRequests)
-        .set({ status: "approved", reviewedBy: actorId, reviewedAt, updatedAt: reviewedAt })
-        .where(
-          and(
-            eq(replenishmentRequests.id, replenishmentId),
-            eq(replenishmentRequests.status, "submitted"),
-          ),
-        )
-        .returning({ id: replenishmentRequests.id });
-      if (!approved) {
-        throw new AppError(
-          409,
-          "REPLENISHMENT_NOT_SUBMITTED",
-          "Only submitted requests can be approved",
-        );
-      }
       return (await this.getReplenishmentById(replenishmentId, conn))!;
     });
   }
@@ -552,9 +466,6 @@ function draftConflict() {
 
 export type SubmittedReplenishment = Awaited<
   ReturnType<ReplenishmentsRepo["getSubmittedReplenishments"]>
->[number];
-export type ApprovedReplenishment = Awaited<
-  ReturnType<ReplenishmentsRepo["getApprovedReplenishments"]>
 >[number];
 export type ReplenishmentDetail = NonNullable<
   Awaited<ReturnType<ReplenishmentsRepo["getReplenishmentById"]>>

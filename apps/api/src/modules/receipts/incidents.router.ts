@@ -31,6 +31,10 @@ const errors = {
     description: "Incident or receipt not found",
     content: { "application/json": { schema: errorSchema } },
   },
+  409: {
+    description: "Receipt state conflict",
+    content: { "application/json": { schema: errorSchema } },
+  },
 };
 
 incidentsRouter.openapi(
@@ -61,7 +65,7 @@ incidentsRouter.openapi(
     path: "/",
     operationId: "postIncidents",
     tags: ["Incidents"],
-    summary: "Report an incident for a receipt or receipt item",
+    summary: "Report a derived incident for a receipt item",
     request: {
       body: { required: true, content: { "application/json": { schema: createIncidentDTO } } },
     },
@@ -72,6 +76,7 @@ incidentsRouter.openapi(
       },
       400: errors[400],
       404: errors[404],
+      409: errors[409],
     },
   }),
   async (context) => {

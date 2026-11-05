@@ -2,14 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
-import {
-  createShipmentDTO,
-  shipmentDTO,
-  shipmentIdParamsDTO,
-  shipmentStatusValues,
-} from "./shipments.dto.js";
-import { createShipmentUseCase } from "./use-cases/create-shipment.usecase.js";
-import { dispatchShipmentUseCase } from "./use-cases/dispatch-shipment.usecase.js";
+import { shipmentDTO, shipmentIdParamsDTO, shipmentStatusValues } from "./shipments.dto.js";
 import { getShipmentUseCase } from "./use-cases/get-shipment.usecase.js";
 import { listShipmentsUseCase } from "./use-cases/list-shipments.usecase.js";
 
@@ -62,36 +55,6 @@ shipmentsRouter.openapi(
 
 shipmentsRouter.openapi(
   createRoute({
-    method: "post",
-    path: "/",
-    operationId: "postShipments",
-    tags: ["Shipments"],
-    summary: "Create the shipment for a submitted request",
-    request: {
-      body: { required: true, content: { "application/json": { schema: createShipmentDTO } } },
-    },
-    responses: {
-      201: {
-        description: "Shipment created",
-        content: { "application/json": { schema: z.object({ data: shipmentDTO }) } },
-      },
-      400: errors[400],
-      404: errors[404],
-      409: errors[409],
-    },
-  }),
-  async (context) => {
-    const shipment = await createShipmentUseCase(
-      context.req.valid("json").replenishmentRequestId,
-      context.get("userId"),
-      context.get("db"),
-    );
-    return context.json({ data: serializeShipment(shipment) }, 201);
-  },
-);
-
-shipmentsRouter.openapi(
-  createRoute({
     method: "get",
     path: "/{shipmentId}",
     operationId: "getShipmentsShipmentId",
@@ -110,33 +73,6 @@ shipmentsRouter.openapi(
   async (context) => {
     const shipment = await getShipmentUseCase(
       context.req.valid("param").shipmentId,
-      context.get("db"),
-    );
-    return context.json({ data: serializeShipment(shipment) }, 200);
-  },
-);
-
-shipmentsRouter.openapi(
-  createRoute({
-    method: "post",
-    path: "/{shipmentId}/dispatch",
-    operationId: "postShipmentsShipmentIdDispatch",
-    tags: ["Shipments"],
-    summary: "Dispatch a prepared shipment",
-    request: { params: shipmentIdParamsDTO },
-    responses: {
-      200: {
-        description: "Shipment dispatched",
-        content: { "application/json": { schema: z.object({ data: shipmentDTO }) } },
-      },
-      404: errors[404],
-      409: errors[409],
-    },
-  }),
-  async (context) => {
-    const shipment = await dispatchShipmentUseCase(
-      context.req.valid("param").shipmentId,
-      context.get("userId"),
       context.get("db"),
     );
     return context.json({ data: serializeShipment(shipment) }, 200);

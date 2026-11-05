@@ -19,12 +19,7 @@ import {
 import { supplies } from "../supplies/supplies.schema.js";
 import { users } from "../users/users.schema.js";
 
-export const shipmentStatus = pgEnum("shipment_status", [
-  "preparing",
-  "dispatched",
-  "delivered",
-  "cancelled",
-]);
+export const shipmentStatus = pgEnum("shipment_status", ["dispatched", "delivered", "cancelled"]);
 
 export const shipments = pgTable(
   "shipments",
@@ -37,7 +32,7 @@ export const shipments = pgTable(
     replenishmentRequestId: uuid("replenishment_request_id")
       .notNull()
       .references(() => replenishmentRequests.id),
-    status: shipmentStatus().notNull().default("preparing"),
+    status: shipmentStatus().notNull().default("dispatched"),
     preparedBy: uuid("prepared_by")
       .notNull()
       .references(() => users.id),

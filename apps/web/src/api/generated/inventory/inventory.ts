@@ -6,72 +6,88 @@
  * OpenAPI spec version: 1.0.0
  */
 import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import type { Arguments, Key, SWRConfiguration } from "swr";
 
 import useSWRMutation from "swr/mutation";
 import type { SWRMutationConfiguration } from "swr/mutation";
 
 import type {
   ApiError,
-  CloseInventoryShift,
-  CreateInventoryShift,
-  GetInventoryClosures200,
-  GetInventoryClosuresClosureId200,
-  GetInventoryClosuresClosureIdReport200,
-  GetInventoryClosuresParams,
-  GetInventoryShifts200,
-  GetInventoryShiftsParams,
-  GetInventoryShiftsShiftId200,
-  PostInventoryShifts201,
-  PostInventoryShiftsShiftIdClose201,
-  PostInventoryShiftsShiftIdReceipts201,
-  RecordInventoryReceipt,
+  CreateInventoryCount,
+  CreateInventoryDay,
+  GetInventoryCounts200,
+  GetInventoryCountsCountId200,
+  GetInventoryCountsParams,
+  GetInventoryDays200,
+  GetInventoryDaysDayId200,
+  GetInventoryDaysParams,
+  PatchInventoryCountsCountId200,
+  PostInventoryCounts201,
+  PostInventoryCountsCountIdReview200,
+  PostInventoryCountsCountIdSubmit200,
+  PostInventoryDays200,
+  PostInventoryDays201,
+  UpdateInventoryCount,
 } from "../models";
 
 import { apiClient } from "../../http-client";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type postInventoryShiftsResponse201 = {
-  data: PostInventoryShifts201;
+export type postInventoryDaysResponse200 = {
+  data: PostInventoryDays200;
+  status: 200;
+};
+
+export type postInventoryDaysResponse201 = {
+  data: PostInventoryDays201;
   status: 201;
 };
 
-export type postInventoryShiftsResponse400 = {
+export type postInventoryDaysResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type postInventoryShiftsResponse409 = {
+export type postInventoryDaysResponse404 = {
+  data: ApiError;
+  status: 404;
+};
+
+export type postInventoryDaysResponse409 = {
   data: ApiError;
   status: 409;
 };
 
-export type postInventoryShiftsResponseSuccess = postInventoryShiftsResponse201 & {
+export type postInventoryDaysResponseSuccess = (
+  | postInventoryDaysResponse200
+  | postInventoryDaysResponse201
+) & {
   headers: Headers;
 };
-export type postInventoryShiftsResponseError = (
-  | postInventoryShiftsResponse400
-  | postInventoryShiftsResponse409
+export type postInventoryDaysResponseError = (
+  | postInventoryDaysResponse400
+  | postInventoryDaysResponse404
+  | postInventoryDaysResponse409
 ) & {
   headers: Headers;
 };
 
-export type postInventoryShiftsResponse =
-  | postInventoryShiftsResponseSuccess
-  | postInventoryShiftsResponseError;
+export type postInventoryDaysResponse =
+  | postInventoryDaysResponseSuccess
+  | postInventoryDaysResponseError;
 
-export const getPostInventoryShiftsUrl = () => {
-  return `/inventory-shifts`;
+export const getPostInventoryDaysUrl = () => {
+  return `/v1/inventory-days`;
 };
 
 /**
- * @summary Open an inventory shift
+ * @summary Open or get an operational day
  */
-export const postInventoryShifts = async (
-  createInventoryShift: CreateInventoryShift,
+export const postInventoryDays = async (
+  createInventoryDay: CreateInventoryDay,
   options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryShiftsResponse> => {
+): Promise<postInventoryDaysResponse> => {
   const getHeaders = (
     h?: NonNullable<RequestInit["headers"]>,
   ): Record<string, string | readonly string[]> => {
@@ -91,44 +107,44 @@ export const postInventoryShifts = async (
     }
     return headers;
   };
-  return apiClient<postInventoryShiftsResponse>(getPostInventoryShiftsUrl(), {
+  return apiClient<postInventoryDaysResponse>(getPostInventoryDaysUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createInventoryShift),
+    body: JSON.stringify(createInventoryDay),
   });
 };
 
-export const getPostInventoryShiftsMutationFetcher = (
+export const getPostInventoryDaysMutationFetcher = (
   options?: SecondParameter<typeof apiClient>,
 ) => {
-  return (_: Key, { arg }: { arg: CreateInventoryShift }) => {
-    return postInventoryShifts(arg, options);
+  return (_: Key, { arg }: { arg: CreateInventoryDay }) => {
+    return postInventoryDays(arg, options);
   };
 };
-export const getPostInventoryShiftsMutationKey = () => [`/inventory-shifts`] as const;
+export const getPostInventoryDaysMutationKey = () => [`/v1/inventory-days`] as const;
 
-export type PostInventoryShiftsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryShifts>>
+export type PostInventoryDaysMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postInventoryDays>>
 >;
 
 /**
- * @summary Open an inventory shift
+ * @summary Open or get an operational day
  */
-export const usePostInventoryShifts = <TError = ApiError>(options?: {
+export const usePostInventoryDays = <TError = ApiError>(options?: {
   swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postInventoryShifts>>,
+    Awaited<ReturnType<typeof postInventoryDays>>,
     TError,
     Key,
-    CreateInventoryShift,
-    Awaited<ReturnType<typeof postInventoryShifts>>
+    CreateInventoryDay,
+    Awaited<ReturnType<typeof postInventoryDays>>
   > & { swrKey?: string };
   request?: SecondParameter<typeof apiClient>;
 }) => {
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey = swrOptions?.swrKey ?? getPostInventoryShiftsMutationKey();
-  const swrFn = getPostInventoryShiftsMutationFetcher(requestOptions);
+  const swrKey = swrOptions?.swrKey ?? getPostInventoryDaysMutationKey();
+  const swrFn = getPostInventoryDaysMutationFetcher(requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -137,28 +153,28 @@ export const usePostInventoryShifts = <TError = ApiError>(options?: {
     ...query,
   };
 };
-export type getInventoryShiftsResponse200 = {
-  data: GetInventoryShifts200;
+export type getInventoryDaysResponse200 = {
+  data: GetInventoryDays200;
   status: 200;
 };
 
-export type getInventoryShiftsResponse400 = {
+export type getInventoryDaysResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type getInventoryShiftsResponseSuccess = getInventoryShiftsResponse200 & {
+export type getInventoryDaysResponseSuccess = getInventoryDaysResponse200 & {
   headers: Headers;
 };
-export type getInventoryShiftsResponseError = getInventoryShiftsResponse400 & {
+export type getInventoryDaysResponseError = getInventoryDaysResponse400 & {
   headers: Headers;
 };
 
-export type getInventoryShiftsResponse =
-  | getInventoryShiftsResponseSuccess
-  | getInventoryShiftsResponseError;
+export type getInventoryDaysResponse =
+  | getInventoryDaysResponseSuccess
+  | getInventoryDaysResponseError;
 
-export const getGetInventoryShiftsUrl = (params?: GetInventoryShiftsParams) => {
+export const getGetInventoryDaysUrl = (params?: GetInventoryDaysParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -170,37 +186,35 @@ export const getGetInventoryShiftsUrl = (params?: GetInventoryShiftsParams) => {
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/inventory-shifts?${stringifiedParams}`
-    : `/inventory-shifts`;
+    ? `/v1/inventory-days?${stringifiedParams}`
+    : `/v1/inventory-days`;
 };
 
 /**
- * @summary List inventory shifts
+ * @summary List inventory days
  */
-export const getInventoryShifts = async (
-  params?: GetInventoryShiftsParams,
+export const getInventoryDays = async (
+  params?: GetInventoryDaysParams,
   options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryShiftsResponse> => {
-  return apiClient<getInventoryShiftsResponse>(getGetInventoryShiftsUrl(params), {
+): Promise<getInventoryDaysResponse> => {
+  return apiClient<getInventoryDaysResponse>(getGetInventoryDaysUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetInventoryShiftsKey = (params?: GetInventoryShiftsParams) =>
-  [`/inventory-shifts`, ...(params ? [params] : [])] as const;
+export const getGetInventoryDaysKey = (params?: GetInventoryDaysParams) =>
+  [`/v1/inventory-days`, ...(params ? [params] : [])] as const;
 
-export type GetInventoryShiftsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryShifts>>
->;
+export type GetInventoryDaysQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryDays>>>;
 
 /**
- * @summary List inventory shifts
+ * @summary List inventory days
  */
-export const useGetInventoryShifts = <TError = ApiError>(
-  params?: GetInventoryShiftsParams,
+export const useGetInventoryDays = <TError = ApiError>(
+  params?: GetInventoryDaysParams,
   options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryShifts>>, TError> & {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryDays>>, TError> & {
       swrKey?: Key;
       enabled?: boolean;
     };
@@ -210,9 +224,8 @@ export const useGetInventoryShifts = <TError = ApiError>(
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryShiftsKey(params) : null));
-  const swrFn = () => getInventoryShifts(params, requestOptions);
+  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryDaysKey(params) : null));
+  const swrFn = () => getInventoryDays(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -221,66 +234,66 @@ export const useGetInventoryShifts = <TError = ApiError>(
     ...query,
   };
 };
-export type getInventoryShiftsShiftIdResponse200 = {
-  data: GetInventoryShiftsShiftId200;
+export type getInventoryDaysDayIdResponse200 = {
+  data: GetInventoryDaysDayId200;
   status: 200;
 };
 
-export type getInventoryShiftsShiftIdResponse400 = {
+export type getInventoryDaysDayIdResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type getInventoryShiftsShiftIdResponse404 = {
+export type getInventoryDaysDayIdResponse404 = {
   data: ApiError;
   status: 404;
 };
 
-export type getInventoryShiftsShiftIdResponseSuccess = getInventoryShiftsShiftIdResponse200 & {
+export type getInventoryDaysDayIdResponseSuccess = getInventoryDaysDayIdResponse200 & {
   headers: Headers;
 };
-export type getInventoryShiftsShiftIdResponseError = (
-  | getInventoryShiftsShiftIdResponse400
-  | getInventoryShiftsShiftIdResponse404
+export type getInventoryDaysDayIdResponseError = (
+  | getInventoryDaysDayIdResponse400
+  | getInventoryDaysDayIdResponse404
 ) & {
   headers: Headers;
 };
 
-export type getInventoryShiftsShiftIdResponse =
-  | getInventoryShiftsShiftIdResponseSuccess
-  | getInventoryShiftsShiftIdResponseError;
+export type getInventoryDaysDayIdResponse =
+  | getInventoryDaysDayIdResponseSuccess
+  | getInventoryDaysDayIdResponseError;
 
-export const getGetInventoryShiftsShiftIdUrl = (shiftId: string) => {
-  return `/inventory-shifts/${shiftId}`;
+export const getGetInventoryDaysDayIdUrl = (dayId: string) => {
+  return `/v1/inventory-days/${dayId}`;
 };
 
 /**
- * @summary Get an inventory shift by id
+ * @summary Get an inventory day
  */
-export const getInventoryShiftsShiftId = async (
-  shiftId: string,
+export const getInventoryDaysDayId = async (
+  dayId: string,
   options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryShiftsShiftIdResponse> => {
-  return apiClient<getInventoryShiftsShiftIdResponse>(getGetInventoryShiftsShiftIdUrl(shiftId), {
+): Promise<getInventoryDaysDayIdResponse> => {
+  return apiClient<getInventoryDaysDayIdResponse>(getGetInventoryDaysDayIdUrl(dayId), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetInventoryShiftsShiftIdKey = (shiftId: string) =>
-  [`/inventory-shifts/${shiftId}`] as const;
+export const getGetInventoryDaysDayIdKey = (dayId: string) =>
+  [`/v1/inventory-days/${dayId}`] as const;
 
-export type GetInventoryShiftsShiftIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryShiftsShiftId>>
+export type GetInventoryDaysDayIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInventoryDaysDayId>>
 >;
 
 /**
- * @summary Get an inventory shift by id
+ * @summary Get an inventory day
  */
-export const useGetInventoryShiftsShiftId = <TError = ApiError>(
-  shiftId: string,
+export const useGetInventoryDaysDayId = <TError = ApiError>(
+  dayId: string,
   options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryShiftsShiftId>>, TError> & {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryDaysDayId>>, TError> & {
       swrKey?: Key;
       enabled?: boolean;
     };
@@ -289,10 +302,10 @@ export const useGetInventoryShiftsShiftId = <TError = ApiError>(
 ) => {
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && shiftId !== null && shiftId !== undefined;
+  const isEnabled = swrOptions?.enabled !== false && dayId !== null && dayId !== undefined;
   const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryShiftsShiftIdKey(shiftId) : null));
-  const swrFn = () => getInventoryShiftsShiftId(shiftId, requestOptions);
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryDaysDayIdKey(dayId) : null));
+  const swrFn = () => getInventoryDaysDayId(dayId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -301,54 +314,46 @@ export const useGetInventoryShiftsShiftId = <TError = ApiError>(
     ...query,
   };
 };
-export type postInventoryShiftsShiftIdReceiptsResponse201 = {
-  data: PostInventoryShiftsShiftIdReceipts201;
+export type postInventoryCountsResponse201 = {
+  data: PostInventoryCounts201;
   status: 201;
 };
 
-export type postInventoryShiftsShiftIdReceiptsResponse400 = {
+export type postInventoryCountsResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type postInventoryShiftsShiftIdReceiptsResponse404 = {
-  data: ApiError;
-  status: 404;
-};
-
-export type postInventoryShiftsShiftIdReceiptsResponse409 = {
+export type postInventoryCountsResponse409 = {
   data: ApiError;
   status: 409;
 };
 
-export type postInventoryShiftsShiftIdReceiptsResponseSuccess =
-  postInventoryShiftsShiftIdReceiptsResponse201 & {
-    headers: Headers;
-  };
-export type postInventoryShiftsShiftIdReceiptsResponseError = (
-  | postInventoryShiftsShiftIdReceiptsResponse400
-  | postInventoryShiftsShiftIdReceiptsResponse404
-  | postInventoryShiftsShiftIdReceiptsResponse409
+export type postInventoryCountsResponseSuccess = postInventoryCountsResponse201 & {
+  headers: Headers;
+};
+export type postInventoryCountsResponseError = (
+  | postInventoryCountsResponse400
+  | postInventoryCountsResponse409
 ) & {
   headers: Headers;
 };
 
-export type postInventoryShiftsShiftIdReceiptsResponse =
-  | postInventoryShiftsShiftIdReceiptsResponseSuccess
-  | postInventoryShiftsShiftIdReceiptsResponseError;
+export type postInventoryCountsResponse =
+  | postInventoryCountsResponseSuccess
+  | postInventoryCountsResponseError;
 
-export const getPostInventoryShiftsShiftIdReceiptsUrl = (shiftId: string) => {
-  return `/inventory-shifts/${shiftId}/receipts`;
+export const getPostInventoryCountsUrl = () => {
+  return `/v1/inventory-counts`;
 };
 
 /**
- * @summary Record a supply receipt for an open shift
+ * @summary Create a draft inventory count
  */
-export const postInventoryShiftsShiftIdReceipts = async (
-  shiftId: string,
-  recordInventoryReceipt: RecordInventoryReceipt,
+export const postInventoryCounts = async (
+  createInventoryCount: CreateInventoryCount,
   options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryShiftsShiftIdReceiptsResponse> => {
+): Promise<postInventoryCountsResponse> => {
   const getHeaders = (
     h?: NonNullable<RequestInit["headers"]>,
   ): Record<string, string | readonly string[]> => {
@@ -368,52 +373,44 @@ export const postInventoryShiftsShiftIdReceipts = async (
     }
     return headers;
   };
-  return apiClient<postInventoryShiftsShiftIdReceiptsResponse>(
-    getPostInventoryShiftsShiftIdReceiptsUrl(shiftId),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(recordInventoryReceipt),
-    },
-  );
+  return apiClient<postInventoryCountsResponse>(getPostInventoryCountsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(createInventoryCount),
+  });
 };
 
-export const getPostInventoryShiftsShiftIdReceiptsMutationFetcher = (
-  shiftId: string,
+export const getPostInventoryCountsMutationFetcher = (
   options?: SecondParameter<typeof apiClient>,
 ) => {
-  return (_: Key, { arg }: { arg: RecordInventoryReceipt }) => {
-    return postInventoryShiftsShiftIdReceipts(shiftId, arg, options);
+  return (_: Key, { arg }: { arg: CreateInventoryCount }) => {
+    return postInventoryCounts(arg, options);
   };
 };
-export const getPostInventoryShiftsShiftIdReceiptsMutationKey = (shiftId: string) =>
-  [`/inventory-shifts/${shiftId}/receipts`] as const;
+export const getPostInventoryCountsMutationKey = () => [`/v1/inventory-counts`] as const;
 
-export type PostInventoryShiftsShiftIdReceiptsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryShiftsShiftIdReceipts>>
+export type PostInventoryCountsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postInventoryCounts>>
 >;
 
 /**
- * @summary Record a supply receipt for an open shift
+ * @summary Create a draft inventory count
  */
-export const usePostInventoryShiftsShiftIdReceipts = <TError = ApiError>(
-  shiftId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postInventoryShiftsShiftIdReceipts>>,
-      TError,
-      Key,
-      RecordInventoryReceipt,
-      Awaited<ReturnType<typeof postInventoryShiftsShiftIdReceipts>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
-) => {
+export const usePostInventoryCounts = <TError = ApiError>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postInventoryCounts>>,
+    TError,
+    Key,
+    CreateInventoryCount,
+    Awaited<ReturnType<typeof postInventoryCounts>>
+  > & { swrKey?: string };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey = swrOptions?.swrKey ?? getPostInventoryShiftsShiftIdReceiptsMutationKey(shiftId);
-  const swrFn = getPostInventoryShiftsShiftIdReceiptsMutationFetcher(shiftId, requestOptions);
+  const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsMutationKey();
+  const swrFn = getPostInventoryCountsMutationFetcher(requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
@@ -422,28 +419,28 @@ export const usePostInventoryShiftsShiftIdReceipts = <TError = ApiError>(
     ...query,
   };
 };
-export type getInventoryClosuresResponse200 = {
-  data: GetInventoryClosures200;
+export type getInventoryCountsResponse200 = {
+  data: GetInventoryCounts200;
   status: 200;
 };
 
-export type getInventoryClosuresResponse400 = {
+export type getInventoryCountsResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type getInventoryClosuresResponseSuccess = getInventoryClosuresResponse200 & {
+export type getInventoryCountsResponseSuccess = getInventoryCountsResponse200 & {
   headers: Headers;
 };
-export type getInventoryClosuresResponseError = getInventoryClosuresResponse400 & {
+export type getInventoryCountsResponseError = getInventoryCountsResponse400 & {
   headers: Headers;
 };
 
-export type getInventoryClosuresResponse =
-  | getInventoryClosuresResponseSuccess
-  | getInventoryClosuresResponseError;
+export type getInventoryCountsResponse =
+  | getInventoryCountsResponseSuccess
+  | getInventoryCountsResponseError;
 
-export const getGetInventoryClosuresUrl = (params?: GetInventoryClosuresParams) => {
+export const getGetInventoryCountsUrl = (params?: GetInventoryCountsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -455,37 +452,37 @@ export const getGetInventoryClosuresUrl = (params?: GetInventoryClosuresParams) 
   const stringifiedParams = normalizedParams.toString();
 
   return stringifiedParams.length > 0
-    ? `/inventory-closures?${stringifiedParams}`
-    : `/inventory-closures`;
+    ? `/v1/inventory-counts?${stringifiedParams}`
+    : `/v1/inventory-counts`;
 };
 
 /**
- * @summary List inventory closures
+ * @summary List inventory counts
  */
-export const getInventoryClosures = async (
-  params?: GetInventoryClosuresParams,
+export const getInventoryCounts = async (
+  params?: GetInventoryCountsParams,
   options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryClosuresResponse> => {
-  return apiClient<getInventoryClosuresResponse>(getGetInventoryClosuresUrl(params), {
+): Promise<getInventoryCountsResponse> => {
+  return apiClient<getInventoryCountsResponse>(getGetInventoryCountsUrl(params), {
     ...options,
     method: "GET",
   });
 };
 
-export const getGetInventoryClosuresKey = (params?: GetInventoryClosuresParams) =>
-  [`/inventory-closures`, ...(params ? [params] : [])] as const;
+export const getGetInventoryCountsKey = (params?: GetInventoryCountsParams) =>
+  [`/v1/inventory-counts`, ...(params ? [params] : [])] as const;
 
-export type GetInventoryClosuresQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryClosures>>
+export type GetInventoryCountsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInventoryCounts>>
 >;
 
 /**
- * @summary List inventory closures
+ * @summary List inventory counts
  */
-export const useGetInventoryClosures = <TError = ApiError>(
-  params?: GetInventoryClosuresParams,
+export const useGetInventoryCounts = <TError = ApiError>(
+  params?: GetInventoryCountsParams,
   options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryClosures>>, TError> & {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryCounts>>, TError> & {
       swrKey?: Key;
       enabled?: boolean;
     };
@@ -496,8 +493,8 @@ export const useGetInventoryClosures = <TError = ApiError>(
 
   const isEnabled = swrOptions?.enabled !== false;
   const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryClosuresKey(params) : null));
-  const swrFn = () => getInventoryClosures(params, requestOptions);
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryCountsKey(params) : null));
+  const swrFn = () => getInventoryCounts(params, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -506,70 +503,66 @@ export const useGetInventoryClosures = <TError = ApiError>(
     ...query,
   };
 };
-export type getInventoryClosuresClosureIdResponse200 = {
-  data: GetInventoryClosuresClosureId200;
+export type getInventoryCountsCountIdResponse200 = {
+  data: GetInventoryCountsCountId200;
   status: 200;
 };
 
-export type getInventoryClosuresClosureIdResponse400 = {
+export type getInventoryCountsCountIdResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type getInventoryClosuresClosureIdResponse404 = {
+export type getInventoryCountsCountIdResponse404 = {
   data: ApiError;
   status: 404;
 };
 
-export type getInventoryClosuresClosureIdResponseSuccess =
-  getInventoryClosuresClosureIdResponse200 & {
-    headers: Headers;
-  };
-export type getInventoryClosuresClosureIdResponseError = (
-  | getInventoryClosuresClosureIdResponse400
-  | getInventoryClosuresClosureIdResponse404
+export type getInventoryCountsCountIdResponseSuccess = getInventoryCountsCountIdResponse200 & {
+  headers: Headers;
+};
+export type getInventoryCountsCountIdResponseError = (
+  | getInventoryCountsCountIdResponse400
+  | getInventoryCountsCountIdResponse404
 ) & {
   headers: Headers;
 };
 
-export type getInventoryClosuresClosureIdResponse =
-  | getInventoryClosuresClosureIdResponseSuccess
-  | getInventoryClosuresClosureIdResponseError;
+export type getInventoryCountsCountIdResponse =
+  | getInventoryCountsCountIdResponseSuccess
+  | getInventoryCountsCountIdResponseError;
 
-export const getGetInventoryClosuresClosureIdUrl = (closureId: string) => {
-  return `/inventory-closures/${closureId}`;
+export const getGetInventoryCountsCountIdUrl = (countId: string) => {
+  return `/v1/inventory-counts/${countId}`;
 };
 
 /**
- * @summary Get an inventory closure by id with its items
+ * @summary Get an inventory count
  */
-export const getInventoryClosuresClosureId = async (
-  closureId: string,
+export const getInventoryCountsCountId = async (
+  countId: string,
   options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryClosuresClosureIdResponse> => {
-  return apiClient<getInventoryClosuresClosureIdResponse>(
-    getGetInventoryClosuresClosureIdUrl(closureId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
+): Promise<getInventoryCountsCountIdResponse> => {
+  return apiClient<getInventoryCountsCountIdResponse>(getGetInventoryCountsCountIdUrl(countId), {
+    ...options,
+    method: "GET",
+  });
 };
 
-export const getGetInventoryClosuresClosureIdKey = (closureId: string) =>
-  [`/inventory-closures/${closureId}`] as const;
+export const getGetInventoryCountsCountIdKey = (countId: string) =>
+  [`/v1/inventory-counts/${countId}`] as const;
 
-export type GetInventoryClosuresClosureIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryClosuresClosureId>>
+export type GetInventoryCountsCountIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInventoryCountsCountId>>
 >;
 
 /**
- * @summary Get an inventory closure by id with its items
+ * @summary Get an inventory count
  */
-export const useGetInventoryClosuresClosureId = <TError = ApiError>(
-  closureId: string,
+export const useGetInventoryCountsCountId = <TError = ApiError>(
+  countId: string,
   options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryClosuresClosureId>>, TError> & {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryCountsCountId>>, TError> & {
       swrKey?: Key;
       enabled?: boolean;
     };
@@ -578,11 +571,10 @@ export const useGetInventoryClosuresClosureId = <TError = ApiError>(
 ) => {
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && closureId !== null && closureId !== undefined;
+  const isEnabled = swrOptions?.enabled !== false && countId !== null && countId !== undefined;
   const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getGetInventoryClosuresClosureIdKey(closureId) : null));
-  const swrFn = () => getInventoryClosuresClosureId(closureId, requestOptions);
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryCountsCountIdKey(countId) : null));
+  const swrFn = () => getInventoryCountsCountId(countId, requestOptions);
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
@@ -591,139 +583,53 @@ export const useGetInventoryClosuresClosureId = <TError = ApiError>(
     ...query,
   };
 };
-export type getInventoryClosuresClosureIdReportResponse200 = {
-  data: GetInventoryClosuresClosureIdReport200;
+export type patchInventoryCountsCountIdResponse200 = {
+  data: PatchInventoryCountsCountId200;
   status: 200;
 };
 
-export type getInventoryClosuresClosureIdReportResponse400 = {
+export type patchInventoryCountsCountIdResponse400 = {
   data: ApiError;
   status: 400;
 };
 
-export type getInventoryClosuresClosureIdReportResponse404 = {
+export type patchInventoryCountsCountIdResponse404 = {
   data: ApiError;
   status: 404;
 };
 
-export type getInventoryClosuresClosureIdReportResponseSuccess =
-  getInventoryClosuresClosureIdReportResponse200 & {
-    headers: Headers;
-  };
-export type getInventoryClosuresClosureIdReportResponseError = (
-  | getInventoryClosuresClosureIdReportResponse400
-  | getInventoryClosuresClosureIdReportResponse404
-) & {
-  headers: Headers;
-};
-
-export type getInventoryClosuresClosureIdReportResponse =
-  | getInventoryClosuresClosureIdReportResponseSuccess
-  | getInventoryClosuresClosureIdReportResponseError;
-
-export const getGetInventoryClosuresClosureIdReportUrl = (closureId: string) => {
-  return `/inventory-closures/${closureId}/report`;
-};
-
-/**
- * @summary Get the closure report viewed by the admin
- */
-export const getInventoryClosuresClosureIdReport = async (
-  closureId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryClosuresClosureIdReportResponse> => {
-  return apiClient<getInventoryClosuresClosureIdReportResponse>(
-    getGetInventoryClosuresClosureIdReportUrl(closureId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
-
-export const getGetInventoryClosuresClosureIdReportKey = (closureId: string) =>
-  [`/inventory-closures/${closureId}/report`] as const;
-
-export type GetInventoryClosuresClosureIdReportQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryClosuresClosureIdReport>>
->;
-
-/**
- * @summary Get the closure report viewed by the admin
- */
-export const useGetInventoryClosuresClosureIdReport = <TError = ApiError>(
-  closureId: string,
-  options?: {
-    swr?: SWRConfiguration<
-      Awaited<ReturnType<typeof getInventoryClosuresClosureIdReport>>,
-      TError
-    > & { swrKey?: Key; enabled?: boolean };
-    request?: SecondParameter<typeof apiClient>;
-  },
-) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
-
-  const isEnabled = swrOptions?.enabled !== false && closureId !== null && closureId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getGetInventoryClosuresClosureIdReportKey(closureId) : null));
-  const swrFn = () => getInventoryClosuresClosureIdReport(closureId, requestOptions);
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
-
-  return {
-    swrKey,
-    ...query,
-  };
-};
-export type postInventoryShiftsShiftIdCloseResponse201 = {
-  data: PostInventoryShiftsShiftIdClose201;
-  status: 201;
-};
-
-export type postInventoryShiftsShiftIdCloseResponse400 = {
-  data: ApiError;
-  status: 400;
-};
-
-export type postInventoryShiftsShiftIdCloseResponse404 = {
-  data: ApiError;
-  status: 404;
-};
-
-export type postInventoryShiftsShiftIdCloseResponse409 = {
+export type patchInventoryCountsCountIdResponse409 = {
   data: ApiError;
   status: 409;
 };
 
-export type postInventoryShiftsShiftIdCloseResponseSuccess =
-  postInventoryShiftsShiftIdCloseResponse201 & {
-    headers: Headers;
-  };
-export type postInventoryShiftsShiftIdCloseResponseError = (
-  | postInventoryShiftsShiftIdCloseResponse400
-  | postInventoryShiftsShiftIdCloseResponse404
-  | postInventoryShiftsShiftIdCloseResponse409
+export type patchInventoryCountsCountIdResponseSuccess = patchInventoryCountsCountIdResponse200 & {
+  headers: Headers;
+};
+export type patchInventoryCountsCountIdResponseError = (
+  | patchInventoryCountsCountIdResponse400
+  | patchInventoryCountsCountIdResponse404
+  | patchInventoryCountsCountIdResponse409
 ) & {
   headers: Headers;
 };
 
-export type postInventoryShiftsShiftIdCloseResponse =
-  | postInventoryShiftsShiftIdCloseResponseSuccess
-  | postInventoryShiftsShiftIdCloseResponseError;
+export type patchInventoryCountsCountIdResponse =
+  | patchInventoryCountsCountIdResponseSuccess
+  | patchInventoryCountsCountIdResponseError;
 
-export const getPostInventoryShiftsShiftIdCloseUrl = (shiftId: string) => {
-  return `/inventory-shifts/${shiftId}/close`;
+export const getPatchInventoryCountsCountIdUrl = (countId: string) => {
+  return `/v1/inventory-counts/${countId}`;
 };
 
 /**
- * @summary Close a shift and generate a replenishment request automatically
+ * @summary Update a draft inventory count
  */
-export const postInventoryShiftsShiftIdClose = async (
-  shiftId: string,
-  closeInventoryShift: CloseInventoryShift,
+export const patchInventoryCountsCountId = async (
+  countId: string,
+  updateInventoryCount: UpdateInventoryCount,
   options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryShiftsShiftIdCloseResponse> => {
+): Promise<patchInventoryCountsCountIdResponse> => {
   const getHeaders = (
     h?: NonNullable<RequestInit["headers"]>,
   ): Record<string, string | readonly string[]> => {
@@ -743,52 +649,250 @@ export const postInventoryShiftsShiftIdClose = async (
     }
     return headers;
   };
-  return apiClient<postInventoryShiftsShiftIdCloseResponse>(
-    getPostInventoryShiftsShiftIdCloseUrl(shiftId),
+  return apiClient<patchInventoryCountsCountIdResponse>(
+    getPatchInventoryCountsCountIdUrl(countId),
     {
       ...options,
-      method: "POST",
+      method: "PATCH",
       headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(closeInventoryShift),
+      body: JSON.stringify(updateInventoryCount),
     },
   );
 };
 
-export const getPostInventoryShiftsShiftIdCloseMutationFetcher = (
-  shiftId: string,
+export const getPatchInventoryCountsCountIdMutationFetcher = (
+  countId: string,
   options?: SecondParameter<typeof apiClient>,
 ) => {
-  return (_: Key, { arg }: { arg: CloseInventoryShift }) => {
-    return postInventoryShiftsShiftIdClose(shiftId, arg, options);
+  return (_: Key, { arg }: { arg: UpdateInventoryCount }) => {
+    return patchInventoryCountsCountId(countId, arg, options);
   };
 };
-export const getPostInventoryShiftsShiftIdCloseMutationKey = (shiftId: string) =>
-  [`/inventory-shifts/${shiftId}/close`] as const;
+export const getPatchInventoryCountsCountIdMutationKey = (countId: string) =>
+  [`/v1/inventory-counts/${countId}`] as const;
 
-export type PostInventoryShiftsShiftIdCloseMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryShiftsShiftIdClose>>
+export type PatchInventoryCountsCountIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchInventoryCountsCountId>>
 >;
 
 /**
- * @summary Close a shift and generate a replenishment request automatically
+ * @summary Update a draft inventory count
  */
-export const usePostInventoryShiftsShiftIdClose = <TError = ApiError>(
-  shiftId: string,
+export const usePatchInventoryCountsCountId = <TError = ApiError>(
+  countId: string,
   options?: {
     swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postInventoryShiftsShiftIdClose>>,
+      Awaited<ReturnType<typeof patchInventoryCountsCountId>>,
       TError,
       Key,
-      CloseInventoryShift,
-      Awaited<ReturnType<typeof postInventoryShiftsShiftIdClose>>
+      UpdateInventoryCount,
+      Awaited<ReturnType<typeof patchInventoryCountsCountId>>
     > & { swrKey?: string };
     request?: SecondParameter<typeof apiClient>;
   },
 ) => {
   const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey = swrOptions?.swrKey ?? getPostInventoryShiftsShiftIdCloseMutationKey(shiftId);
-  const swrFn = getPostInventoryShiftsShiftIdCloseMutationFetcher(shiftId, requestOptions);
+  const swrKey = swrOptions?.swrKey ?? getPatchInventoryCountsCountIdMutationKey(countId);
+  const swrFn = getPatchInventoryCountsCountIdMutationFetcher(countId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+export type postInventoryCountsCountIdSubmitResponse200 = {
+  data: PostInventoryCountsCountIdSubmit200;
+  status: 200;
+};
+
+export type postInventoryCountsCountIdSubmitResponse400 = {
+  data: ApiError;
+  status: 400;
+};
+
+export type postInventoryCountsCountIdSubmitResponse404 = {
+  data: ApiError;
+  status: 404;
+};
+
+export type postInventoryCountsCountIdSubmitResponse409 = {
+  data: ApiError;
+  status: 409;
+};
+
+export type postInventoryCountsCountIdSubmitResponseSuccess =
+  postInventoryCountsCountIdSubmitResponse200 & {
+    headers: Headers;
+  };
+export type postInventoryCountsCountIdSubmitResponseError = (
+  | postInventoryCountsCountIdSubmitResponse400
+  | postInventoryCountsCountIdSubmitResponse404
+  | postInventoryCountsCountIdSubmitResponse409
+) & {
+  headers: Headers;
+};
+
+export type postInventoryCountsCountIdSubmitResponse =
+  | postInventoryCountsCountIdSubmitResponseSuccess
+  | postInventoryCountsCountIdSubmitResponseError;
+
+export const getPostInventoryCountsCountIdSubmitUrl = (countId: string) => {
+  return `/v1/inventory-counts/${countId}/submit`;
+};
+
+/**
+ * @summary Submit an inventory count and close its day
+ */
+export const postInventoryCountsCountIdSubmit = async (
+  countId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postInventoryCountsCountIdSubmitResponse> => {
+  return apiClient<postInventoryCountsCountIdSubmitResponse>(
+    getPostInventoryCountsCountIdSubmitUrl(countId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getPostInventoryCountsCountIdSubmitMutationFetcher = (
+  countId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return postInventoryCountsCountIdSubmit(countId, options);
+  };
+};
+export const getPostInventoryCountsCountIdSubmitMutationKey = (countId: string) =>
+  [`/v1/inventory-counts/${countId}/submit`] as const;
+
+export type PostInventoryCountsCountIdSubmitMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>
+>;
+
+/**
+ * @summary Submit an inventory count and close its day
+ */
+export const usePostInventoryCountsCountIdSubmit = <TError = ApiError>(
+  countId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsCountIdSubmitMutationKey(countId);
+  const swrFn = getPostInventoryCountsCountIdSubmitMutationFetcher(countId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+
+  return {
+    swrKey,
+    ...query,
+  };
+};
+export type postInventoryCountsCountIdReviewResponse200 = {
+  data: PostInventoryCountsCountIdReview200;
+  status: 200;
+};
+
+export type postInventoryCountsCountIdReviewResponse400 = {
+  data: ApiError;
+  status: 400;
+};
+
+export type postInventoryCountsCountIdReviewResponse404 = {
+  data: ApiError;
+  status: 404;
+};
+
+export type postInventoryCountsCountIdReviewResponse409 = {
+  data: ApiError;
+  status: 409;
+};
+
+export type postInventoryCountsCountIdReviewResponseSuccess =
+  postInventoryCountsCountIdReviewResponse200 & {
+    headers: Headers;
+  };
+export type postInventoryCountsCountIdReviewResponseError = (
+  | postInventoryCountsCountIdReviewResponse400
+  | postInventoryCountsCountIdReviewResponse404
+  | postInventoryCountsCountIdReviewResponse409
+) & {
+  headers: Headers;
+};
+
+export type postInventoryCountsCountIdReviewResponse =
+  | postInventoryCountsCountIdReviewResponseSuccess
+  | postInventoryCountsCountIdReviewResponseError;
+
+export const getPostInventoryCountsCountIdReviewUrl = (countId: string) => {
+  return `/v1/inventory-counts/${countId}/review`;
+};
+
+/**
+ * @summary Review a submitted inventory count
+ */
+export const postInventoryCountsCountIdReview = async (
+  countId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postInventoryCountsCountIdReviewResponse> => {
+  return apiClient<postInventoryCountsCountIdReviewResponse>(
+    getPostInventoryCountsCountIdReviewUrl(countId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getPostInventoryCountsCountIdReviewMutationFetcher = (
+  countId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return postInventoryCountsCountIdReview(countId, options);
+  };
+};
+export const getPostInventoryCountsCountIdReviewMutationKey = (countId: string) =>
+  [`/v1/inventory-counts/${countId}/review`] as const;
+
+export type PostInventoryCountsCountIdReviewMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>
+>;
+
+/**
+ * @summary Review a submitted inventory count
+ */
+export const usePostInventoryCountsCountIdReview = <TError = ApiError>(
+  countId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
+) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsCountIdReviewMutationKey(countId);
+  const swrFn = getPostInventoryCountsCountIdReviewMutationFetcher(countId, requestOptions);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions);
 

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "test": "bun test",
     "check": "oxlint && oxfmt --check .",
     "check:write": "oxlint --fix && oxfmt .",
     "lint": "oxlint",

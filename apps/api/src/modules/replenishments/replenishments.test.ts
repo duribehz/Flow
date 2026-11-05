@@ -27,8 +27,6 @@ const submittedReplenishment: SubmittedReplenishment = {
 const replenishmentDetail: ReplenishmentDetail = {
   ...submittedReplenishment,
   inventoryCountId: "40000000-0000-4000-8000-000000000001",
-  reviewedBy: null,
-  reviewedAt: null,
   notes: null,
   updatedAt: new Date("2026-10-13T12:00:00.000Z"),
   items: [],
@@ -45,15 +43,8 @@ const draftReplenishment = {
   updatedAt: replenishmentDetail.updatedAt,
 };
 const actorId = "00000000-0000-4000-8000-000000000001";
-const approvedReplenishment = {
-  ...submittedReplenishment,
-  status: "approved" as const,
-  reviewedAt: new Date("2026-10-13T13:00:00.000Z"),
-};
-
 const getSubmittedReplenishmentsUseCase = mock(async (_db: Executor) => [submittedReplenishment]);
 const getDraftReplenishmentsUseCase = mock(async (_db: Executor) => [draftReplenishment]);
-const getApprovedReplenishmentsUseCase = mock(async (_db: Executor) => [approvedReplenishment]);
 const getReplenishmentUseCase = mock(
   async (_replenishmentId: string, _db: Executor) => replenishmentDetail,
 );
@@ -69,25 +60,15 @@ const updateReplenishmentItemUseCase = mock(
 const deleteReplenishmentItemUseCase = mock(
   async (_id: string, _itemId: string, _db: Executor) => replenishmentDetail,
 );
-const submitReplenishmentUseCase = mock(async (_id: string, _db: Executor) => replenishmentDetail);
-const approveReplenishmentUseCase = mock(async (_id: string, _actorId: string, _db: Executor) => ({
-  ...replenishmentDetail,
-  status: "approved" as const,
-  reviewedBy: { id: actorId, userName: "reviewer" },
-  reviewedAt: new Date("2026-10-13T13:00:00.000Z"),
-}));
+const submitReplenishmentUseCase = mock(
+  async (_id: string, _actorId: string, _input: unknown, _db: Executor) => replenishmentDetail,
+);
 
 mock.module("./use-cases/get-submitted-replenishments.usecase.js", () => ({
   getSubmittedReplenishmentsUseCase,
 }));
 mock.module("./use-cases/get-draft-replenishments.usecase.js", () => ({
   getDraftReplenishmentsUseCase,
-}));
-mock.module("./use-cases/get-approved-replenishments.usecase.js", () => ({
-  getApprovedReplenishmentsUseCase,
-}));
-mock.module("./use-cases/approve-replenishment.usecase.js", () => ({
-  approveReplenishmentUseCase,
 }));
 mock.module("./use-cases/update-replenishment-notes.usecase.js", () => ({
   updateReplenishmentNotesUseCase,
@@ -160,37 +141,6 @@ describe("replenishment routes", () => {
     });
   });
 
-  test("lists approved requests for shipment preparation", async () => {
-    const response = await createTestApp().request("/v1/replenishments/approved");
-
-    expect(response.status).toBe(200);
-    expect((await response.json()).data[0]).toMatchObject({
-      id: approvedReplenishment.id,
-      status: "approved",
-      reviewedAt: approvedReplenishment.reviewedAt.toISOString(),
-    });
-  });
-
-  test("approves all requested quantities and exposes the approval route", async () => {
-    const app = createTestApp();
-    const response = await app.request(`/v1/replenishments/${replenishmentDetail.id}/approve`, {
-      method: "POST",
-    });
-    const document = (await (await app.request("/v1/openapi.json")).json()) as {
-      paths: Record<string, unknown>;
-    };
-
-    expect(response.status).toBe(200);
-    expect((await response.json()).data.status).toBe("approved");
-    expect(approveReplenishmentUseCase).toHaveBeenCalledWith(
-      replenishmentDetail.id,
-      actorId,
-      expect.anything(),
-    );
-    expect(document.paths).toHaveProperty("/v1/replenishments/{replenishmentId}/approve");
-    expect(document.paths).toHaveProperty("/v1/replenishments/approved");
-  });
-
   test("gets a replenishment detail", async () => {
     const response = await createTestApp().request(`/v1/replenishments/${replenishmentDetail.id}`);
 
@@ -199,7 +149,6 @@ describe("replenishment routes", () => {
       data: {
         ...replenishmentDetail,
         submittedAt: "2026-10-13T12:00:00.000Z",
-        reviewedAt: null,
         createdAt: "2026-10-13T11:00:00.000Z",
         updatedAt: "2026-10-13T12:00:00.000Z",
       },
@@ -257,6 +206,8 @@ describe("replenishment routes", () => {
     });
     const submit = await app.request(`/v1/replenishments/${requestId}/submit`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessDate: "2026-10-24" }),
     });
 
     expect([
@@ -274,7 +225,13 @@ describe("replenishment routes", () => {
     expect(addReplenishmentItemUseCase).toHaveBeenCalledTimes(1);
     expect(updateReplenishmentItemUseCase).toHaveBeenCalledTimes(1);
     expect(deleteReplenishmentItemUseCase).toHaveBeenCalledTimes(1);
-    expect(submitReplenishmentUseCase).toHaveBeenCalledWith(requestId, expect.anything());
+    expect(submitReplenishmentUseCase).toHaveBeenCalledWith(
+      requestId,
+      actorId,
+      { businessDate: "2026-10-24" },
+      expect.anything(),
+    );
+    expect((await submit.json()).data.status).toBe("submitted");
   });
 
   test("allows zero in draft lines and rejects invalid quantities and empty patches", async () => {
@@ -322,7 +279,11 @@ describe("replenishment routes", () => {
     });
     const response = await createTestApp().request(
       `/v1/replenishments/${replenishmentDetail.id}/submit`,
-      { method: "POST" },
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessDate: "2026-10-24" }),
+      },
     );
 
     expect(response.status).toBe(400);
@@ -342,5 +303,8 @@ describe("replenishment routes", () => {
     expect(document.paths).toHaveProperty("/v1/replenishments/{replenishmentId}/items");
     expect(document.paths).toHaveProperty("/v1/replenishments/{replenishmentId}/items/{itemId}");
     expect(document.paths).toHaveProperty("/v1/replenishments/{replenishmentId}/submit");
+    expect(document.paths).not.toHaveProperty("/v1/replenishments/{replenishmentId}/comments");
+    expect(document.paths).not.toHaveProperty("/v1/replenishments/{replenishmentId}/approve");
+    expect(document.paths).not.toHaveProperty("/v1/replenishments/approved");
   });
 });

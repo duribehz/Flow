@@ -15,7 +15,10 @@ export interface Supply {
   name: string;
   /** @nullable */
   description: string | null;
-  /** @minimum 0 */
+  /**
+   * Money amount in integer cents.
+   * @minimum 0
+   */
   unitCost: number;
   active: boolean;
   category: SupplyCategory;

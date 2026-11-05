@@ -7,23 +7,18 @@
  */
 import type { ReplenishmentDetailBranch } from "./replenishmentDetailBranch";
 import type { ReplenishmentDetailRequestedBy } from "./replenishmentDetailRequestedBy";
-import type { ReplenishmentDetailReviewedBy } from "./replenishmentDetailReviewedBy";
 import type { ReplenishmentDetailStatus } from "./replenishmentDetailStatus";
 import type { ReplenishmentItem } from "./replenishmentItem";
 
 export interface ReplenishmentDetail {
   id: string;
   requestNumber: string;
-  inventoryClosureId: string;
+  inventoryCountId: string;
   status: ReplenishmentDetailStatus;
   branch: ReplenishmentDetailBranch;
   requestedBy: ReplenishmentDetailRequestedBy;
   /** @nullable */
-  reviewedBy: ReplenishmentDetailReviewedBy;
-  /** @nullable */
   submittedAt: string | null;
-  /** @nullable */
-  reviewedAt: string | null;
   /** @nullable */
   notes: string | null;
   createdAt: string;

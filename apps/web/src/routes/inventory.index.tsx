@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { InventoryShiftsPage } from "@/features/inventory/shifts/shifts-page";
+import { InventoryPage } from "@/features/inventory/inventory-page";
 
 export const Route = createFileRoute("/inventory/")({
-  component: InventoryShiftsPage,
+  component: InventoryPage,
 });

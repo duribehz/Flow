@@ -28,6 +28,7 @@ export const receiptItemCondition = pgEnum("receipt_item_condition", [
   "damaged",
   "expired",
   "incorrect",
+  "not_arrived",
 ]);
 export const incidentType = pgEnum("incident_type", [
   "missing",
@@ -90,11 +91,8 @@ export const receiptItems = pgTable(
       .references(() => supplies.id),
     expectedQuantity: bigint("expected_quantity", { mode: "number" }).notNull(),
     receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull(),
-    acceptedQuantity: bigint("accepted_quantity", { mode: "number" }).notNull(),
-    rejectedQuantity: bigint("rejected_quantity", { mode: "number" }).notNull().default(0),
-    condition: receiptItemCondition(),
+    condition: receiptItemCondition().notNull().default("good"),
     checkedAt: timestamp("checked_at", { withTimezone: true }),
-    notes: text(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -104,7 +102,7 @@ export const receiptItems = pgTable(
     ),
     check(
       "receipt_items_quantities_check",
-      sql`${table.expectedQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and ${table.acceptedQuantity} between 0 and 9007199254740991 and ${table.rejectedQuantity} between 0 and 9007199254740991 and ${table.acceptedQuantity} + ${table.rejectedQuantity} <= ${table.receivedQuantity}`,
+      sql`${table.expectedQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and (${table.condition} <> 'not_arrived' or ${table.receivedQuantity} = 0)`,
     ),
   ],
 );

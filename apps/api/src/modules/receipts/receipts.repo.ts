@@ -137,8 +137,7 @@ export class ReceiptsRepo {
           supplyId: item.supplyId,
           expectedQuantity: item.shippedQuantity,
           receivedQuantity: 0,
-          acceptedQuantity: 0,
-          rejectedQuantity: 0,
+          condition: "good" as const,
         })),
       );
       return (await this.getById(receipt.id, conn))!;
@@ -197,11 +196,8 @@ export class ReceiptsRepo {
         usagePurposeName: usagePurposes.name,
         expectedQuantity: receiptItems.expectedQuantity,
         receivedQuantity: receiptItems.receivedQuantity,
-        acceptedQuantity: receiptItems.acceptedQuantity,
-        rejectedQuantity: receiptItems.rejectedQuantity,
         condition: receiptItems.condition,
         checkedAt: receiptItems.checkedAt,
-        notes: receiptItems.notes,
         createdAt: receiptItems.createdAt,
       })
       .from(receiptItems)
@@ -231,11 +227,11 @@ export class ReceiptsRepo {
   async updateItem(receiptId: string, itemId: string, input: UpdateReceiptItemInput) {
     return this.runInTransaction(async (conn) => {
       await this.assertInProgress(receiptId, conn);
-      if (input.receivedQuantity > 0 && input.condition === null) {
+      if (input.condition === "not_arrived" && input.receivedQuantity !== 0) {
         throw new AppError(
           400,
-          "RECEIPT_CONDITION_REQUIRED",
-          "A condition is required for received items",
+          "NOT_ARRIVED_REQUIRES_ZERO_QUANTITY",
+          "Items that did not arrive must have zero received quantity",
         );
       }
       const [currentItem] = await conn
@@ -247,11 +243,8 @@ export class ReceiptsRepo {
         .update(receiptItems)
         .set({
           receivedQuantity: input.receivedQuantity,
-          acceptedQuantity: input.acceptedQuantity,
-          rejectedQuantity: input.rejectedQuantity,
           condition: input.condition,
           checkedAt: new Date(),
-          notes: input.notes === undefined ? currentItem.notes : input.notes,
         })
         .where(and(eq(receiptItems.id, itemId), eq(receiptItems.receiptId, receiptId)))
         .returning({ id: receiptItems.id });
@@ -284,18 +277,18 @@ export class ReceiptsRepo {
       if (items.length === 0)
         throw new AppError(409, "RECEIPT_HAS_NO_ITEMS", "Receipt has no items");
       for (const item of items) {
-        if (item.acceptedQuantity + item.rejectedQuantity !== item.receivedQuantity) {
+        if (!item.checkedAt) {
           throw new AppError(
             400,
-            "RECEIPT_QUANTITIES_UNCLASSIFIED",
-            "Classify all received units as accepted or rejected",
+            "RECEIPT_ITEMS_NOT_REVIEWED",
+            "Review every receipt item before completing the receipt",
           );
         }
-        if (item.receivedQuantity > 0 && item.condition === null) {
+        if (item.condition === "not_arrived" && item.receivedQuantity !== 0) {
           throw new AppError(
             400,
-            "RECEIPT_CONDITION_REQUIRED",
-            "A condition is required for received items",
+            "NOT_ARRIVED_REQUIRES_ZERO_QUANTITY",
+            "Items that did not arrive must have zero received quantity",
           );
         }
       }
@@ -312,7 +305,8 @@ export class ReceiptsRepo {
       const fulfilledItems = await conn
         .select({
           requestItemId: shipmentItems.replenishmentRequestItemId,
-          acceptedQuantity: receiptItems.acceptedQuantity,
+          receivedQuantity: receiptItems.receivedQuantity,
+          condition: receiptItems.condition,
         })
         .from(receiptItems)
         .innerJoin(shipmentItems, eq(receiptItems.shipmentItemId, shipmentItems.id))
@@ -320,7 +314,7 @@ export class ReceiptsRepo {
       for (const item of fulfilledItems) {
         await conn
           .update(replenishmentRequestItems)
-          .set({ fulfilledQuantity: item.acceptedQuantity })
+          .set({ fulfilledQuantity: item.condition === "good" ? item.receivedQuantity : 0 })
           .where(eq(replenishmentRequestItems.id, item.requestItemId));
       }
 
@@ -332,23 +326,9 @@ export class ReceiptsRepo {
         .update(shipments)
         .set({ status: "delivered", updatedAt: completedAt })
         .where(and(eq(shipments.id, receipt.shipmentId), eq(shipments.status, "dispatched")));
-      const requestedItems = await conn
-        .select({
-          requestedQuantity: replenishmentRequestItems.requestedQuantity,
-          fulfilledQuantity: replenishmentRequestItems.fulfilledQuantity,
-        })
-        .from(replenishmentRequestItems)
-        .where(
-          eq(replenishmentRequestItems.replenishmentRequestId, shipment!.replenishmentRequestId),
-        );
-      const requestStatus = requestedItems.every(
-        (item) => item.fulfilledQuantity >= item.requestedQuantity,
-      )
-        ? "fulfilled"
-        : "partially_fulfilled";
       await conn
         .update(replenishmentRequests)
-        .set({ status: requestStatus, updatedAt: completedAt })
+        .set({ status: "fulfilled", updatedAt: completedAt })
         .where(eq(replenishmentRequests.id, shipment!.replenishmentRequestId));
       return (await this.getById(receiptId, conn))!;
     });

@@ -17,33 +17,32 @@ export class IncidentsRepo {
 
   async create(reportedBy: string, input: CreateIncidentInput) {
     const [receipt] = await this.conn
-      .select({ id: receipts.id })
+      .select({ id: receipts.id, status: receipts.status })
       .from(receipts)
       .where(eq(receipts.id, input.receiptId));
     if (!receipt) throw new AppError(404, "RECEIPT_NOT_FOUND", "Receipt not found");
-    if (input.receiptItemId) {
-      const [item] = await this.conn
-        .select({ id: receiptItems.id })
-        .from(receiptItems)
-        .where(
-          and(
-            eq(receiptItems.id, input.receiptItemId),
-            eq(receiptItems.receiptId, input.receiptId),
-          ),
-        );
-      if (!item)
-        throw new AppError(
-          404,
-          "RECEIPT_ITEM_NOT_FOUND",
-          "Receipt item not found for this receipt",
-        );
+    if (receipt.status !== "in_progress") {
+      throw new AppError(
+        409,
+        "RECEIPT_NOT_IN_PROGRESS",
+        "Incidents can only be reported while receiving",
+      );
+    }
+    const [item] = await this.conn
+      .select({ id: receiptItems.id })
+      .from(receiptItems)
+      .where(
+        and(eq(receiptItems.id, input.receiptItemId), eq(receiptItems.receiptId, input.receiptId)),
+      );
+    if (!item) {
+      throw new AppError(404, "RECEIPT_ITEM_NOT_FOUND", "Receipt item not found for this receipt");
     }
     const [incident] = await this.conn
       .insert(incidents)
       .values({
         incidentNumber: `INC-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`,
         receiptId: input.receiptId,
-        receiptItemId: input.receiptItemId ?? null,
+        receiptItemId: input.receiptItemId,
         type: input.type,
         description: input.description,
         reportedBy,

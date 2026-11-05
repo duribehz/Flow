@@ -6,6 +6,7 @@ import { usePostSupplies } from "@/api/generated/supplies/supplies";
 import { ApiError } from "@/api/http-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { parseMoneyToCents } from "@/lib/operational-format";
 import {
   Select,
   SelectContent,
@@ -70,6 +71,11 @@ export function CreateSupplyDialog({
 
     const formData = new FormData(event.currentTarget);
     const description = String(formData.get("description") ?? "").trim();
+    const unitCost = parseMoneyToCents(String(formData.get("unitCost") ?? ""));
+    if (unitCost === null) {
+      setSubmissionError("Ingresa un costo válido con máximo dos decimales.");
+      return;
+    }
 
     try {
       await trigger({
@@ -79,7 +85,7 @@ export function CreateSupplyDialog({
         categoryId,
         unitId,
         supplierIds,
-        unitCost: Number(formData.get("unitCost") ?? 0),
+        unitCost,
         active: formData.get("active") === "on",
       });
       await onCreated();
@@ -210,13 +216,13 @@ export function CreateSupplyDialog({
               />
             </div>
 
-            <Field label="Costo unitario" htmlFor="supply-unit-cost">
+            <Field label="Costo unitario (MXN)" htmlFor="supply-unit-cost">
               <Input
                 id="supply-unit-cost"
                 name="unitCost"
                 type="number"
                 min={0}
-                step={1}
+                step={0.01}
                 defaultValue={0}
                 required
                 className="h-11"

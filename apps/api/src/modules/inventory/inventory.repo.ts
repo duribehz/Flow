@@ -370,7 +370,7 @@ export class InventoryRepo {
     const rows = await conn
       .select({
         supplyId: receiptItems.supplyId,
-        total: sql<number>`coalesce(sum(${receiptItems.acceptedQuantity}), 0)`,
+        total: sql<number>`coalesce(sum(case when ${receiptItems.condition} = 'good' then ${receiptItems.receivedQuantity} else 0 end), 0)`,
       })
       .from(receiptItems)
       .innerJoin(receipts, eq(receiptItems.receiptId, receipts.id))
@@ -384,7 +384,7 @@ export class InventoryRepo {
           throw new AppError(
             500,
             "RECEIVED_QUANTITY_OVERFLOW",
-            "Accepted receipt total exceeds the safe quantity range",
+            "Usable receipt total exceeds the safe quantity range",
           );
         }
       }),

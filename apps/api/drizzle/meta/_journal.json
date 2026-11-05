@@ -50,6 +50,34 @@
       "when": 1792866964010,
       "tag": "0006_sparkling_toro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792867989602,
+      "tag": "0007_tired_human_robot",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792877072571,
+      "tag": "0008_smart_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793311198672,
+      "tag": "0009_fluffy_nocturne",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793386323080,
+      "tag": "0010_marvelous_medusa",
+      "breakpoints": true
     }
   ]
 }

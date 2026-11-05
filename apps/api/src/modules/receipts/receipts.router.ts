@@ -158,7 +158,7 @@ receiptsRouter.openapi(
     path: "/receipts/{receiptId}/items/{itemId}",
     operationId: "patchReceiptsReceiptIdItemsItemId",
     tags: ["Receipts"],
-    summary: "Record received, accepted, rejected quantities and condition",
+    summary: "Record received quantity and condition",
     request: {
       params: receiptItemParamsDTO,
       body: { required: true, content: { "application/json": { schema: updateReceiptItemDTO } } },

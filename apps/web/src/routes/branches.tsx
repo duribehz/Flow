@@ -1,7 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { BranchesPage } from "@/features/branches/branches-page";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/branches")({
-  component: BranchesPage,
+  component: Outlet,
 });

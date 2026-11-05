@@ -21,9 +21,7 @@ import { users } from "../users/users.schema.js";
 export const replenishmentRequestStatus = pgEnum("replenishment_request_status", [
   "draft",
   "submitted",
-  "approved",
   "rejected",
-  "partially_fulfilled",
   "fulfilled",
   "cancelled",
 ]);
@@ -43,9 +41,7 @@ export const replenishmentRequests = pgTable(
     requestedBy: uuid("request_by")
       .notNull()
       .references(() => users.id),
-    reviewedBy: uuid("reviewed_by").references(() => users.id),
     submittedAt: timestamp("submitted_at", { withTimezone: true }),
-    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     notes: text(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -73,7 +69,6 @@ export const replenishmentRequestItems = pgTable(
       .references(() => usagePurposes.id),
     suggestedQuantity: bigint("suggested_quantity", { mode: "number" }),
     requestedQuantity: bigint("requested_quantity", { mode: "number" }).notNull(),
-    approvedQuantity: bigint("approved_quantity", { mode: "number" }),
     fulfilledQuantity: bigint("fulfilled_quantity", { mode: "number" }).notNull().default(0),
     unitCost: bigint("unit_cost", { mode: "number" }).notNull(),
     lineTotal: bigint("line_total", { mode: "number" }).notNull(),
@@ -84,7 +79,7 @@ export const replenishmentRequestItems = pgTable(
     index("replenishment_request_items_usage_purpose_id_idx").on(table.usagePurposeId),
     check(
       "replenishment_request_items_quantities_check",
-      sql`(${table.suggestedQuantity} is null or ${table.suggestedQuantity} between 0 and 9007199254740991) and ${table.requestedQuantity} between 0 and 9007199254740991 and (${table.approvedQuantity} is null or ${table.approvedQuantity} between 0 and 9007199254740991) and ${table.fulfilledQuantity} between 0 and 9007199254740991 and ${table.unitCost} between 0 and 9007199254740991 and ${table.lineTotal} between 0 and 9007199254740991`,
+      sql`(${table.suggestedQuantity} is null or ${table.suggestedQuantity} between 0 and 9007199254740991) and ${table.requestedQuantity} between 0 and 9007199254740991 and ${table.fulfilledQuantity} between 0 and 9007199254740991 and ${table.unitCost} between 0 and 9007199254740991 and ${table.lineTotal} between 0 and 9007199254740991`,
     ),
   ],
 );

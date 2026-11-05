@@ -1,16 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-import { ComingSoonPage } from "@/features/layout/coming-soon-page";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/orders")({
-  component: OrdersPage,
+  component: Outlet,
 });
-
-function OrdersPage() {
-  return (
-    <ComingSoonPage
-      title="Pedidos"
-      description="Gestiona pedidos, recepciones y necesidades de abastecimiento."
-    />
-  );
-}

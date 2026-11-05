@@ -13,18 +13,24 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArticlesRouteImport } from './routes/articles'
 import { Route as BranchesRouteImport } from './routes/branches'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as IncidentsRouteImport } from './routes/incidents'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as OrdersRouteImport } from './routes/orders'
-import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ReceiptsRouteImport } from './routes/receipts'
 import { Route as SuppliersRouteImport } from './routes/suppliers'
+import { Route as UsagePurposesRouteImport } from './routes/usage-purposes'
 import { Route as UsersRouteImport } from './routes/users'
+import { Route as BranchesIndexRouteImport } from './routes/branches.index'
+import { Route as IncidentsIndexRouteImport } from './routes/incidents.index'
+import { Route as IncidentsIncidentIdRouteImport } from './routes/incidents.$incidentId'
 import { Route as InventoryIndexRouteImport } from './routes/inventory.index'
-import { Route as InventoryClosuresRouteImport } from './routes/inventory.closures'
-import { Route as ReportsIndexRouteImport } from './routes/reports.index'
-import { Route as ReportsReportIdRouteImport } from './routes/reports.$reportId'
-import { Route as InventoryClosuresIndexRouteImport } from './routes/inventory.closures.index'
-import { Route as InventoryClosuresClosureIdRouteImport } from './routes/inventory.closures.$closureId'
-import { Route as InventoryShiftsShiftIdRouteImport } from './routes/inventory.shifts.$shiftId'
+import { Route as InventoryReviewRouteImport } from './routes/inventory.review'
+import { Route as OrdersIndexRouteImport } from './routes/orders.index'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
+import { Route as ReceiptsIndexRouteImport } from './routes/receipts.index'
+import { Route as ReceiptsReceiptIdRouteImport } from './routes/receipts.$receiptId'
+import { Route as BranchesBranchIdSupplySettingsRouteImport } from './routes/branches.$branchId.supply-settings'
+import { Route as InventoryCountsCountIdRouteImport } from './routes/inventory.counts.$countId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +52,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IncidentsRoute = IncidentsRouteImport.update({
+  id: '/incidents',
+  path: '/incidents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InventoryRoute = InventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -56,9 +67,9 @@ const OrdersRoute = OrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
+const ReceiptsRoute = ReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SuppliersRoute = SuppliersRouteImport.update({
@@ -66,99 +77,140 @@ const SuppliersRoute = SuppliersRouteImport.update({
   path: '/suppliers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsagePurposesRoute = UsagePurposesRouteImport.update({
+  id: '/usage-purposes',
+  path: '/usage-purposes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsersRoute = UsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => rootRouteImport,
+} as any)
+const BranchesIndexRoute = BranchesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BranchesRoute,
+} as any)
+const IncidentsIndexRoute = IncidentsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => IncidentsRoute,
+} as any)
+const IncidentsIncidentIdRoute = IncidentsIncidentIdRouteImport.update({
+  id: '/$incidentId',
+  path: '/$incidentId',
+  getParentRoute: () => IncidentsRoute,
 } as any)
 const InventoryIndexRoute = InventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => InventoryRoute,
 } as any)
-const InventoryClosuresRoute = InventoryClosuresRouteImport.update({
-  id: '/closures',
-  path: '/closures',
+const InventoryReviewRoute = InventoryReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => InventoryRoute,
 } as any)
-const ReportsIndexRoute = ReportsIndexRouteImport.update({
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ReportsRoute,
+  getParentRoute: () => OrdersRoute,
 } as any)
-const ReportsReportIdRoute = ReportsReportIdRouteImport.update({
-  id: '/$reportId',
-  path: '/$reportId',
-  getParentRoute: () => ReportsRoute,
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => OrdersRoute,
 } as any)
-const InventoryClosuresIndexRoute = InventoryClosuresIndexRouteImport.update({
+const ReceiptsIndexRoute = ReceiptsIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => InventoryClosuresRoute,
+  getParentRoute: () => ReceiptsRoute,
 } as any)
-const InventoryClosuresClosureIdRoute =
-  InventoryClosuresClosureIdRouteImport.update({
-    id: '/$closureId',
-    path: '/$closureId',
-    getParentRoute: () => InventoryClosuresRoute,
+const ReceiptsReceiptIdRoute = ReceiptsReceiptIdRouteImport.update({
+  id: '/$receiptId',
+  path: '/$receiptId',
+  getParentRoute: () => ReceiptsRoute,
+} as any)
+const BranchesBranchIdSupplySettingsRoute =
+  BranchesBranchIdSupplySettingsRouteImport.update({
+    id: '/$branchId/supply-settings',
+    path: '/$branchId/supply-settings',
+    getParentRoute: () => BranchesRoute,
   } as any)
-const InventoryShiftsShiftIdRoute = InventoryShiftsShiftIdRouteImport.update({
-  id: '/shifts/$shiftId',
-  path: '/shifts/$shiftId',
+const InventoryCountsCountIdRoute = InventoryCountsCountIdRouteImport.update({
+  id: '/counts/$countId',
+  path: '/counts/$countId',
   getParentRoute: () => InventoryRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/articles': typeof ArticlesRoute
-  '/branches': typeof BranchesRoute
+  '/branches': typeof BranchesRouteWithChildren
   '/categories': typeof CategoriesRoute
+  '/incidents': typeof IncidentsRouteWithChildren
   '/inventory': typeof InventoryRouteWithChildren
-  '/orders': typeof OrdersRoute
-  '/reports': typeof ReportsRouteWithChildren
+  '/orders': typeof OrdersRouteWithChildren
+  '/receipts': typeof ReceiptsRouteWithChildren
   '/suppliers': typeof SuppliersRoute
+  '/usage-purposes': typeof UsagePurposesRoute
   '/users': typeof UsersRoute
-  '/inventory/closures': typeof InventoryClosuresRouteWithChildren
-  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/incidents/$incidentId': typeof IncidentsIncidentIdRoute
+  '/inventory/review': typeof InventoryReviewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
+  '/branches/': typeof BranchesIndexRoute
+  '/incidents/': typeof IncidentsIndexRoute
   '/inventory/': typeof InventoryIndexRoute
-  '/reports/': typeof ReportsIndexRoute
-  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
-  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
-  '/inventory/closures/': typeof InventoryClosuresIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/receipts/': typeof ReceiptsIndexRoute
+  '/branches/$branchId/supply-settings': typeof BranchesBranchIdSupplySettingsRoute
+  '/inventory/counts/$countId': typeof InventoryCountsCountIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/articles': typeof ArticlesRoute
-  '/branches': typeof BranchesRoute
   '/categories': typeof CategoriesRoute
-  '/orders': typeof OrdersRoute
   '/suppliers': typeof SuppliersRoute
+  '/usage-purposes': typeof UsagePurposesRoute
   '/users': typeof UsersRoute
-  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/incidents/$incidentId': typeof IncidentsIncidentIdRoute
+  '/inventory/review': typeof InventoryReviewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
+  '/branches': typeof BranchesIndexRoute
+  '/incidents': typeof IncidentsIndexRoute
   '/inventory': typeof InventoryIndexRoute
-  '/reports': typeof ReportsIndexRoute
-  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
-  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
-  '/inventory/closures': typeof InventoryClosuresIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/receipts': typeof ReceiptsIndexRoute
+  '/branches/$branchId/supply-settings': typeof BranchesBranchIdSupplySettingsRoute
+  '/inventory/counts/$countId': typeof InventoryCountsCountIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/articles': typeof ArticlesRoute
-  '/branches': typeof BranchesRoute
+  '/branches': typeof BranchesRouteWithChildren
   '/categories': typeof CategoriesRoute
+  '/incidents': typeof IncidentsRouteWithChildren
   '/inventory': typeof InventoryRouteWithChildren
-  '/orders': typeof OrdersRoute
-  '/reports': typeof ReportsRouteWithChildren
+  '/orders': typeof OrdersRouteWithChildren
+  '/receipts': typeof ReceiptsRouteWithChildren
   '/suppliers': typeof SuppliersRoute
+  '/usage-purposes': typeof UsagePurposesRoute
   '/users': typeof UsersRoute
-  '/inventory/closures': typeof InventoryClosuresRouteWithChildren
-  '/reports/$reportId': typeof ReportsReportIdRoute
+  '/incidents/$incidentId': typeof IncidentsIncidentIdRoute
+  '/inventory/review': typeof InventoryReviewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/receipts/$receiptId': typeof ReceiptsReceiptIdRoute
+  '/branches/': typeof BranchesIndexRoute
+  '/incidents/': typeof IncidentsIndexRoute
   '/inventory/': typeof InventoryIndexRoute
-  '/reports/': typeof ReportsIndexRoute
-  '/inventory/closures/$closureId': typeof InventoryClosuresClosureIdRoute
-  '/inventory/shifts/$shiftId': typeof InventoryShiftsShiftIdRoute
-  '/inventory/closures/': typeof InventoryClosuresIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/receipts/': typeof ReceiptsIndexRoute
+  '/branches/$branchId/supply-settings': typeof BranchesBranchIdSupplySettingsRoute
+  '/inventory/counts/$countId': typeof InventoryCountsCountIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -167,62 +219,80 @@ export interface FileRouteTypes {
     | '/articles'
     | '/branches'
     | '/categories'
+    | '/incidents'
     | '/inventory'
     | '/orders'
-    | '/reports'
+    | '/receipts'
     | '/suppliers'
+    | '/usage-purposes'
     | '/users'
-    | '/inventory/closures'
-    | '/reports/$reportId'
+    | '/incidents/$incidentId'
+    | '/inventory/review'
+    | '/orders/$orderId'
+    | '/receipts/$receiptId'
+    | '/branches/'
+    | '/incidents/'
     | '/inventory/'
-    | '/reports/'
-    | '/inventory/closures/$closureId'
-    | '/inventory/shifts/$shiftId'
-    | '/inventory/closures/'
+    | '/orders/'
+    | '/receipts/'
+    | '/branches/$branchId/supply-settings'
+    | '/inventory/counts/$countId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/articles'
-    | '/branches'
     | '/categories'
-    | '/orders'
     | '/suppliers'
+    | '/usage-purposes'
     | '/users'
-    | '/reports/$reportId'
+    | '/incidents/$incidentId'
+    | '/inventory/review'
+    | '/orders/$orderId'
+    | '/receipts/$receiptId'
+    | '/branches'
+    | '/incidents'
     | '/inventory'
-    | '/reports'
-    | '/inventory/closures/$closureId'
-    | '/inventory/shifts/$shiftId'
-    | '/inventory/closures'
+    | '/orders'
+    | '/receipts'
+    | '/branches/$branchId/supply-settings'
+    | '/inventory/counts/$countId'
   id:
     | '__root__'
     | '/'
     | '/articles'
     | '/branches'
     | '/categories'
+    | '/incidents'
     | '/inventory'
     | '/orders'
-    | '/reports'
+    | '/receipts'
     | '/suppliers'
+    | '/usage-purposes'
     | '/users'
-    | '/inventory/closures'
-    | '/reports/$reportId'
+    | '/incidents/$incidentId'
+    | '/inventory/review'
+    | '/orders/$orderId'
+    | '/receipts/$receiptId'
+    | '/branches/'
+    | '/incidents/'
     | '/inventory/'
-    | '/reports/'
-    | '/inventory/closures/$closureId'
-    | '/inventory/shifts/$shiftId'
-    | '/inventory/closures/'
+    | '/orders/'
+    | '/receipts/'
+    | '/branches/$branchId/supply-settings'
+    | '/inventory/counts/$countId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ArticlesRoute: typeof ArticlesRoute
-  BranchesRoute: typeof BranchesRoute
+  BranchesRoute: typeof BranchesRouteWithChildren
   CategoriesRoute: typeof CategoriesRoute
+  IncidentsRoute: typeof IncidentsRouteWithChildren
   InventoryRoute: typeof InventoryRouteWithChildren
-  OrdersRoute: typeof OrdersRoute
-  ReportsRoute: typeof ReportsRouteWithChildren
+  OrdersRoute: typeof OrdersRouteWithChildren
+  ReceiptsRoute: typeof ReceiptsRouteWithChildren
   SuppliersRoute: typeof SuppliersRoute
+  UsagePurposesRoute: typeof UsagePurposesRoute
   UsersRoute: typeof UsersRoute
 }
 
@@ -256,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/incidents': {
+      id: '/incidents'
+      path: '/incidents'
+      fullPath: '/incidents'
+      preLoaderRoute: typeof IncidentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inventory': {
       id: '/inventory'
       path: '/inventory'
@@ -270,11 +347,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
+    '/receipts': {
+      id: '/receipts'
+      path: '/receipts'
+      fullPath: '/receipts'
+      preLoaderRoute: typeof ReceiptsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/suppliers': {
@@ -284,12 +361,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuppliersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usage-purposes': {
+      id: '/usage-purposes'
+      path: '/usage-purposes'
+      fullPath: '/usage-purposes'
+      preLoaderRoute: typeof UsagePurposesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/users': {
       id: '/users'
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/branches/': {
+      id: '/branches/'
+      path: '/'
+      fullPath: '/branches/'
+      preLoaderRoute: typeof BranchesIndexRouteImport
+      parentRoute: typeof BranchesRoute
+    }
+    '/incidents/': {
+      id: '/incidents/'
+      path: '/'
+      fullPath: '/incidents/'
+      preLoaderRoute: typeof IncidentsIndexRouteImport
+      parentRoute: typeof IncidentsRoute
+    }
+    '/incidents/$incidentId': {
+      id: '/incidents/$incidentId'
+      path: '/$incidentId'
+      fullPath: '/incidents/$incidentId'
+      preLoaderRoute: typeof IncidentsIncidentIdRouteImport
+      parentRoute: typeof IncidentsRoute
     }
     '/inventory/': {
       id: '/inventory/'
@@ -298,102 +403,140 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InventoryIndexRouteImport
       parentRoute: typeof InventoryRoute
     }
-    '/inventory/closures': {
-      id: '/inventory/closures'
-      path: '/closures'
-      fullPath: '/inventory/closures'
-      preLoaderRoute: typeof InventoryClosuresRouteImport
+    '/inventory/review': {
+      id: '/inventory/review'
+      path: '/review'
+      fullPath: '/inventory/review'
+      preLoaderRoute: typeof InventoryReviewRouteImport
       parentRoute: typeof InventoryRoute
     }
-    '/reports/': {
-      id: '/reports/'
+    '/orders/': {
+      id: '/orders/'
       path: '/'
-      fullPath: '/reports/'
-      preLoaderRoute: typeof ReportsIndexRouteImport
-      parentRoute: typeof ReportsRoute
+      fullPath: '/orders/'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof OrdersRoute
     }
-    '/reports/$reportId': {
-      id: '/reports/$reportId'
-      path: '/$reportId'
-      fullPath: '/reports/$reportId'
-      preLoaderRoute: typeof ReportsReportIdRouteImport
-      parentRoute: typeof ReportsRoute
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof OrdersRoute
     }
-    '/inventory/closures/': {
-      id: '/inventory/closures/'
+    '/receipts/': {
+      id: '/receipts/'
       path: '/'
-      fullPath: '/inventory/closures/'
-      preLoaderRoute: typeof InventoryClosuresIndexRouteImport
-      parentRoute: typeof InventoryClosuresRoute
+      fullPath: '/receipts/'
+      preLoaderRoute: typeof ReceiptsIndexRouteImport
+      parentRoute: typeof ReceiptsRoute
     }
-    '/inventory/closures/$closureId': {
-      id: '/inventory/closures/$closureId'
-      path: '/$closureId'
-      fullPath: '/inventory/closures/$closureId'
-      preLoaderRoute: typeof InventoryClosuresClosureIdRouteImport
-      parentRoute: typeof InventoryClosuresRoute
+    '/receipts/$receiptId': {
+      id: '/receipts/$receiptId'
+      path: '/$receiptId'
+      fullPath: '/receipts/$receiptId'
+      preLoaderRoute: typeof ReceiptsReceiptIdRouteImport
+      parentRoute: typeof ReceiptsRoute
     }
-    '/inventory/shifts/$shiftId': {
-      id: '/inventory/shifts/$shiftId'
-      path: '/shifts/$shiftId'
-      fullPath: '/inventory/shifts/$shiftId'
-      preLoaderRoute: typeof InventoryShiftsShiftIdRouteImport
+    '/branches/$branchId/supply-settings': {
+      id: '/branches/$branchId/supply-settings'
+      path: '/$branchId/supply-settings'
+      fullPath: '/branches/$branchId/supply-settings'
+      preLoaderRoute: typeof BranchesBranchIdSupplySettingsRouteImport
+      parentRoute: typeof BranchesRoute
+    }
+    '/inventory/counts/$countId': {
+      id: '/inventory/counts/$countId'
+      path: '/counts/$countId'
+      fullPath: '/inventory/counts/$countId'
+      preLoaderRoute: typeof InventoryCountsCountIdRouteImport
       parentRoute: typeof InventoryRoute
     }
   }
 }
 
-interface InventoryClosuresRouteChildren {
-  InventoryClosuresClosureIdRoute: typeof InventoryClosuresClosureIdRoute
-  InventoryClosuresIndexRoute: typeof InventoryClosuresIndexRoute
+interface BranchesRouteChildren {
+  BranchesIndexRoute: typeof BranchesIndexRoute
+  BranchesBranchIdSupplySettingsRoute: typeof BranchesBranchIdSupplySettingsRoute
 }
 
-const InventoryClosuresRouteChildren: InventoryClosuresRouteChildren = {
-  InventoryClosuresClosureIdRoute: InventoryClosuresClosureIdRoute,
-  InventoryClosuresIndexRoute: InventoryClosuresIndexRoute,
+const BranchesRouteChildren: BranchesRouteChildren = {
+  BranchesIndexRoute: BranchesIndexRoute,
+  BranchesBranchIdSupplySettingsRoute: BranchesBranchIdSupplySettingsRoute,
 }
 
-const InventoryClosuresRouteWithChildren =
-  InventoryClosuresRoute._addFileChildren(InventoryClosuresRouteChildren)
+const BranchesRouteWithChildren = BranchesRoute._addFileChildren(
+  BranchesRouteChildren,
+)
+
+interface IncidentsRouteChildren {
+  IncidentsIncidentIdRoute: typeof IncidentsIncidentIdRoute
+  IncidentsIndexRoute: typeof IncidentsIndexRoute
+}
+
+const IncidentsRouteChildren: IncidentsRouteChildren = {
+  IncidentsIncidentIdRoute: IncidentsIncidentIdRoute,
+  IncidentsIndexRoute: IncidentsIndexRoute,
+}
+
+const IncidentsRouteWithChildren = IncidentsRoute._addFileChildren(
+  IncidentsRouteChildren,
+)
 
 interface InventoryRouteChildren {
-  InventoryClosuresRoute: typeof InventoryClosuresRouteWithChildren
+  InventoryReviewRoute: typeof InventoryReviewRoute
   InventoryIndexRoute: typeof InventoryIndexRoute
-  InventoryShiftsShiftIdRoute: typeof InventoryShiftsShiftIdRoute
+  InventoryCountsCountIdRoute: typeof InventoryCountsCountIdRoute
 }
 
 const InventoryRouteChildren: InventoryRouteChildren = {
-  InventoryClosuresRoute: InventoryClosuresRouteWithChildren,
+  InventoryReviewRoute: InventoryReviewRoute,
   InventoryIndexRoute: InventoryIndexRoute,
-  InventoryShiftsShiftIdRoute: InventoryShiftsShiftIdRoute,
+  InventoryCountsCountIdRoute: InventoryCountsCountIdRoute,
 }
 
 const InventoryRouteWithChildren = InventoryRoute._addFileChildren(
   InventoryRouteChildren,
 )
 
-interface ReportsRouteChildren {
-  ReportsReportIdRoute: typeof ReportsReportIdRoute
-  ReportsIndexRoute: typeof ReportsIndexRoute
+interface OrdersRouteChildren {
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
 }
 
-const ReportsRouteChildren: ReportsRouteChildren = {
-  ReportsReportIdRoute: ReportsReportIdRoute,
-  ReportsIndexRoute: ReportsIndexRoute,
+const OrdersRouteChildren: OrdersRouteChildren = {
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
 }
 
-const ReportsRouteWithChildren =
-  ReportsRoute._addFileChildren(ReportsRouteChildren)
+const OrdersRouteWithChildren =
+  OrdersRoute._addFileChildren(OrdersRouteChildren)
+
+interface ReceiptsRouteChildren {
+  ReceiptsReceiptIdRoute: typeof ReceiptsReceiptIdRoute
+  ReceiptsIndexRoute: typeof ReceiptsIndexRoute
+}
+
+const ReceiptsRouteChildren: ReceiptsRouteChildren = {
+  ReceiptsReceiptIdRoute: ReceiptsReceiptIdRoute,
+  ReceiptsIndexRoute: ReceiptsIndexRoute,
+}
+
+const ReceiptsRouteWithChildren = ReceiptsRoute._addFileChildren(
+  ReceiptsRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ArticlesRoute: ArticlesRoute,
-  BranchesRoute: BranchesRoute,
+  BranchesRoute: BranchesRouteWithChildren,
   CategoriesRoute: CategoriesRoute,
+  IncidentsRoute: IncidentsRouteWithChildren,
   InventoryRoute: InventoryRouteWithChildren,
-  OrdersRoute: OrdersRoute,
-  ReportsRoute: ReportsRouteWithChildren,
+  OrdersRoute: OrdersRouteWithChildren,
+  ReceiptsRoute: ReceiptsRouteWithChildren,
   SuppliersRoute: SuppliersRoute,
+  UsagePurposesRoute: UsagePurposesRoute,
   UsersRoute: UsersRoute,
 }
 export const routeTree = rootRouteImport

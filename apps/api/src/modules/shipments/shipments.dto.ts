@@ -1,15 +1,11 @@
 import { z } from "@hono/zod-openapi";
 import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
-export const shipmentStatusValues = ["preparing", "dispatched", "delivered", "cancelled"] as const;
+export const shipmentStatusValues = ["dispatched", "delivered", "cancelled"] as const;
 
 export const shipmentIdParamsDTO = z.object({
   shipmentId: z.uuid().openapi({ param: { name: "shipmentId", in: "path" } }),
 });
-
-export const createShipmentDTO = z
-  .object({ replenishmentRequestId: z.uuid() })
-  .openapi("CreateShipment");
 
 export const shipmentItemDTO = z
   .object({
@@ -41,5 +37,3 @@ export const shipmentDTO = z
     items: z.array(shipmentItemDTO),
   })
   .openapi("Shipment");
-
-export type CreateShipmentInput = z.infer<typeof createShipmentDTO>;

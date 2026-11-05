@@ -6,13 +6,16 @@ import {
   Boxes,
   Building2,
   CircleHelp,
-  ClipboardList,
+  ClipboardCheck,
   FileChartColumn,
   Menu,
   Store,
   Tags,
+  TriangleAlert,
   Truck,
   UsersRound,
+  Warehouse,
+  Sparkles,
   X,
 } from "lucide-react";
 
@@ -29,9 +32,12 @@ import { Button } from "@/components/ui/button";
 type NavigationItem = {
   label: string;
   path:
-    | "/reports"
     | "/inventory"
+    | "/inventory/review"
     | "/orders"
+    | "/receipts"
+    | "/incidents"
+    | "/usage-purposes"
     | "/articles"
     | "/categories"
     | "/suppliers"
@@ -44,15 +50,18 @@ const navigationGroups: Array<{ label: string; items: NavigationItem[] }> = [
   {
     label: "Operación",
     items: [
-      { label: "Reportes", path: "/reports", icon: ClipboardList },
       { label: "Existencias", path: "/inventory", icon: FileChartColumn },
+      { label: "Bandeja", path: "/inventory/review", icon: Warehouse },
       { label: "Pedidos", path: "/orders", icon: Truck },
+      { label: "Recepciones", path: "/receipts", icon: ClipboardCheck },
+      { label: "Incidencias", path: "/incidents", icon: TriangleAlert },
     ],
   },
   {
     label: "Administración",
     items: [
       { label: "Artículos", path: "/articles", icon: Boxes },
+      { label: "Propósitos de uso", path: "/usage-purposes", icon: Sparkles },
       { label: "Categorías", path: "/categories", icon: Tags },
       { label: "Proveedores", path: "/suppliers", icon: Store },
       { label: "Sucursales", path: "/branches", icon: Building2 },
@@ -62,9 +71,11 @@ const navigationGroups: Array<{ label: string; items: NavigationItem[] }> = [
 ];
 
 const routeLabels: Record<string, string> = {
-  reports: "Reportes",
   inventory: "Existencias",
   orders: "Pedidos",
+  receipts: "Recepciones",
+  incidents: "Incidencias",
+  "usage-purposes": "Propósitos de uso",
   articles: "Artículos",
   categories: "Categorías",
   suppliers: "Proveedores",
@@ -75,8 +86,10 @@ const routeLabels: Record<string, string> = {
 export function AppShell() {
   const { pathname } = useLocation();
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
-  const routeSegment = pathname.split("/").filter(Boolean)[0] ?? "reports";
-  const currentLabel = routeLabels[routeSegment] ?? "Flow";
+  const routeSegment = pathname.split("/").filter(Boolean)[0] ?? "inventory";
+  const currentLabel = pathname.startsWith("/inventory/review")
+    ? "Bandeja"
+    : (routeLabels[routeSegment] ?? "Flow");
 
   useEffect(() => {
     if (!isNavigationOpen) {
@@ -142,7 +155,7 @@ export function AppShell() {
             <Breadcrumb>
               <BreadcrumbList className="text-sm sm:text-base">
                 <BreadcrumbItem className="hidden sm:inline-flex">
-                  <BreadcrumbLink render={<Link to="/reports" />}>Flow</BreadcrumbLink>
+                  <BreadcrumbLink render={<Link to="/inventory" />}>Flow</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden sm:inline-flex" />
                 <BreadcrumbItem>
@@ -201,7 +214,10 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
                 const Icon = item.icon;
                 const isActive =
                   pathname === item.path ||
-                  (item.path === "/reports" && pathname.startsWith("/reports/"));
+                  (item.path === "/inventory" &&
+                    pathname.startsWith("/inventory/") &&
+                    !pathname.startsWith("/inventory/review")) ||
+                  (item.path !== "/inventory" && pathname.startsWith(`${item.path}/`));
 
                 return (
                   <Link

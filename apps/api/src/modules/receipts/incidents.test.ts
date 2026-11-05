@@ -11,12 +11,13 @@ import type { Incident } from "./incidents.repo.js";
 const actorId = "00000000-0000-4000-8000-000000000001";
 const incidentId = "10000000-0000-4000-8000-000000000001";
 const receiptId = "10000000-0000-4000-8000-000000000002";
+const receiptItemId = "10000000-0000-4000-8000-000000000003";
 const now = new Date("2026-10-24T12:00:00.000Z");
 const incident: Incident = {
   id: incidentId,
   incidentNumber: "INC-001",
   receiptId,
-  receiptItemId: null,
+  receiptItemId,
   type: "damaged",
   status: "open",
   description: "Partida dañada",
@@ -72,7 +73,12 @@ describe("incident routes", () => {
     const create = await app.request("/v1/incidents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ receiptId, type: "damaged", description: "Partida dañada" }),
+      body: JSON.stringify({
+        receiptId,
+        receiptItemId,
+        type: "damaged",
+        description: "Partida dañada",
+      }),
     });
     const get = await app.request(`/v1/incidents/${incidentId}`);
 
@@ -80,7 +86,7 @@ describe("incident routes", () => {
     expect((await create.json()).data.receiptId).toBe(receiptId);
     expect(createIncidentUseCase).toHaveBeenCalledWith(
       actorId,
-      { receiptId, type: "damaged", description: "Partida dañada" },
+      { receiptId, receiptItemId, type: "damaged", description: "Partida dañada" },
       expect.anything(),
     );
   });
@@ -105,7 +111,7 @@ describe("incident routes", () => {
     const invalid = await app.request("/v1/incidents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ receiptId, type: "unknown", description: "" }),
+      body: JSON.stringify({ receiptId, description: "" }),
     });
     updateIncidentUseCase.mockImplementationOnce(async () => {
       throw new AppError(
@@ -123,6 +129,17 @@ describe("incident routes", () => {
     expect(invalid.status).toBe(400);
     expect(noResolution.status).toBe(400);
     expect((await noResolution.json()).error.code).toBe("INCIDENT_RESOLUTION_REQUIRED");
+  });
+
+  test("rejects an invalid incident type", async () => {
+    const response = await createTestApp().request("/v1/incidents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ receiptId, receiptItemId, type: "unknown", description: "Detalle" }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(createIncidentUseCase).not.toHaveBeenCalled();
   });
 
   test("publishes incident routes in OpenAPI", async () => {

@@ -28,7 +28,6 @@ const replenishmentItemDto = z
     existenceQuantity: storedQuantitySchema.nullable(),
     suggestedQuantity: storedQuantitySchema.nullable(),
     requestedQuantity: storedQuantitySchema,
-    approvedQuantity: storedQuantitySchema.nullable(),
     fulfilledQuantity: storedQuantitySchema,
     unitCost: moneyCentsSchema,
     lineTotal: moneyCentsSchema,
@@ -41,23 +40,13 @@ export const replenishmentDto = z
     id: z.uuid(),
     requestNumber: z.string(),
     inventoryCountId: z.uuid(),
-    status: z.enum([
-      "draft",
-      "submitted",
-      "approved",
-      "rejected",
-      "partially_fulfilled",
-      "fulfilled",
-      "cancelled",
-    ]),
+    status: z.enum(["draft", "submitted", "rejected", "fulfilled", "cancelled"]),
     branch: z.object({
       id: z.uuid(),
       name: z.string(),
     }),
     requestedBy: userDto,
-    reviewedBy: userDto.nullable(),
     submittedAt: z.iso.datetime().nullable(),
-    reviewedAt: z.iso.datetime().nullable(),
     notes: z.string().nullable(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -95,6 +84,10 @@ export const updateReplenishmentItemDto = z
   })
   .openapi("UpdateReplenishmentItem");
 
+export const submitReplenishmentDto = z
+  .object({ businessDate: z.iso.date() })
+  .openapi("SubmitReplenishment");
+
 export const submittedReplenishmentDto = z
   .object({
     id: z.uuid(),
@@ -125,15 +118,3 @@ export const draftReplenishmentDto = z
     updatedAt: z.iso.datetime(),
   })
   .openapi("DraftReplenishment");
-
-export const approvedReplenishmentDto = z
-  .object({
-    id: z.uuid(),
-    requestNumber: z.string(),
-    branch: z.object({ id: z.uuid(), name: z.string() }),
-    requestedBy: userDto,
-    status: z.literal("approved"),
-    reviewedAt: z.iso.datetime().nullable(),
-    createdAt: z.iso.datetime(),
-  })
-  .openapi("ApprovedReplenishment");

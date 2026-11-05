@@ -23,7 +23,10 @@ export interface CreateSupply {
    */
   description?: string | null;
   unitId: string;
-  /** @minimum 0 */
+  /**
+   * Money amount in integer cents.
+   * @minimum 0
+   */
   unitCost?: number;
   categoryId: string;
   /** @minItems 1 */

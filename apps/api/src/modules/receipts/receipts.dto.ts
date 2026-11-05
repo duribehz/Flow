@@ -2,7 +2,13 @@ import { z } from "@hono/zod-openapi";
 import { storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const receiptStatusValues = ["pending", "in_progress", "completed", "cancelled"] as const;
-export const receiptConditionValues = ["good", "damaged", "expired", "incorrect"] as const;
+export const receiptConditionValues = [
+  "good",
+  "damaged",
+  "expired",
+  "incorrect",
+  "not_arrived",
+] as const;
 
 export const receiptIdParamsDTO = z.object({
   receiptId: z.uuid().openapi({ param: { name: "receiptId", in: "path" } }),
@@ -26,14 +32,11 @@ export const updateReceiptNotesDTO = z
 export const updateReceiptItemDTO = z
   .object({
     receivedQuantity: storedQuantitySchema,
-    acceptedQuantity: storedQuantitySchema,
-    rejectedQuantity: storedQuantitySchema,
-    condition: z.enum(receiptConditionValues).nullable(),
-    notes: z.string().trim().min(1).max(1000).nullable().optional(),
+    condition: z.enum(receiptConditionValues),
   })
-  .refine((item) => item.acceptedQuantity + item.rejectedQuantity <= item.receivedQuantity, {
-    message: "Accepted plus rejected quantity cannot exceed received quantity",
-    path: ["acceptedQuantity"],
+  .refine((item) => item.condition !== "not_arrived" || item.receivedQuantity === 0, {
+    message: "Items that did not arrive must have zero received quantity",
+    path: ["receivedQuantity"],
   })
   .openapi("UpdateReceiptItem");
 
@@ -47,11 +50,8 @@ export const receiptItemDTO = z
     usagePurposeName: z.string(),
     expectedQuantity: storedQuantitySchema,
     receivedQuantity: storedQuantitySchema,
-    acceptedQuantity: storedQuantitySchema,
-    rejectedQuantity: storedQuantitySchema,
-    condition: z.enum(receiptConditionValues).nullable(),
+    condition: z.enum(receiptConditionValues),
     checkedAt: z.iso.datetime().nullable(),
-    notes: z.string().nullable(),
     createdAt: z.iso.datetime(),
   })
   .openapi("ReceiptItem");

@@ -14,7 +14,6 @@ const countId = "10000000-0000-4000-8000-000000000003";
 const supplyId = "10000000-0000-4000-8000-000000000004";
 const secondSupplyId = "10000000-0000-4000-8000-000000000005";
 const now = new Date("2026-10-24T12:00:00.000Z");
-
 const day = {
   id: dayId,
   branchId,
@@ -115,7 +114,6 @@ mock.module("./use-cases/submit-inventory-count.usecase.js", () => ({
 mock.module("./use-cases/review-inventory-count.usecase.js", () => ({
   reviewInventoryCountUseCase,
 }));
-
 const { inventoryRouter } = await import("./inventory.router.js");
 
 function createTestApp() {
@@ -316,6 +314,7 @@ describe("inventory routes", () => {
     );
     expect(document.paths["/v1/inventory-counts/{countId}/submit"]?.post).toBeDefined();
     expect(document.paths["/v1/inventory-counts/{countId}/review"]?.post).toBeDefined();
+    expect(document.paths["/v1/inventory-counts/{countId}/comments"]).toBeUndefined();
     expect(
       document.components.schemas.InventoryCountItem.properties.closingQuantity.description,
     ).toContain("hundredths of the base unit");

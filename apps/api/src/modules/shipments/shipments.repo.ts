@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { and, asc, eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { AppError } from "@/shared/errors/app-error.js";
@@ -34,11 +34,11 @@ export class ShipmentsRepo {
       if (!request) {
         throw new AppError(404, "REPLENISHMENT_NOT_FOUND", "Replenishment request not found");
       }
-      if (request.status !== "approved") {
+      if (request.status !== "submitted") {
         throw new AppError(
           409,
-          "REPLENISHMENT_NOT_APPROVED",
-          "Only approved requests can be shipped",
+          "REPLENISHMENT_NOT_SUBMITTED",
+          "Only submitted requests can be shipped",
         );
       }
 
@@ -46,7 +46,7 @@ export class ShipmentsRepo {
         .select({
           id: replenishmentRequestItems.id,
           supplyId: replenishmentRequestItems.supplyId,
-          approvedQuantity: replenishmentRequestItems.approvedQuantity,
+          requestedQuantity: replenishmentRequestItems.requestedQuantity,
         })
         .from(replenishmentRequestItems)
         .where(eq(replenishmentRequestItems.replenishmentRequestId, replenishmentRequestId));
@@ -57,23 +57,26 @@ export class ShipmentsRepo {
           "A request without items cannot be shipped",
         );
       }
-      if (
-        requestItems.some((item) => item.approvedQuantity === null || item.approvedQuantity <= 0)
-      ) {
+      if (requestItems.some((item) => item.requestedQuantity <= 0)) {
         throw new AppError(
           409,
-          "REPLENISHMENT_APPROVED_QUANTITIES_REQUIRED",
-          "Approved request items must have positive approved quantities",
+          "REPLENISHMENT_REQUESTED_QUANTITIES_REQUIRED",
+          "Submitted request items must have positive requested quantities",
         );
       }
 
+      const dispatchedAt = new Date();
       const [shipment] = await conn
         .insert(shipments)
         .values({
           shipmentNumber: `SHP-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`,
           branchId: request.branchId,
           replenishmentRequestId,
+          status: "dispatched",
           preparedBy: actorId,
+          dispatchedBy: actorId,
+          preparedAt: dispatchedAt,
+          dispatchedAt,
         })
         .onConflictDoNothing({ target: shipments.replenishmentRequestId })
         .returning();
@@ -90,15 +93,15 @@ export class ShipmentsRepo {
           shipmentId: shipment.id,
           supplyId: item.supplyId,
           replenishmentRequestItemId: item.id,
-          plannedQuantity: item.approvedQuantity!,
-          shippedQuantity: 0,
+          plannedQuantity: item.requestedQuantity,
+          shippedQuantity: item.requestedQuantity,
         })),
       );
       return (await this.getById(shipment.id, conn))!;
     });
   }
 
-  async list(status?: "preparing" | "dispatched" | "delivered" | "cancelled") {
+  async list(status?: "dispatched" | "delivered" | "cancelled") {
     const rows = await this.conn
       .select({ id: shipments.id })
       .from(shipments)
@@ -152,32 +155,6 @@ export class ShipmentsRepo {
       .where(eq(shipmentItems.shipmentId, shipmentId))
       .orderBy(asc(supplies.name), asc(shipmentItems.createdAt));
     return { ...shipment, items };
-  }
-
-  async dispatch(shipmentId: string, actorId: string) {
-    return this.runInTransaction(async (conn) => {
-      const [shipment] = await conn
-        .select({ status: shipments.status })
-        .from(shipments)
-        .where(eq(shipments.id, shipmentId))
-        .for("update");
-      if (!shipment) throw new AppError(404, "SHIPMENT_NOT_FOUND", "Shipment not found");
-      if (shipment.status !== "preparing") {
-        throw new AppError(409, "SHIPMENT_NOT_PREPARING", "Shipment is not preparing");
-      }
-      const dispatchedAt = new Date();
-      await conn
-        .update(shipmentItems)
-        .set({ shippedQuantity: shipmentItems.plannedQuantity })
-        .where(eq(shipmentItems.shipmentId, shipmentId));
-      const [updated] = await conn
-        .update(shipments)
-        .set({ status: "dispatched", dispatchedBy: actorId, dispatchedAt, updatedAt: dispatchedAt })
-        .where(and(eq(shipments.id, shipmentId), eq(shipments.status, "preparing")))
-        .returning({ id: shipments.id });
-      if (!updated) throw new AppError(409, "SHIPMENT_NOT_PREPARING", "Shipment is not preparing");
-      return (await this.getById(shipmentId, conn))!;
-    });
   }
 
   private runInTransaction<T>(callback: (conn: Executor) => Promise<T>) {

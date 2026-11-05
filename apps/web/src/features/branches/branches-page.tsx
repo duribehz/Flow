@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Building2, Plus, RefreshCw } from "lucide-react";
 
 import { useGetBranches } from "@/api/generated/branches/branches";
@@ -53,13 +54,16 @@ export function BranchesPage() {
                 <TableHead className="h-[50px] pl-7 pr-7 text-xs font-semibold tracking-wide text-muted-foreground">
                   SUCURSAL
                 </TableHead>
+                <TableHead className="h-[50px] pr-7 text-right text-xs font-semibold tracking-wide text-muted-foreground">
+                  ARTÍCULOS POR SUCURSAL
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && <LoadingRows />}
               {!isLoading && error && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={1} className="h-[280px] p-6">
+                  <TableCell colSpan={2} className="h-[280px] p-6">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -83,11 +87,20 @@ export function BranchesPage() {
                     <TableCell className="pl-7 pr-7 text-base font-semibold">
                       {branch.name}
                     </TableCell>
+                    <TableCell className="pr-7 text-right">
+                      <Link
+                        to="/branches/$branchId/supply-settings"
+                        params={{ branchId: branch.id }}
+                        className="inline-flex min-h-9 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted"
+                      >
+                        Configurar artículos
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               {!isLoading && !error && branches.length === 0 && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={1} className="h-[280px] p-6">
+                  <TableCell colSpan={2} className="h-[280px] p-6">
                     <Empty>
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -117,7 +130,7 @@ export function BranchesPage() {
 function LoadingRows() {
   return Array.from({ length: 4 }, (_, index) => (
     <TableRow key={index} className="h-[76px] hover:bg-transparent">
-      <TableCell className="pl-7 pr-7" colSpan={1}>
+      <TableCell className="pl-7 pr-7" colSpan={2}>
         <div className="h-4 w-full max-w-[320px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>
