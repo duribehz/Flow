@@ -114,6 +114,7 @@ export function TransfersPage() {
               key={transfer.id}
               transfer={transfer}
               direction={direction}
+              currentBranchId={currentUser?.role === "manager" ? currentUser.branch?.id : undefined}
               onAccepted={() => transfersQuery.mutate()}
             />
           ))}
@@ -139,12 +140,19 @@ export function TransfersPage() {
 function TransferCard({
   transfer,
   direction,
+  currentBranchId,
   onAccepted,
 }: {
   transfer: Transfer;
   direction: TransferDirection;
+  currentBranchId?: string;
   onAccepted: () => Promise<unknown>;
 }) {
+  // Managers only accept transfers whose destination is their own branch.
+  const canAccept =
+    direction === "received" &&
+    transfer.status === "pending" &&
+    (!currentBranchId || transfer.toBranch.id === currentBranchId);
   const accept = usePostTransfersTransferIdAccept<ApiError>(transfer.id);
   const cancel = usePostTransfersTransferIdCancel<ApiError>(transfer.id);
   const [error, setError] = useState("");
@@ -160,7 +168,8 @@ function TransferCard({
         getApiErrorMessage(
           cause,
           {
-            INVENTORY_COUNT_IN_PROGRESS: "Acepta la transferencia antes de iniciar el conteo.",
+            INVENTORY_COUNT_IN_PROGRESS:
+              "Acepta la transferencia antes de iniciar las existencias.",
             INVENTORY_DAY_CLOSED: "El día de existencias ya está cerrado.",
             TRANSFER_ALREADY_ACCEPTED: "Esta transferencia ya fue aceptada.",
           },
@@ -216,7 +225,7 @@ function TransferCard({
             ))}
           </ul>
         </div>
-        {direction === "received" && transfer.status === "pending" && (
+        {canAccept && (
           <Button disabled={accept.isMutating} onClick={() => void handleAccept()}>
             {accept.isMutating ? <Loader2 className="animate-spin" /> : <Check />}
             Aceptar
@@ -270,6 +279,7 @@ function CreateTransferDialog({
   const [selectedSupplyId, setSelectedSupplyId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [items, setItems] = useState<Array<{ supplyId: string; quantity: number }>>([]);
+  const [supplySearch, setSupplySearch] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -278,6 +288,10 @@ function CreateTransferDialog({
 
   const availableSupplies = supplies.filter(
     (supply) => supply.active && !items.some((item) => item.supplyId === supply.id),
+  );
+  const normalizedSupplySearch = supplySearch.trim().toLowerCase();
+  const matchingSupplies = availableSupplies.filter((supply) =>
+    `${supply.name} ${supply.sku}`.toLowerCase().includes(normalizedSupplySearch),
   );
 
   function addLine() {
@@ -322,7 +336,7 @@ function CreateTransferDialog({
         getApiErrorMessage(
           cause,
           {
-            INVENTORY_COUNT_IN_PROGRESS: "Envía la transferencia antes de iniciar el conteo.",
+            INVENTORY_COUNT_IN_PROGRESS: "Envía la transferencia antes de iniciar las existencias.",
             INVENTORY_DAY_CLOSED: "El día de existencias ya está cerrado.",
             SUPPLY_NOT_AVAILABLE: "Uno de los artículos ya no está disponible.",
           },
@@ -408,6 +422,17 @@ function CreateTransferDialog({
 
         <div className="space-y-3 rounded-xl border p-4">
           <h3 className="text-sm font-semibold">Artículos</h3>
+          <Input
+            type="search"
+            aria-label="Buscar artículo a transferir"
+            placeholder="Buscar por nombre o SKU"
+            value={supplySearch}
+            onChange={(event) => {
+              setSupplySearch(event.currentTarget.value);
+              setSelectedSupplyId("");
+            }}
+            className="h-9"
+          />
           <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_150px_auto]">
             <select
               aria-label="Artículo a transferir"
@@ -415,8 +440,12 @@ function CreateTransferDialog({
               onChange={(event) => setSelectedSupplyId(event.currentTarget.value)}
               className="h-9 min-w-0 rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
-              <option value="">Selecciona un artículo</option>
-              {availableSupplies.map((supply) => (
+              <option value="">
+                {matchingSupplies.length === 0
+                  ? "Sin artículos con esa búsqueda"
+                  : "Selecciona un artículo"}
+              </option>
+              {matchingSupplies.map((supply) => (
                 <option key={supply.id} value={supply.id}>
                   {supply.name} · {supply.sku}
                 </option>

@@ -32,8 +32,8 @@ export function InventoryReviewPage() {
     <PageFrame>
       <PageHeader
         eyebrow="Almacén"
-        title="Conteos por revisar"
-        description="Conteos enviados por las sucursales, ordenados por la respuesta del servicio."
+        title="Existencias por revisar"
+        description="Existencias enviadas por las sucursales, ordenados por la respuesta del servicio."
         actions={
           <Button variant="outline" onClick={() => void navigate({ to: "/inventory" })}>
             Volver a inventario

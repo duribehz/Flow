@@ -324,7 +324,7 @@ function SupplyRow({
   async function handleDeactivate() {
     if (
       !window.confirm(
-        `¿Desactivar ${supply.name}? Dejará de aparecer en los conteos y pedidos, pero su historial se conserva.`,
+        `¿Desactivar ${supply.name}? Dejará de aparecer en las existencias y pedidos, pero su historial se conserva.`,
       )
     ) {
       return;

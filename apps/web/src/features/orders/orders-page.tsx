@@ -104,7 +104,7 @@ export function OrdersPage() {
             <ClipboardList className="mx-auto mb-3 size-7 text-muted-foreground" />
             <h2 className="font-semibold">No hay pedidos todavía</h2>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Al enviar un conteo, su pedido aparecerá aquí listo para completar y enviar.
+              Al enviar existencias, su pedido aparecerá aquí listo para completar y enviar.
             </p>
           </div>
         </Card>

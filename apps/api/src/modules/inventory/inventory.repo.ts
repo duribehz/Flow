@@ -6,7 +6,7 @@ import { assertSafeStoredQuantity } from "@/shared/domain/quantities.js";
 import { branches } from "../branches/branches.schema.js";
 import { receiptItems, receipts } from "../receipts/receipts.schema.js";
 import { ReplenishmentsRepo } from "../replenishments/replenishments.repo.js";
-import { categories, supplies, units } from "../supplies/supplies.schema.js";
+import { branchSupplySettings, categories, supplies, units } from "../supplies/supplies.schema.js";
 import { branchTransferItems, branchTransfers } from "../transfers/transfers.schema.js";
 import type {
   CreateInventoryCountInput,
@@ -125,8 +125,15 @@ export class InventoryRepo {
 
       const trackedSupplies = await conn
         .select({ supplyId: supplies.id })
-        .from(supplies)
-        .where(and(eq(supplies.active, true), eq(supplies.trackInventory, true)))
+        .from(branchSupplySettings)
+        .innerJoin(supplies, eq(branchSupplySettings.supplyId, supplies.id))
+        .where(
+          and(
+            eq(branchSupplySettings.branchId, day.branchId),
+            eq(branchSupplySettings.active, true),
+            eq(supplies.active, true),
+          ),
+        )
         .orderBy(asc(supplies.name), asc(supplies.sku));
 
       const transferredSupplies = await conn

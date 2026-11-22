@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Check, CircleAlert, Loader2, Save, Send } from "lucide-react";
+import { ArrowLeft, Check, CircleAlert, Loader2, Plus, Save, Search, Send, X } from "lucide-react";
 
 import { useGetBranches } from "@/api/generated/branches/branches";
 import { useGetInventoryLastReports } from "@/api/generated/inventory/inventory";
+import { useGetTransfers } from "@/api/generated/transfers/transfers";
 import {
   useGetInventoryCountsCountId,
   useGetInventoryDaysDayId,
@@ -52,6 +53,11 @@ export function CountDetailPage() {
   const [actionError, setActionError] = useState<string>();
   const [showQuantityValidation, setShowQuantityValidation] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [search, setSearch] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const [addSearch, setAddSearch] = useState("");
+  const [addingSupplyId, setAddingSupplyId] = useState<string>();
+  const pendingTransfersQuery = useGetTransfers<ApiError>({ direction: "sent", status: "pending" });
 
   useEffect(() => {
     if (!count || formCountId === count.id) return;
@@ -95,6 +101,50 @@ export function CountDetailPage() {
     reviewCount.isMutating ||
     savingSupplyId !== undefined;
   const notesDirty = notes.trim() !== baselineNotes.trim();
+  const pendingOutgoing =
+    pendingTransfersQuery.data?.status === 200 && count
+      ? pendingTransfersQuery.data.data.data.filter(
+          (transfer) => transfer.fromBranch.id === count.branchId,
+        )
+      : [];
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleItems = (count?.items ?? []).filter((item) => {
+    if (!normalizedSearch) return true;
+    const supply = supplyById.get(item.supplyId);
+    return `${supply?.name ?? ""} ${supply?.sku ?? ""}`.toLowerCase().includes(normalizedSearch);
+  });
+  const addableSupplies = supplies.filter(
+    (supply) =>
+      supply.active &&
+      !(count?.items ?? []).some((item) => item.supplyId === supply.id) &&
+      `${supply.name} ${supply.sku}`.toLowerCase().includes(addSearch.trim().toLowerCase()),
+  );
+
+  function pendingFor(supplyId: string) {
+    return pendingOutgoing.flatMap((transfer) =>
+      transfer.items
+        .filter((item) => item.supply.id === supplyId)
+        .map((item) => ({
+          key: `${transfer.id}-${item.id}`,
+          toBranch: transfer.toBranch.name,
+          quantity: item.quantity,
+          unit: item.supply.unit.symbol,
+        })),
+    );
+  }
+
+  async function addSupply(supplyId: string) {
+    setActionError(undefined);
+    setAddingSupplyId(supplyId);
+    try {
+      await updateCount.trigger({ items: [{ supplyId, closingQuantity: null }] });
+      await countQuery.mutate();
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, {}, "No pudimos agregar el artículo."));
+    } finally {
+      setAddingSupplyId(undefined);
+    }
+  }
 
   function isRowDirty(supplyId: string) {
     return (values[supplyId] ?? "") !== (baselineValues[supplyId] ?? "");
@@ -272,16 +322,83 @@ export function CountDetailPage() {
       </section>
 
       <section aria-labelledby="items-title" className="space-y-3">
-        <h2 id="items-title" className="text-lg font-semibold">
-          Artículos
-        </h2>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 id="items-title" className="text-lg font-semibold">
+            Artículos
+          </h2>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Buscar artículo en existencias"
+                placeholder="Buscar por nombre o SKU"
+                className="h-10 pl-8 sm:w-72"
+                value={search}
+                onChange={(event) => setSearch(event.currentTarget.value)}
+              />
+            </div>
+            {isDraft && (
+              <Button
+                variant="default"
+                disabled={isBusy}
+                onClick={() => {
+                  setIsAdding((open) => !open);
+                  setAddSearch("");
+                }}
+              >
+                {isAdding ? <X /> : <Plus />}
+                {isAdding ? "Cerrar" : "Agregar artículo"}
+              </Button>
+            )}
+          </div>
+        </div>
+        {isAdding && isDraft && (
+          <Card className="space-y-3 p-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Buscar artículo para agregar"
+                placeholder="Buscar artículo que no está en existencias"
+                className="h-10 pl-8"
+                value={addSearch}
+                onChange={(event) => setAddSearch(event.currentTarget.value)}
+              />
+            </div>
+            <ul className="max-h-64 divide-y overflow-y-auto rounded-lg border">
+              {addableSupplies.length === 0 && (
+                <li className="p-3 text-sm text-muted-foreground">
+                  No hay artículos disponibles para agregar.
+                </li>
+              )}
+              {addableSupplies.slice(0, 50).map((supply) => (
+                <li key={supply.id} className="flex items-center justify-between gap-3 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{supply.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {supply.sku} · {supply.unit.symbol}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    disabled={isBusy || addingSupplyId !== undefined}
+                    onClick={() => void addSupply(supply.id)}
+                  >
+                    {addingSupplyId === supply.id ? <Loader2 className="animate-spin" /> : <Plus />}
+                    Agregar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
         {count.items.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground">
             Estas existencias no contienen artículos para registrar.
           </Card>
         ) : (
           <div className="grid gap-3">
-            {count.items.map((item) => {
+            {visibleItems.map((item) => {
               const supply = supplyById.get(item.supplyId);
               const inputId = `quantity-${item.id}`;
               const value = values[item.supplyId] ?? "";
@@ -301,6 +418,12 @@ export function CountDetailPage() {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {supply ? `${supply.sku} · ${supply.category.name}` : item.supplyId}
                     </p>
+                    {pendingFor(item.supplyId).map((pending) => (
+                      <p key={pending.key} className="mt-1 text-xs font-medium text-sky-700">
+                        Enviado: {formatStoredQuantity(pending.quantity)} {pending.unit} a{" "}
+                        {pending.toBranch} (pendiente)
+                      </p>
+                    ))}
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                     <div>
@@ -336,13 +459,13 @@ export function CountDetailPage() {
                     <div>
                       <p className="text-xs text-muted-foreground">Apertura</p>
                       <p className="mt-1 font-medium tabular-nums">
-                        {formatStoredQuantity(item.openingQuantity)} {supply?.unit.symbol}
+                        {displayQuantity(item.openingQuantity, supply?.unit.symbol)}
                       </p>
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Recibido</p>
                       <p className="mt-1 font-medium tabular-nums">
-                        {formatStoredQuantity(item.receivedQuantity)} {supply?.unit.symbol}
+                        {displayQuantity(item.receivedQuantity, supply?.unit.symbol)}
                       </p>
                     </div>
                   </div>
@@ -375,13 +498,14 @@ export function CountDetailPage() {
                       </>
                     ) : (
                       <p className="rounded-lg bg-muted px-3 py-2 tabular-nums">
-                        {formatStoredQuantity(item.closingQuantity)}
+                        {displayQuantity(item.closingQuantity)}
                       </p>
                     )}
                   </label>
                   {isDraft && (
                     <Button
                       variant="default"
+                      className="bg-neutral-900 text-white hover:bg-neutral-800 disabled:bg-neutral-900 disabled:text-white/60 disabled:opacity-100"
                       disabled={!dirty || invalidSupplyIds.has(item.supplyId) || isBusy}
                       onClick={() => void saveRow(item.supplyId)}
                     >
@@ -451,4 +575,9 @@ export function CountDetailPage() {
       </section>
     </PageFrame>
   );
+}
+
+function displayQuantity(value: number | null | undefined, unit?: string) {
+  if (value === null || value === undefined) return "—";
+  return unit ? `${formatStoredQuantity(value)} ${unit}` : formatStoredQuantity(value);
 }

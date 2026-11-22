@@ -243,7 +243,7 @@ function SupplySettingCard({
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${active ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}
         >
-          {active ? "Incluido en conteos" : "Fuera de conteos"}
+          {active ? "Incluido en existencias" : "Fuera de existencias"}
         </span>
       </CardHeader>
       <CardContent>
@@ -255,7 +255,7 @@ function SupplySettingCard({
               onChange={(event) => setActive(event.target.checked)}
               className="size-4 accent-foreground"
             />
-            Incluir artículo en los conteos de esta sucursal
+            Incluir artículo en las existencias de esta sucursal
           </label>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -310,7 +310,7 @@ function SupplySettingCard({
           )}
           {!supply.active && (
             <p className="text-xs text-amber-800">
-              Este artículo está inactivo en el catálogo y no se incluirá en conteos aunque la
+              Este artículo está inactivo en el catálogo y no se incluirá en existencias aunque la
               configuración esté activa.
             </p>
           )}

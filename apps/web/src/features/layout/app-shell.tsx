@@ -163,13 +163,7 @@ export function AppShell() {
       </main>
     );
   }
-  if (!currentUser) {
-    return (
-      <main className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Cargando sesión…
-      </main>
-    );
-  }
+  if (!currentUser) return <Navigate to="/login" replace />;
 
   const visibleNavigationGroups = getNavigationGroups(currentUser.role);
   const userRoleLabel = getRoleLabel(currentUser.role);
