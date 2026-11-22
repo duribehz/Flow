@@ -8,14 +8,14 @@
 
 export interface CreateUnit {
   /**
-     * @minLength 1
-     * @maxLength 100
-     */
+   * @minLength 1
+   * @maxLength 100
+   */
   name: string;
   /**
-     * @minLength 1
-     * @maxLength 20
-     */
+   * @minLength 1
+   * @maxLength 20
+   */
   symbol: string;
   active?: boolean;
 }

@@ -5,10 +5,10 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ReplenishmentDetailBranch } from './replenishmentDetailBranch';
-import type { ReplenishmentDetailRequestedBy } from './replenishmentDetailRequestedBy';
-import type { ReplenishmentDetailStatus } from './replenishmentDetailStatus';
-import type { ReplenishmentItem } from './replenishmentItem';
+import type { ReplenishmentDetailBranch } from "./replenishmentDetailBranch";
+import type { ReplenishmentDetailRequestedBy } from "./replenishmentDetailRequestedBy";
+import type { ReplenishmentDetailStatus } from "./replenishmentDetailStatus";
+import type { ReplenishmentItem } from "./replenishmentItem";
 
 export interface ReplenishmentDetail {
   id: string;

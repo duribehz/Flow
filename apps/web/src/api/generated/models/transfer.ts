@@ -5,12 +5,12 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { TransferAcceptedBy } from './transferAcceptedBy';
-import type { TransferFromBranch } from './transferFromBranch';
-import type { TransferItemsItem } from './transferItemsItem';
-import type { TransferSentBy } from './transferSentBy';
-import type { TransferStatus } from './transferStatus';
-import type { TransferToBranch } from './transferToBranch';
+import type { TransferAcceptedBy } from "./transferAcceptedBy";
+import type { TransferFromBranch } from "./transferFromBranch";
+import type { TransferItemsItem } from "./transferItemsItem";
+import type { TransferSentBy } from "./transferSentBy";
+import type { TransferStatus } from "./transferStatus";
+import type { TransferToBranch } from "./transferToBranch";
 
 export interface Transfer {
   id: string;

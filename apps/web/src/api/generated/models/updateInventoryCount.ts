@@ -5,14 +5,14 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateInventoryCountItemsItem } from './updateInventoryCountItemsItem';
+import type { UpdateInventoryCountItemsItem } from "./updateInventoryCountItemsItem";
 
 export interface UpdateInventoryCount {
   /**
-     * @minLength 1
-     * @maxLength 1000
-     * @nullable
-     */
+   * @minLength 1
+   * @maxLength 1000
+   * @nullable
+   */
   notes?: string | null;
   items?: UpdateInventoryCountItemsItem[];
 }

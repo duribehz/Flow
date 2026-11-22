@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetTransfersStatus = typeof GetTransfersStatus[keyof typeof GetTransfersStatus];
-
+export type GetTransfersStatus = (typeof GetTransfersStatus)[keyof typeof GetTransfersStatus];
 
 export const GetTransfersStatus = {
-  pending: 'pending',
-  accepted: 'accepted',
-  cancelled: 'cancelled',
+  pending: "pending",
+  accepted: "accepted",
+  cancelled: "cancelled",
 } as const;

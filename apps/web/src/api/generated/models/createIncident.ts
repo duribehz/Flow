@@ -5,15 +5,15 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { CreateIncidentType } from './createIncidentType';
+import type { CreateIncidentType } from "./createIncidentType";
 
 export interface CreateIncident {
   receiptId: string;
   receiptItemId: string;
   type: CreateIncidentType;
   /**
-     * @minLength 1
-     * @maxLength 4000
-     */
+   * @minLength 1
+   * @maxLength 4000
+   */
   description: string;
 }

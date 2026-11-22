@@ -8,8 +8,8 @@
 
 export interface CreateBranch {
   /**
-     * @minLength 1
-     * @maxLength 50
-     */
+   * @minLength 1
+   * @maxLength 50
+   */
   name: string;
 }

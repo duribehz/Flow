@@ -6,10 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type InventoryDayStatus = typeof InventoryDayStatus[keyof typeof InventoryDayStatus];
-
+export type InventoryDayStatus = (typeof InventoryDayStatus)[keyof typeof InventoryDayStatus];
 
 export const InventoryDayStatus = {
-  open: 'open',
-  closed: 'closed',
+  open: "open",
+  closed: "closed",
 } as const;

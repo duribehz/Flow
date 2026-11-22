@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetShipmentsStatus = typeof GetShipmentsStatus[keyof typeof GetShipmentsStatus];
-
+export type GetShipmentsStatus = (typeof GetShipmentsStatus)[keyof typeof GetShipmentsStatus];
 
 export const GetShipmentsStatus = {
-  dispatched: 'dispatched',
-  delivered: 'delivered',
-  cancelled: 'cancelled',
+  dispatched: "dispatched",
+  delivered: "delivered",
+  cancelled: "cancelled",
 } as const;

@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { DraftReplenishment } from './draftReplenishment';
+import type { DraftReplenishment } from "./draftReplenishment";
 
 export type GetDraftReplenishments200 = {
   data: DraftReplenishment[];

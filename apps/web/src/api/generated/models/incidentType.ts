@@ -6,14 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type IncidentType = typeof IncidentType[keyof typeof IncidentType];
-
+export type IncidentType = (typeof IncidentType)[keyof typeof IncidentType];
 
 export const IncidentType = {
-  missing: 'missing',
-  damaged: 'damaged',
-  excess: 'excess',
-  expired: 'expired',
-  incorrect: 'incorrect',
-  other: 'other',
+  missing: "missing",
+  damaged: "damaged",
+  excess: "excess",
+  expired: "expired",
+  incorrect: "incorrect",
+  other: "other",
 } as const;

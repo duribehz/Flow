@@ -5,10 +5,10 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ReceiptBranch } from './receiptBranch';
-import type { ReceiptItem } from './receiptItem';
-import type { ReceiptReceivedBy } from './receiptReceivedBy';
-import type { ReceiptStatus } from './receiptStatus';
+import type { ReceiptBranch } from "./receiptBranch";
+import type { ReceiptItem } from "./receiptItem";
+import type { ReceiptReceivedBy } from "./receiptReceivedBy";
+import type { ReceiptStatus } from "./receiptStatus";
 
 export interface Receipt {
   id: string;

@@ -106,24 +106,26 @@ export function UsersPage() {
           </p>
         )}
         {!isLoading && !error && users.length > 0 && (
-          <Card className="gap-0 overflow-hidden py-0">
+          <Card className="gap-0 overflow-hidden py-0 shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[620px]">
-                <TableHeader className="bg-muted/50">
+                <TableHeader>
                   <TableRow>
-                    <TableHead className="pl-6">USUARIO</TableHead>
+                    <TableHead>USUARIO</TableHead>
                     <TableHead>ROL</TableHead>
-                    <TableHead>SUCURSAL</TableHead>
+                    <TableHead className="hidden md:table-cell">SUCURSAL</TableHead>
                     <TableHead>ESTADO</TableHead>
-                    <TableHead className="pr-6 text-right">ACCIONES</TableHead>
+                    <TableHead className="text-right">ACCIONES</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id} className="h-16">
-                      <TableCell className="pl-6 font-medium">{user.userName}</TableCell>
+                      <TableCell className="font-medium">{user.userName}</TableCell>
                       <TableCell>{roleLabel(user.role)}</TableCell>
-                      <TableCell>{user.branch?.name ?? "Todas las sucursales"}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {user.branch?.name ?? "Todas las sucursales"}
+                      </TableCell>
                       <TableCell>
                         <span
                           className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
@@ -135,7 +137,7 @@ export function UsersPage() {
                           {user.active ? "Activo" : "Inactivo"}
                         </span>
                       </TableCell>
-                      <TableCell className="pr-6 text-right">
+                      <TableCell className="text-right">
                         {user.role === "super_admin" ? (
                           <span className="text-xs text-muted-foreground">Protegido</span>
                         ) : (

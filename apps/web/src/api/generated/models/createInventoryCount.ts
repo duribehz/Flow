@@ -9,9 +9,9 @@
 export interface CreateInventoryCount {
   inventoryDayId: string;
   /**
-     * @minLength 1
-     * @maxLength 1000
-     * @nullable
-     */
+   * @minLength 1
+   * @maxLength 1000
+   * @nullable
+   */
   notes?: string | null;
 }

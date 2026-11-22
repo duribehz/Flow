@@ -6,13 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type UpdateReceiptItemCondition = typeof UpdateReceiptItemCondition[keyof typeof UpdateReceiptItemCondition];
-
+export type UpdateReceiptItemCondition =
+  (typeof UpdateReceiptItemCondition)[keyof typeof UpdateReceiptItemCondition];
 
 export const UpdateReceiptItemCondition = {
-  good: 'good',
-  damaged: 'damaged',
-  expired: 'expired',
-  incorrect: 'incorrect',
-  not_arrived: 'not_arrived',
+  good: "good",
+  damaged: "damaged",
+  expired: "expired",
+  incorrect: "incorrect",
+  not_arrived: "not_arrived",
 } as const;

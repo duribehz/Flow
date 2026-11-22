@@ -5,8 +5,8 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { UserBranch } from './userBranch';
-import type { UserRole } from './userRole';
+import type { UserBranch } from "./userBranch";
+import type { UserRole } from "./userRole";
 
 export interface User {
   id: string;

@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type InventoryCountStatus = typeof InventoryCountStatus[keyof typeof InventoryCountStatus];
-
+export type InventoryCountStatus = (typeof InventoryCountStatus)[keyof typeof InventoryCountStatus];
 
 export const InventoryCountStatus = {
-  draft: 'draft',
-  submitted: 'submitted',
-  reviewed: 'reviewed',
+  draft: "draft",
+  submitted: "submitted",
+  reviewed: "reviewed",
 } as const;

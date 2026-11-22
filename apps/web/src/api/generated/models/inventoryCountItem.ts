@@ -12,22 +12,22 @@ export interface InventoryCountItem {
   supplyId: string;
   counted: boolean;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     * @nullable
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   * @nullable
+   */
   openingQuantity: number | null;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     * @nullable
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   * @nullable
+   */
   receivedQuantity: number | null;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     * @nullable
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   * @nullable
+   */
   closingQuantity: number | null;
   /** @nullable */
   lastCountedAt: string | null;

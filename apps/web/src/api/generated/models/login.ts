@@ -8,13 +8,13 @@
 
 export interface Login {
   /**
-     * @minLength 1
-     * @maxLength 100
-     */
+   * @minLength 1
+   * @maxLength 100
+   */
   userName: string;
   /**
-     * @minLength 1
-     * @maxLength 200
-     */
+   * @minLength 1
+   * @maxLength 200
+   */
   password: string;
 }

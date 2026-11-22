@@ -5,8 +5,8 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventorySupplyCategory } from './inventorySupplyCategory';
-import type { InventorySupplyUnit } from './inventorySupplyUnit';
+import type { InventorySupplyCategory } from "./inventorySupplyCategory";
+import type { InventorySupplyUnit } from "./inventorySupplyUnit";
 
 export interface InventorySupply {
   id: string;

@@ -5,14 +5,14 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { TransferItemsItemSupply } from './transferItemsItemSupply';
+import type { TransferItemsItemSupply } from "./transferItemsItemSupply";
 
 export type TransferItemsItem = {
   id: string;
   supply: TransferItemsItemSupply;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   quantity: number;
 };

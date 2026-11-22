@@ -5,8 +5,8 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { UpsertBranchSupplySettingMode } from './upsertBranchSupplySettingMode';
-import type { UpsertBranchSupplySettingWeeklyTargetsItem } from './upsertBranchSupplySettingWeeklyTargetsItem';
+import type { UpsertBranchSupplySettingMode } from "./upsertBranchSupplySettingMode";
+import type { UpsertBranchSupplySettingWeeklyTargetsItem } from "./upsertBranchSupplySettingWeeklyTargetsItem";
 
 export interface UpsertBranchSupplySetting {
   mode: UpsertBranchSupplySettingMode;

@@ -5,170 +5,175 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from 'swr';
-import type {
-  Key,
-  SWRConfiguration
-} from 'swr';
+import useSwr from "swr";
+import type { Key, SWRConfiguration } from "swr";
 
 import type {
   ApiError,
   GetShipments200,
   GetShipmentsParams,
-  GetShipmentsShipmentId200
-} from '../models';
+  GetShipmentsShipmentId200,
+} from "../models";
 
-import { apiClient } from '../../http-client';
+import { apiClient } from "../../http-client";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-
-  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
-
- export type getShipmentsResponse200 = {
-  data: GetShipments200
-  status: 200
-}
+export type getShipmentsResponse200 = {
+  data: GetShipments200;
+  status: 200;
+};
 
 export type getShipmentsResponse400 = {
-  data: ApiError
-  status: 400
-}
-
-export type getShipmentsResponseSuccess = (getShipmentsResponse200) & {
-  headers: Headers;
-};
-export type getShipmentsResponseError = (getShipmentsResponse400) & {
-  headers: Headers;
+  data: ApiError;
+  status: 400;
 };
 
-export type getShipmentsResponse = (getShipmentsResponseSuccess | getShipmentsResponseError)
+export type getShipmentsResponseSuccess = getShipmentsResponse200 & {
+  headers: Headers;
+};
+export type getShipmentsResponseError = getShipmentsResponse400 & {
+  headers: Headers;
+};
 
-export const getGetShipmentsUrl = (params?: GetShipmentsParams,) => {
+export type getShipmentsResponse = getShipmentsResponseSuccess | getShipmentsResponseError;
+
+export const getGetShipmentsUrl = (params?: GetShipmentsParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
+      normalizedParams.append(key, value === null ? "null" : String(value));
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/v1/shipments?${stringifiedParams}` : `/v1/shipments`
-}
+  return stringifiedParams.length > 0 ? `/v1/shipments?${stringifiedParams}` : `/v1/shipments`;
+};
 
 /**
  * @summary List shipments
  */
-export const getShipments = async (params?: GetShipmentsParams, options?: Parameters<typeof apiClient>[1]): Promise<getShipmentsResponse> => {
-
-  return apiClient<getShipmentsResponse>(getGetShipmentsUrl(params),
-  {
+export const getShipments = async (
+  params?: GetShipmentsParams,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getShipmentsResponse> => {
+  return apiClient<getShipmentsResponse>(getGetShipmentsUrl(params), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  });
+};
 
+export const getGetShipmentsKey = (params?: GetShipmentsParams) =>
+  [`/v1/shipments`, ...(params ? [params] : [])] as const;
 
-  }
-);}
-
-
-
-
-export const getGetShipmentsKey = (params?: GetShipmentsParams,) => [`/v1/shipments`, ...(params ? [params]: [])] as const;
-
-export type GetShipmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getShipments>>>
+export type GetShipmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getShipments>>>;
 
 /**
  * @summary List shipments
  */
 export const useGetShipments = <TError = ApiError>(
-  params?: GetShipmentsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getShipments>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  params?: GetShipmentsParams,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getShipments>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetShipmentsKey(params) : null);
-  const swrFn = () => getShipments(params, requestOptions)
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetShipmentsKey(params) : null));
+  const swrFn = () => getShipments(params, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type getShipmentsShipmentIdResponse200 = {
-  data: GetShipmentsShipmentId200
-  status: 200
-}
+  data: GetShipmentsShipmentId200;
+  status: 200;
+};
 
 export type getShipmentsShipmentIdResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type getShipmentsShipmentIdResponse404 = {
-  data: ApiError
-  status: 404
-}
-
-export type getShipmentsShipmentIdResponseSuccess = (getShipmentsShipmentIdResponse200) & {
-  headers: Headers;
-};
-export type getShipmentsShipmentIdResponseError = (getShipmentsShipmentIdResponse400 | getShipmentsShipmentIdResponse404) & {
-  headers: Headers;
+  data: ApiError;
+  status: 404;
 };
 
-export type getShipmentsShipmentIdResponse = (getShipmentsShipmentIdResponseSuccess | getShipmentsShipmentIdResponseError)
+export type getShipmentsShipmentIdResponseSuccess = getShipmentsShipmentIdResponse200 & {
+  headers: Headers;
+};
+export type getShipmentsShipmentIdResponseError = (
+  | getShipmentsShipmentIdResponse400
+  | getShipmentsShipmentIdResponse404
+) & {
+  headers: Headers;
+};
 
-export const getGetShipmentsShipmentIdUrl = (shipmentId: string,) => {
+export type getShipmentsShipmentIdResponse =
+  | getShipmentsShipmentIdResponseSuccess
+  | getShipmentsShipmentIdResponseError;
 
-
-
-
-  return `/v1/shipments/${shipmentId}`
-}
+export const getGetShipmentsShipmentIdUrl = (shipmentId: string) => {
+  return `/v1/shipments/${shipmentId}`;
+};
 
 /**
  * @summary Get shipment detail
  */
-export const getShipmentsShipmentId = async (shipmentId: string, options?: Parameters<typeof apiClient>[1]): Promise<getShipmentsShipmentIdResponse> => {
-
-  return apiClient<getShipmentsShipmentIdResponse>(getGetShipmentsShipmentIdUrl(shipmentId),
-  {
+export const getShipmentsShipmentId = async (
+  shipmentId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getShipmentsShipmentIdResponse> => {
+  return apiClient<getShipmentsShipmentIdResponse>(getGetShipmentsShipmentIdUrl(shipmentId), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  });
+};
 
+export const getGetShipmentsShipmentIdKey = (shipmentId: string) =>
+  [`/v1/shipments/${shipmentId}`] as const;
 
-  }
-);}
-
-
-
-
-export const getGetShipmentsShipmentIdKey = (shipmentId: string,) => [`/v1/shipments/${shipmentId}`] as const;
-
-export type GetShipmentsShipmentIdQueryResult = NonNullable<Awaited<ReturnType<typeof getShipmentsShipmentId>>>
+export type GetShipmentsShipmentIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getShipmentsShipmentId>>
+>;
 
 /**
  * @summary Get shipment detail
  */
 export const useGetShipmentsShipmentId = <TError = ApiError>(
-  shipmentId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getShipmentsShipmentId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  shipmentId: string,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getShipmentsShipmentId>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && shipmentId !== null && shipmentId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetShipmentsShipmentIdKey(shipmentId) : null);
-  const swrFn = () => getShipmentsShipmentId(shipmentId, requestOptions)
+  const isEnabled =
+    swrOptions?.enabled !== false && shipmentId !== null && shipmentId !== undefined;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetShipmentsShipmentIdKey(shipmentId) : null));
+  const swrFn = () => getShipmentsShipmentId(shipmentId, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};

@@ -22,6 +22,7 @@ import type { Supply } from "@/api/generated/models";
 import { ApiError } from "@/api/http-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +60,7 @@ type StatusFilter = "all" | "active" | "inactive";
 export function ArticlesPage() {
   const [categoryId, setCategoryId] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [managedSupply, setManagedSupply] = useState<Supply>();
   const [editingSupply, setEditingSupply] = useState<Supply>();
@@ -93,10 +95,13 @@ export function ArticlesPage() {
   const isLoading = suppliesLoading || categoriesLoading || unitsLoading || suppliersLoading;
   const error = suppliesError ?? categoriesError ?? unitsError ?? suppliersError;
 
+  const normalizedSearch = search.trim().toLowerCase();
   const visibleSupplies = supplies.filter(
     (supply) =>
       (categoryId === "all" || supply.category.id === categoryId) &&
-      (status === "all" || supply.active === (status === "active")),
+      (status === "all" || supply.active === (status === "active")) &&
+      (!normalizedSearch ||
+        `${supply.name} ${supply.sku}`.toLowerCase().includes(normalizedSearch)),
   );
 
   return (
@@ -119,7 +124,23 @@ export function ArticlesPage() {
         </div>
 
         <Card className="gap-0 py-0 shadow-sm">
-          <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:gap-5 sm:p-6">
+          <div className="flex flex-col gap-4 border-b p-5 sm:flex-row sm:flex-wrap sm:gap-5 sm:p-6">
+            <div className="w-full sm:min-w-[260px] sm:flex-1">
+              <label
+                htmlFor="catalog-search"
+                className="mb-2 block text-sm font-medium text-muted-foreground"
+              >
+                Buscar
+              </label>
+              <Input
+                id="catalog-search"
+                type="search"
+                placeholder="Nombre o código"
+                value={search}
+                onChange={(event) => setSearch(event.currentTarget.value)}
+                className="h-[50px] px-4 text-base"
+              />
+            </div>
             <div className="w-full sm:w-[280px]">
               <label
                 htmlFor="catalog-category-filter"
@@ -184,27 +205,15 @@ export function ArticlesPage() {
           </div>
 
           <Table>
-            <TableHeader className="bg-muted/60">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
-                  ARTÍCULO
-                </TableHead>
-                <TableHead className="w-[180px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  CATEGORÍA
-                </TableHead>
-                <TableHead className="w-[230px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  PROVEEDORES
-                </TableHead>
-                <TableHead className="w-[160px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  UNIDAD
-                </TableHead>
-                <TableHead className="w-[150px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  COSTO UNITARIO
-                </TableHead>
-                <TableHead className="w-[120px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  ESTADO
-                </TableHead>
-                <TableHead className="w-14 pr-5">
+                <TableHead>ARTÍCULO</TableHead>
+                <TableHead className="hidden md:table-cell">CATEGORÍA</TableHead>
+                <TableHead className="hidden lg:table-cell">PROVEEDORES</TableHead>
+                <TableHead className="hidden lg:table-cell">UNIDAD</TableHead>
+                <TableHead>COSTO UNITARIO</TableHead>
+                <TableHead>ESTADO</TableHead>
+                <TableHead className="w-14">
                   <span className="sr-only">Acciones</span>
                 </TableHead>
               </TableRow>
@@ -352,27 +361,25 @@ function SupplyRow({
 
   return (
     <TableRow className="hover:bg-transparent">
-      <TableCell className="py-4 pl-6">
+      <TableCell>
         <p className="font-semibold">{supply.name}</p>
         <p className="mt-0.5 text-sm text-muted-foreground">{supply.sku}</p>
         {rowError && <p className="mt-1 text-xs text-destructive">{rowError}</p>}
       </TableCell>
-      <TableCell className="text-sm">{supply.category.name}</TableCell>
-      <TableCell className="text-sm text-muted-foreground">
+      <TableCell className="hidden text-sm md:table-cell">{supply.category.name}</TableCell>
+      <TableCell className="hidden text-sm lg:table-cell">
         {supply.suppliers.map(({ name }) => name).join(", ") || "Sin proveedor"}
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
+      <TableCell className="hidden text-sm lg:table-cell">
         {supply.unit.name} ({supply.unit.symbol})
       </TableCell>
-      <TableCell className="text-sm font-semibold whitespace-nowrap">
-        {formatMoney(supply.unitCost)}
-      </TableCell>
+      <TableCell className="text-sm whitespace-nowrap">{formatMoney(supply.unitCost)}</TableCell>
       <TableCell>
         <span className="inline-flex h-7 items-center rounded-full border bg-muted/70 px-2.5 text-xs font-semibold">
           {supply.active ? "Activo" : "Inactivo"}
         </span>
       </TableCell>
-      <TableCell className="pr-5 text-right">
+      <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger
             disabled={isBusy}
@@ -412,7 +419,7 @@ function SupplyRow({
 function LoadingRows() {
   return Array.from({ length: 5 }, (_, index) => (
     <TableRow key={index} className="h-[88px] hover:bg-transparent">
-      <TableCell className="pl-7" colSpan={7}>
+      <TableCell colSpan={7}>
         <div className="h-4 w-full max-w-[720px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>

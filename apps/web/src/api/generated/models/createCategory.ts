@@ -8,8 +8,8 @@
 
 export interface CreateCategory {
   /**
-     * @minLength 1
-     * @maxLength 200
-     */
+   * @minLength 1
+   * @maxLength 200
+   */
   name: string;
 }

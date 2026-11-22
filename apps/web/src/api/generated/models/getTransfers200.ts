@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Transfer } from './transfer';
+import type { Transfer } from "./transfer";
 
 export type GetTransfers200 = {
   data: Transfer[];

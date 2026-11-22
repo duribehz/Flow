@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeftRight,
@@ -6,9 +6,10 @@ import {
   Box,
   Boxes,
   Building2,
+  ChartNoAxesCombined,
   CircleHelp,
   ClipboardCheck,
-  FileChartColumn,
+  Layers,
   LogOut,
   Menu,
   Store,
@@ -55,12 +56,12 @@ type NavigationItem = {
 const navigationGroups: Array<{ label: string; items: NavigationItem[] }> = [
   {
     label: "Análisis",
-    items: [{ label: "Analítica", path: "/analytics", icon: FileChartColumn }],
+    items: [{ label: "Analítica", path: "/analytics", icon: ChartNoAxesCombined }],
   },
   {
     label: "Operación",
     items: [
-      { label: "Existencias", path: "/inventory", icon: FileChartColumn },
+      { label: "Existencias", path: "/inventory", icon: Layers },
       { label: "Bandeja", path: "/inventory/review", icon: Warehouse },
       { label: "Pedidos", path: "/orders", icon: Truck },
       { label: "Recepciones", path: "/receipts", icon: ClipboardCheck },
@@ -178,23 +179,45 @@ export function AppShell() {
     }
   }
 
+  const visibleItems = visibleNavigationGroups.flatMap((group) => group.items);
+
   return (
     <div
       className={`min-h-screen bg-[#fbfbfc] transition-[padding] duration-200 ${
-        isSidebarVisible ? "lg:pl-[248px]" : "lg:pl-0"
+        isSidebarVisible ? "lg:pl-[232px]" : "lg:pl-16"
       }`}
     >
-      {isSidebarVisible && (
-        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] lg:flex">
-          <SidebarContent
-            pathname={pathname}
-            groups={visibleNavigationGroups}
-            userName={currentUser.userName}
-            userRole={userRoleLabel}
-            userInitials={userInitials}
-            isLoggingOut={logout.isMutating}
-            onLogout={() => void handleLogout()}
-          />
+      {isSidebarVisible ? (
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[232px] lg:flex">
+          <SidebarContent pathname={pathname} groups={visibleNavigationGroups} />
+        </aside>
+      ) : (
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-16 flex-col items-center gap-2 border-r border-white/10 bg-[#08080a] py-4 lg:flex">
+          <div className="mb-2 flex size-9 items-center justify-center rounded-xl bg-white text-[#111113]">
+            <Box className="size-4" strokeWidth={2} />
+          </div>
+          <nav aria-label="Navegación principal" className="flex flex-col items-center gap-1">
+            {visibleItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActivePath(pathname, item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  title={item.label}
+                  aria-label={item.label}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex size-10 items-center justify-center rounded-xl transition-colors ${
+                    active
+                      ? "bg-[#2b2b2e] text-white"
+                      : "text-neutral-400 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon className="size-5" />
+                </Link>
+              );
+            })}
+          </nav>
         </aside>
       )}
 
@@ -210,7 +233,7 @@ export function AppShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Navegación principal"
-            className="relative h-full w-[min(248px,calc(100vw-48px))] shadow-2xl"
+            className="relative h-full w-[min(232px,calc(100vw-48px))] shadow-2xl"
           >
             <Button
               variant="ghost"
@@ -224,20 +247,15 @@ export function AppShell() {
             <SidebarContent
               pathname={pathname}
               groups={visibleNavigationGroups}
-              userName={currentUser.userName}
-              userRole={userRoleLabel}
-              userInitials={userInitials}
-              isLoggingOut={logout.isMutating}
               onNavigate={() => setIsNavigationOpen(false)}
-              onLogout={() => void handleLogout()}
             />
           </aside>
         </div>
       )}
 
       <div className="min-h-screen">
-        <header className="sticky top-0 z-40 flex h-[68px] items-center justify-between border-b bg-background/95 px-4 backdrop-blur sm:px-8">
-          <div className="flex min-w-0 items-center gap-3">
+        <header className="sticky top-0 z-40 flex h-[64px] items-center justify-between gap-3 border-b bg-background/95 px-3 backdrop-blur sm:px-6">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Button
               variant="ghost"
               size="icon-lg"
@@ -263,8 +281,8 @@ export function AppShell() {
                   <BreadcrumbLink render={<Link to="/inventory" />}>Flow</BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden sm:inline-flex" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage className="max-w-[190px] truncate font-semibold sm:max-w-none">
+                <BreadcrumbItem className="min-w-0">
+                  <BreadcrumbPage className="max-w-[160px] truncate font-semibold sm:max-w-none">
                     {currentLabel}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -272,10 +290,19 @@ export function AppShell() {
             </Breadcrumb>
           </div>
 
-          <Button variant="ghost" size="icon-lg" aria-label="Notificaciones" className="relative">
-            <Bell className="size-6 text-muted-foreground" />
-            <span className="absolute top-2 right-2 size-1.5 rounded-full bg-foreground ring-2 ring-background" />
-          </Button>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <Button variant="ghost" size="icon-lg" aria-label="Notificaciones" className="relative">
+              <Bell className="size-5 text-muted-foreground" />
+              <span className="absolute top-2 right-2 size-1.5 rounded-full bg-foreground ring-2 ring-background" />
+            </Button>
+            <ProfileMenu
+              userName={currentUser.userName}
+              userRole={userRoleLabel}
+              userInitials={userInitials}
+              isLoggingOut={logout.isMutating}
+              onLogout={() => void handleLogout()}
+            />
+          </div>
         </header>
 
         <Outlet />
@@ -293,40 +320,40 @@ export function AppShell() {
   );
 }
 
+function isActivePath(pathname: string, path: NavigationItem["path"]) {
+  return (
+    pathname === path ||
+    (path === "/inventory" &&
+      pathname.startsWith("/inventory/") &&
+      !pathname.startsWith("/inventory/review")) ||
+    (path !== "/inventory" && pathname.startsWith(`${path}/`))
+  );
+}
+
 function SidebarContent({
   pathname,
   groups,
-  userName,
-  userRole,
-  userInitials,
-  isLoggingOut,
   onNavigate,
-  onLogout,
 }: {
   pathname: string;
   groups: Array<{ label: string; items: NavigationItem[] }>;
-  userName: string;
-  userRole: string;
-  userInitials: string;
-  isLoggingOut: boolean;
   onNavigate?: () => void;
-  onLogout: () => void;
 }) {
   return (
     <div className="flex h-full w-full flex-col border-r border-white/10 bg-[#08080a] text-neutral-400">
-      <div className="flex h-[92px] items-center gap-3 px-6">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#111113]">
+      <div className="flex h-[76px] items-center gap-3 px-5">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#111113]">
           <Box className="size-5" strokeWidth={2} />
         </div>
         <div>
-          <p className="text-xl leading-6 font-semibold tracking-tight text-white">Flow</p>
+          <p className="text-lg leading-6 font-semibold tracking-tight text-white">Flow</p>
           <p className="mt-1 text-[10px] font-medium tracking-[0.2em] text-neutral-500 uppercase">
             Supply Manager
           </p>
         </div>
       </div>
 
-      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto px-4 py-3">
+      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto px-3 py-2">
         {groups.map((group) => (
           <div key={group.label} className="mb-6">
             <p className="mb-2 px-3 text-[10px] font-semibold tracking-[0.2em] text-neutral-600 uppercase">
@@ -335,20 +362,14 @@ function SidebarContent({
             <div className="space-y-1">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive =
-                  pathname === item.path ||
-                  (item.path === "/inventory" &&
-                    pathname.startsWith("/inventory/") &&
-                    !pathname.startsWith("/inventory/review")) ||
-                  (item.path !== "/inventory" && pathname.startsWith(`${item.path}/`));
-
+                const isActive = isActivePath(pathname, item.path);
                 return (
                   <Link
                     key={item.path}
                     to={item.path}
                     aria-current={isActive ? "page" : undefined}
                     onClick={onNavigate}
-                    className={`flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors ${
+                    className={`flex h-10 items-center gap-3 rounded-xl px-3 text-sm transition-colors ${
                       isActive
                         ? "bg-[#2b2b2e] font-medium text-white"
                         : "hover:bg-white/5 hover:text-white"
@@ -363,14 +384,6 @@ function SidebarContent({
           </div>
         ))}
       </nav>
-
-      <ProfileMenu
-        userName={userName}
-        userRole={userRole}
-        userInitials={userInitials}
-        isLoggingOut={isLoggingOut}
-        onLogout={onLogout}
-      />
     </div>
   );
 }
@@ -389,38 +402,68 @@ function ProfileMenu({
   onLogout: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function closeOnOutside(event: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setIsOpen(false);
+    }
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsOpen(false);
+    }
+    document.addEventListener("mousedown", closeOnOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isOpen]);
 
   return (
-    <div className="relative border-t border-white/10 px-4 py-4">
-      {isOpen && (
-        <div className="absolute inset-x-4 bottom-full mb-2 rounded-xl border border-white/10 bg-[#18181b] p-2 shadow-xl">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-neutral-300 hover:bg-white/10 hover:text-white"
-            disabled={isLoggingOut}
-            onClick={() => {
-              setIsOpen(false);
-              onLogout();
-            }}
-          >
-            <LogOut className="size-4" /> Cerrar sesión
-          </Button>
-        </div>
-      )}
+    <div ref={rootRef} className="relative">
       <button
         type="button"
+        aria-haspopup="menu"
         aria-expanded={isOpen}
+        aria-label={`Cuenta de ${userName}`}
         onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-white/5"
+        className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted sm:pr-3"
       >
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29292c] text-sm font-semibold text-white">
+        <span className="flex size-8 items-center justify-center rounded-full bg-[#1c1c1f] text-xs font-semibold text-white">
           {userInitials}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">{userName}</p>
-          <p className="truncate text-xs text-neutral-500">{userRole}</p>
-        </div>
+        </span>
+        <span className="hidden min-w-0 text-left sm:block">
+          <span className="block max-w-[140px] truncate text-sm font-semibold">{userName}</span>
+          <span className="block text-xs text-muted-foreground">{userRole}</span>
+        </span>
       </button>
+      {isOpen && (
+        <div
+          role="menu"
+          className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border bg-popover shadow-lg"
+        >
+          <div className="border-b px-4 py-3">
+            <p className="truncate text-sm font-semibold">{userName}</p>
+            <p className="text-xs text-muted-foreground">{userRole}</p>
+          </div>
+          <div className="p-1.5">
+            <button
+              type="button"
+              role="menuitem"
+              disabled={isLoggingOut}
+              onClick={() => {
+                setIsOpen(false);
+                onLogout();
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+            >
+              <LogOut className="size-4 text-muted-foreground" />
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

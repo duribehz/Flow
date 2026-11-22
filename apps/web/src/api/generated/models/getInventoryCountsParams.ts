@@ -5,10 +5,10 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { GetInventoryCountsStatus } from './getInventoryCountsStatus';
+import type { GetInventoryCountsStatus } from "./getInventoryCountsStatus";
 
 export type GetInventoryCountsParams = {
-inventoryDayId?: string;
-branchId?: string;
-status?: GetInventoryCountsStatus;
+  inventoryDayId?: string;
+  branchId?: string;
+  status?: GetInventoryCountsStatus;
 };

@@ -5,10 +5,10 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { GetTransfersDirection } from './getTransfersDirection';
-import type { GetTransfersStatus } from './getTransfersStatus';
+import type { GetTransfersDirection } from "./getTransfersDirection";
+import type { GetTransfersStatus } from "./getTransfersStatus";
 
 export type GetTransfersParams = {
-direction?: GetTransfersDirection;
-status?: GetTransfersStatus;
+  direction?: GetTransfersDirection;
+  status?: GetTransfersStatus;
 };

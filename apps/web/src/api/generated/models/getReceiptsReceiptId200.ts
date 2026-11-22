@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Receipt } from './receipt';
+import type { Receipt } from "./receipt";
 
 export type GetReceiptsReceiptId200 = {
   data: Receipt;

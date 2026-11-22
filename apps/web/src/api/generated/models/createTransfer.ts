@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { CreateTransferItemsItem } from './createTransferItemsItem';
+import type { CreateTransferItemsItem } from "./createTransferItemsItem";
 
 export interface CreateTransfer {
   fromBranchId?: string;

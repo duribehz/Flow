@@ -6,7 +6,7 @@ import { UsersRepo } from "../users/users.repo.js";
 import type { LoginInput } from "./auth.dto.js";
 import { AuthRepo } from "./auth.repo.js";
 
-const sessionLifetimeMs = 12 * 60 * 60 * 1000;
+import { SESSION_LIFETIME_MS } from "@/shared/infrastructure/http/session-config.js";
 
 export async function loginUseCase(
   input: LoginInput,
@@ -25,7 +25,7 @@ export async function loginUseCase(
 
   const rawToken = randomBytes(32).toString("base64url");
   const tokenHash = hashSessionToken(rawToken);
-  const expiresAt = new Date(Date.now() + sessionLifetimeMs);
+  const expiresAt = new Date(Date.now() + SESSION_LIFETIME_MS);
   const authRepo = new AuthRepo(db);
   await authRepo.createSession({
     userId: user.id,

@@ -5,9 +5,9 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { DraftReplenishmentBranch } from './draftReplenishmentBranch';
-import type { DraftReplenishmentRequestedBy } from './draftReplenishmentRequestedBy';
-import type { DraftReplenishmentStatus } from './draftReplenishmentStatus';
+import type { DraftReplenishmentBranch } from "./draftReplenishmentBranch";
+import type { DraftReplenishmentRequestedBy } from "./draftReplenishmentRequestedBy";
+import type { DraftReplenishmentStatus } from "./draftReplenishmentStatus";
 
 export interface DraftReplenishment {
   id: string;

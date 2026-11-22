@@ -5,6 +5,12 @@ import { hashSessionToken } from "@/modules/auth/auth.usecases.js";
 import type { UserRole } from "@/modules/users/users.dto.js";
 import { AppError } from "@/shared/errors/app-error.js";
 import type { State } from "./state.js";
+import {
+  SESSION_COOKIE_MAX_AGE_SECONDS,
+  SESSION_LIFETIME_MS,
+  SESSION_RENEW_WHEN_LEFT_MS,
+  SESSION_TOUCH_INTERVAL_MS,
+} from "./session-config.js";
 
 export const AUTH_SESSION_COOKIE = "flow_session";
 
@@ -18,7 +24,7 @@ export function readSessionToken(cookieHeader: string | undefined) {
 }
 
 export function sessionCookie(token: string, secure: boolean) {
-  return `${AUTH_SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200${secure ? "; Secure" : ""}`;
+  return `${AUTH_SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_COOKIE_MAX_AGE_SECONDS}${secure ? "; Secure" : ""}`;
 }
 
 export function clearedSessionCookie(secure: boolean) {
@@ -52,7 +58,21 @@ export const authenticateRequest: MiddlewareHandler<State> = async (context, nex
     return context.json({ error: { code: "UNAUTHENTICATED", message: "Session expired" } }, 401);
   }
 
-  await new AuthRepo(context.get("db")).touchSession(session.sessionId);
+  const now = Date.now();
+  const timeLeft = session.expiresAt.getTime() - now;
+  const lastUsed = session.lastUsedAt?.getTime() ?? 0;
+  const needsRenewal = timeLeft < SESSION_RENEW_WHEN_LEFT_MS;
+  if (needsRenewal || now - lastUsed > SESSION_TOUCH_INTERVAL_MS) {
+    const renewedExpiresAt = needsRenewal ? new Date(now + SESSION_LIFETIME_MS) : undefined;
+    await new AuthRepo(context.get("db")).touchSession(
+      session.sessionId,
+      new Date(now),
+      renewedExpiresAt,
+    );
+    if (renewedExpiresAt) {
+      context.header("Set-Cookie", sessionCookie(token, useSecureCookie(context.req.url)));
+    }
+  }
   context.set("userId", session.userId);
   context.set("userName", session.userName);
   context.set("userRole", session.role as UserRole);
@@ -115,4 +135,8 @@ export function assertBranchAccess(
   if (role === "manager" && (!assignedBranchId || assignedBranchId !== branchId)) {
     throw new AppError(403, "BRANCH_ACCESS_DENIED", "This user cannot access another branch");
   }
+}
+
+function useSecureCookie(url: string) {
+  return process.env.NODE_ENV === "production" || url.startsWith("https://");
 }

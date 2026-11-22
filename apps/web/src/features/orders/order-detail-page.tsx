@@ -367,7 +367,7 @@ export function OrderDetailPage() {
             <div>
               <p className="font-semibold">Flujo de pedido completado</p>
               <p className="text-sm text-muted-foreground">
-                El envío fue recibido y las cantidades aceptadas se incorporaron al inventario.
+                El envío fue recibido y las cantidades aceptadas se incorporaron a las existencias.
               </p>
             </div>
             <StatusBadge status="delivered" />

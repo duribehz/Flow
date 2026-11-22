@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ShipmentItemSupply } from './shipmentItemSupply';
+import type { ShipmentItemSupply } from "./shipmentItemSupply";
 
 export interface ShipmentItem {
   id: string;
@@ -14,14 +14,14 @@ export interface ShipmentItem {
   usagePurposeId: string;
   usagePurposeName: string;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   plannedQuantity: number;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   shippedQuantity: number;
   createdAt: string;
 }

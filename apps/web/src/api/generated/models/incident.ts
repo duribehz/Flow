@@ -5,11 +5,11 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { IncidentAssignedTo } from './incidentAssignedTo';
-import type { IncidentReportedBy } from './incidentReportedBy';
-import type { IncidentResolvedBy } from './incidentResolvedBy';
-import type { IncidentStatus } from './incidentStatus';
-import type { IncidentType } from './incidentType';
+import type { IncidentAssignedTo } from "./incidentAssignedTo";
+import type { IncidentReportedBy } from "./incidentReportedBy";
+import type { IncidentResolvedBy } from "./incidentResolvedBy";
+import type { IncidentStatus } from "./incidentStatus";
+import type { IncidentType } from "./incidentType";
 
 export interface Incident {
   id: string;

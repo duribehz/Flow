@@ -5,9 +5,9 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { SupplyCategory } from './supplyCategory';
-import type { SupplySuppliersItem } from './supplySuppliersItem';
-import type { SupplyUnit } from './supplyUnit';
+import type { SupplyCategory } from "./supplyCategory";
+import type { SupplySuppliersItem } from "./supplySuppliersItem";
+import type { SupplyUnit } from "./supplyUnit";
 
 export interface Supply {
   id: string;
@@ -16,9 +16,9 @@ export interface Supply {
   /** @nullable */
   description: string | null;
   /**
-     * Money amount in integer cents.
-     * @minimum 0
-     */
+   * Money amount in integer cents.
+   * @minimum 0
+   */
   unitCost: number;
   active: boolean;
   trackInventory: boolean;

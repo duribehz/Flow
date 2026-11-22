@@ -36,6 +36,8 @@ export class AuthRepo {
         role: users.role,
         branchId: users.branchId,
         active: users.active,
+        expiresAt: authSessions.expiresAt,
+        lastUsedAt: authSessions.lastUsedAt,
       })
       .from(authSessions)
       .innerJoin(users, eq(authSessions.userId, users.id))
@@ -50,10 +52,12 @@ export class AuthRepo {
     return session;
   }
 
-  touchSession(sessionId: string, now = new Date()) {
+  touchSession(sessionId: string, now = new Date(), renewedExpiresAt?: Date) {
     return this.conn
       .update(authSessions)
-      .set({ lastUsedAt: now })
+      .set(
+        renewedExpiresAt ? { lastUsedAt: now, expiresAt: renewedExpiresAt } : { lastUsedAt: now },
+      )
       .where(and(eq(authSessions.id, sessionId), isNull(authSessions.revokedAt)));
   }
 

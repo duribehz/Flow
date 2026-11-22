@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventoryLastReport } from './inventoryLastReport';
+import type { InventoryLastReport } from "./inventoryLastReport";
 
 export type GetInventoryLastReports200 = {
   data: InventoryLastReport[];

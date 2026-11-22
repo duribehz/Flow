@@ -5,18 +5,18 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateUserRole } from './updateUserRole';
+import type { UpdateUserRole } from "./updateUserRole";
 
 export interface UpdateUser {
   /**
-     * @minLength 3
-     * @maxLength 100
-     */
+   * @minLength 3
+   * @maxLength 100
+   */
   userName?: string;
   /**
-     * @minLength 12
-     * @maxLength 200
-     */
+   * @minLength 12
+   * @maxLength 200
+   */
   password?: string;
   role?: UpdateUserRole;
   /** @nullable */

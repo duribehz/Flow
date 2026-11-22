@@ -5,227 +5,246 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from 'swr';
-import type {
-  Key,
-  SWRConfiguration
-} from 'swr';
+import useSwr from "swr";
+import type { Key, SWRConfiguration } from "swr";
 
-import useSWRMutation from 'swr/mutation';
-import type {
-  SWRMutationConfiguration
-} from 'swr/mutation';
+import useSWRMutation from "swr/mutation";
+import type { SWRMutationConfiguration } from "swr/mutation";
 
 import type {
   ApiError,
   GetBranchSupplySetting200,
   GetBranchSupplySettings200,
   PutBranchSupplySetting200,
-  UpsertBranchSupplySetting
-} from '../models';
+  UpsertBranchSupplySetting,
+} from "../models";
 
-import { apiClient } from '../../http-client';
+import { apiClient } from "../../http-client";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-
-  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
-
- export type getBranchSupplySettingsResponse200 = {
-  data: GetBranchSupplySettings200
-  status: 200
-}
+export type getBranchSupplySettingsResponse200 = {
+  data: GetBranchSupplySettings200;
+  status: 200;
+};
 
 export type getBranchSupplySettingsResponse400 = {
-  data: ApiError
-  status: 400
-}
-
-export type getBranchSupplySettingsResponseSuccess = (getBranchSupplySettingsResponse200) & {
-  headers: Headers;
-};
-export type getBranchSupplySettingsResponseError = (getBranchSupplySettingsResponse400) & {
-  headers: Headers;
+  data: ApiError;
+  status: 400;
 };
 
-export type getBranchSupplySettingsResponse = (getBranchSupplySettingsResponseSuccess | getBranchSupplySettingsResponseError)
+export type getBranchSupplySettingsResponseSuccess = getBranchSupplySettingsResponse200 & {
+  headers: Headers;
+};
+export type getBranchSupplySettingsResponseError = getBranchSupplySettingsResponse400 & {
+  headers: Headers;
+};
 
-export const getGetBranchSupplySettingsUrl = (branchId: string,) => {
+export type getBranchSupplySettingsResponse =
+  | getBranchSupplySettingsResponseSuccess
+  | getBranchSupplySettingsResponseError;
 
-
-
-
-  return `/v1/branches/${branchId}/supply-settings`
-}
+export const getGetBranchSupplySettingsUrl = (branchId: string) => {
+  return `/v1/branches/${branchId}/supply-settings`;
+};
 
 /**
  * @summary List a branch's supply settings
  */
-export const getBranchSupplySettings = async (branchId: string, options?: Parameters<typeof apiClient>[1]): Promise<getBranchSupplySettingsResponse> => {
-
-  return apiClient<getBranchSupplySettingsResponse>(getGetBranchSupplySettingsUrl(branchId),
-  {
+export const getBranchSupplySettings = async (
+  branchId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getBranchSupplySettingsResponse> => {
+  return apiClient<getBranchSupplySettingsResponse>(getGetBranchSupplySettingsUrl(branchId), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  });
+};
 
+export const getGetBranchSupplySettingsKey = (branchId: string) =>
+  [`/v1/branches/${branchId}/supply-settings`] as const;
 
-  }
-);}
-
-
-
-
-export const getGetBranchSupplySettingsKey = (branchId: string,) => [`/v1/branches/${branchId}/supply-settings`] as const;
-
-export type GetBranchSupplySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getBranchSupplySettings>>>
+export type GetBranchSupplySettingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBranchSupplySettings>>
+>;
 
 /**
  * @summary List a branch's supply settings
  */
 export const useGetBranchSupplySettings = <TError = ApiError>(
-  branchId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getBranchSupplySettings>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  branchId: string,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getBranchSupplySettings>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && branchId !== null && branchId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetBranchSupplySettingsKey(branchId) : null);
-  const swrFn = () => getBranchSupplySettings(branchId, requestOptions)
+  const isEnabled = swrOptions?.enabled !== false && branchId !== null && branchId !== undefined;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetBranchSupplySettingsKey(branchId) : null));
+  const swrFn = () => getBranchSupplySettings(branchId, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type getBranchSupplySettingResponse200 = {
-  data: GetBranchSupplySetting200
-  status: 200
-}
+  data: GetBranchSupplySetting200;
+  status: 200;
+};
 
 export type getBranchSupplySettingResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type getBranchSupplySettingResponse404 = {
-  data: ApiError
-  status: 404
-}
-
-export type getBranchSupplySettingResponseSuccess = (getBranchSupplySettingResponse200) & {
-  headers: Headers;
-};
-export type getBranchSupplySettingResponseError = (getBranchSupplySettingResponse400 | getBranchSupplySettingResponse404) & {
-  headers: Headers;
+  data: ApiError;
+  status: 404;
 };
 
-export type getBranchSupplySettingResponse = (getBranchSupplySettingResponseSuccess | getBranchSupplySettingResponseError)
+export type getBranchSupplySettingResponseSuccess = getBranchSupplySettingResponse200 & {
+  headers: Headers;
+};
+export type getBranchSupplySettingResponseError = (
+  | getBranchSupplySettingResponse400
+  | getBranchSupplySettingResponse404
+) & {
+  headers: Headers;
+};
 
-export const getGetBranchSupplySettingUrl = (branchId: string,
-    supplyId: string,) => {
+export type getBranchSupplySettingResponse =
+  | getBranchSupplySettingResponseSuccess
+  | getBranchSupplySettingResponseError;
 
-
-
-
-  return `/v1/branches/${branchId}/supply-settings/${supplyId}`
-}
+export const getGetBranchSupplySettingUrl = (branchId: string, supplyId: string) => {
+  return `/v1/branches/${branchId}/supply-settings/${supplyId}`;
+};
 
 /**
  * @summary Get a branch supply setting
  */
-export const getBranchSupplySetting = async (branchId: string,
-    supplyId: string, options?: Parameters<typeof apiClient>[1]): Promise<getBranchSupplySettingResponse> => {
+export const getBranchSupplySetting = async (
+  branchId: string,
+  supplyId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getBranchSupplySettingResponse> => {
+  return apiClient<getBranchSupplySettingResponse>(
+    getGetBranchSupplySettingUrl(branchId, supplyId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
 
-  return apiClient<getBranchSupplySettingResponse>(getGetBranchSupplySettingUrl(branchId,supplyId),
-  {
-    ...options,
-    method: 'GET'
+export const getGetBranchSupplySettingKey = (branchId: string, supplyId: string) =>
+  [`/v1/branches/${branchId}/supply-settings/${supplyId}`] as const;
 
-
-  }
-);}
-
-
-
-
-export const getGetBranchSupplySettingKey = (branchId: string,
-    supplyId: string,) => [`/v1/branches/${branchId}/supply-settings/${supplyId}`] as const;
-
-export type GetBranchSupplySettingQueryResult = NonNullable<Awaited<ReturnType<typeof getBranchSupplySetting>>>
+export type GetBranchSupplySettingQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBranchSupplySetting>>
+>;
 
 /**
  * @summary Get a branch supply setting
  */
 export const useGetBranchSupplySetting = <TError = ApiError>(
   branchId: string,
-    supplyId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getBranchSupplySetting>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  supplyId: string,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getBranchSupplySetting>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && branchId !== null && branchId !== undefined && supplyId !== null && supplyId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetBranchSupplySettingKey(branchId,supplyId) : null);
-  const swrFn = () => getBranchSupplySetting(branchId,supplyId, requestOptions)
+  const isEnabled =
+    swrOptions?.enabled !== false &&
+    branchId !== null &&
+    branchId !== undefined &&
+    supplyId !== null &&
+    supplyId !== undefined;
+  const swrKey =
+    swrOptions?.swrKey ??
+    (() => (isEnabled ? getGetBranchSupplySettingKey(branchId, supplyId) : null));
+  const swrFn = () => getBranchSupplySetting(branchId, supplyId, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type putBranchSupplySettingResponse200 = {
-  data: PutBranchSupplySetting200
-  status: 200
-}
+  data: PutBranchSupplySetting200;
+  status: 200;
+};
 
 export type putBranchSupplySettingResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type putBranchSupplySettingResponse404 = {
-  data: ApiError
-  status: 404
-}
+  data: ApiError;
+  status: 404;
+};
 
 export type putBranchSupplySettingResponse409 = {
-  data: ApiError
-  status: 409
-}
-
-export type putBranchSupplySettingResponseSuccess = (putBranchSupplySettingResponse200) & {
-  headers: Headers;
-};
-export type putBranchSupplySettingResponseError = (putBranchSupplySettingResponse400 | putBranchSupplySettingResponse404 | putBranchSupplySettingResponse409) & {
-  headers: Headers;
+  data: ApiError;
+  status: 409;
 };
 
-export type putBranchSupplySettingResponse = (putBranchSupplySettingResponseSuccess | putBranchSupplySettingResponseError)
+export type putBranchSupplySettingResponseSuccess = putBranchSupplySettingResponse200 & {
+  headers: Headers;
+};
+export type putBranchSupplySettingResponseError = (
+  | putBranchSupplySettingResponse400
+  | putBranchSupplySettingResponse404
+  | putBranchSupplySettingResponse409
+) & {
+  headers: Headers;
+};
 
-export const getPutBranchSupplySettingUrl = (branchId: string,
-    supplyId: string,) => {
+export type putBranchSupplySettingResponse =
+  | putBranchSupplySettingResponseSuccess
+  | putBranchSupplySettingResponseError;
 
-
-
-
-  return `/v1/branches/${branchId}/supply-settings/${supplyId}`
-}
+export const getPutBranchSupplySettingUrl = (branchId: string, supplyId: string) => {
+  return `/v1/branches/${branchId}/supply-settings/${supplyId}`;
+};
 
 /**
  * @summary Create or replace a branch supply setting
  */
-export const putBranchSupplySetting = async (branchId: string,
-    supplyId: string,
-    upsertBranchSupplySetting: UpsertBranchSupplySetting, options?: Parameters<typeof apiClient>[1]): Promise<putBranchSupplySettingResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+export const putBranchSupplySetting = async (
+  branchId: string,
+  supplyId: string,
+  upsertBranchSupplySetting: UpsertBranchSupplySetting,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<putBranchSupplySettingResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -234,46 +253,59 @@ export const putBranchSupplySetting = async (branchId: string,
     }
     return headers;
   };
-return apiClient<putBranchSupplySettingResponse>(getPutBranchSupplySettingUrl(branchId,supplyId),
-  {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(upsertBranchSupplySetting)
-  }
-);}
+  return apiClient<putBranchSupplySettingResponse>(
+    getPutBranchSupplySettingUrl(branchId, supplyId),
+    {
+      ...options,
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+      body: JSON.stringify(upsertBranchSupplySetting),
+    },
+  );
+};
 
-
-
-
-export const getPutBranchSupplySettingMutationFetcher = (branchId: string,
-    supplyId: string, options?: SecondParameter<typeof apiClient>) => {
+export const getPutBranchSupplySettingMutationFetcher = (
+  branchId: string,
+  supplyId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
   return (_: Key, { arg }: { arg: UpsertBranchSupplySetting }) => {
     return putBranchSupplySetting(branchId, supplyId, arg, options);
-  }
-}
-export const getPutBranchSupplySettingMutationKey = (branchId: string,
-    supplyId: string,) => [`/v1/branches/${branchId}/supply-settings/${supplyId}`] as const;
+  };
+};
+export const getPutBranchSupplySettingMutationKey = (branchId: string, supplyId: string) =>
+  [`/v1/branches/${branchId}/supply-settings/${supplyId}`] as const;
 
-export type PutBranchSupplySettingMutationResult = NonNullable<Awaited<ReturnType<typeof putBranchSupplySetting>>>
+export type PutBranchSupplySettingMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putBranchSupplySetting>>
+>;
 
 /**
  * @summary Create or replace a branch supply setting
  */
 export const usePutBranchSupplySetting = <TError = ApiError>(
   branchId: string,
-    supplyId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof putBranchSupplySetting>>, TError, Key, UpsertBranchSupplySetting, Awaited<ReturnType<typeof putBranchSupplySetting>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+  supplyId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof putBranchSupplySetting>>,
+      TError,
+      Key,
+      UpsertBranchSupplySetting,
+      Awaited<ReturnType<typeof putBranchSupplySetting>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const swrKey = swrOptions?.swrKey ?? getPutBranchSupplySettingMutationKey(branchId, supplyId);
+  const swrFn = getPutBranchSupplySettingMutationFetcher(branchId, supplyId, requestOptions);
 
-  const swrKey = swrOptions?.swrKey ?? getPutBranchSupplySettingMutationKey(branchId,supplyId);
-  const swrFn = getPutBranchSupplySettingMutationFetcher(branchId,supplyId, requestOptions);
-
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};

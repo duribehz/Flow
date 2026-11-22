@@ -5,17 +5,11 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from 'swr';
-import type {
-  Arguments,
-  Key,
-  SWRConfiguration
-} from 'swr';
+import useSwr from "swr";
+import type { Arguments, Key, SWRConfiguration } from "swr";
 
-import useSWRMutation from 'swr/mutation';
-import type {
-  SWRMutationConfiguration
-} from 'swr/mutation';
+import useSWRMutation from "swr/mutation";
+import type { SWRMutationConfiguration } from "swr/mutation";
 
 import type {
   AcceptTransfer,
@@ -27,204 +21,207 @@ import type {
   GetTransfersTransferId200,
   PostTransfers201,
   PostTransfersTransferIdAccept200,
-  PostTransfersTransferIdCancel200
-} from '../models';
+  PostTransfersTransferIdCancel200,
+} from "../models";
 
-import { apiClient } from '../../http-client';
+import { apiClient } from "../../http-client";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
+export type getTransferBranchesResponse200 = {
+  data: GetTransferBranches200;
+  status: 200;
+};
 
-  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
-
- export type getTransferBranchesResponse200 = {
-  data: GetTransferBranches200
-  status: 200
-}
-
-export type getTransferBranchesResponseSuccess = (getTransferBranchesResponse200) & {
+export type getTransferBranchesResponseSuccess = getTransferBranchesResponse200 & {
   headers: Headers;
 };
-;
 
-export type getTransferBranchesResponse = (getTransferBranchesResponseSuccess)
+export type getTransferBranchesResponse = getTransferBranchesResponseSuccess;
 
 export const getGetTransferBranchesUrl = () => {
-
-
-
-
-  return `/v1/transfers/branches`
-}
+  return `/v1/transfers/branches`;
+};
 
 /**
  * @summary List branches available for transfer destinations
  */
-export const getTransferBranches = async ( options?: Parameters<typeof apiClient>[1]): Promise<getTransferBranchesResponse> => {
-
-  return apiClient<getTransferBranchesResponse>(getGetTransferBranchesUrl(),
-  {
+export const getTransferBranches = async (
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getTransferBranchesResponse> => {
+  return apiClient<getTransferBranchesResponse>(getGetTransferBranchesUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
+    method: "GET",
+  });
+};
 
 export const getGetTransferBranchesKey = () => [`/v1/transfers/branches`] as const;
 
-export type GetTransferBranchesQueryResult = NonNullable<Awaited<ReturnType<typeof getTransferBranches>>>
+export type GetTransferBranchesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTransferBranches>>
+>;
 
 /**
  * @summary List branches available for transfer destinations
  */
-export const useGetTransferBranches = <TError = unknown>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTransferBranches>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
-) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+export const useGetTransferBranches = <TError = unknown>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof getTransferBranches>>, TError> & {
+    swrKey?: Key;
+    enabled?: boolean;
+  };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTransferBranchesKey() : null);
-  const swrFn = () => getTransferBranches(requestOptions)
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetTransferBranchesKey() : null));
+  const swrFn = () => getTransferBranches(requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type getTransfersResponse200 = {
-  data: GetTransfers200
-  status: 200
-}
+  data: GetTransfers200;
+  status: 200;
+};
 
 export type getTransfersResponse400 = {
-  data: ApiError
-  status: 400
-}
-
-export type getTransfersResponseSuccess = (getTransfersResponse200) & {
-  headers: Headers;
-};
-export type getTransfersResponseError = (getTransfersResponse400) & {
-  headers: Headers;
+  data: ApiError;
+  status: 400;
 };
 
-export type getTransfersResponse = (getTransfersResponseSuccess | getTransfersResponseError)
+export type getTransfersResponseSuccess = getTransfersResponse200 & {
+  headers: Headers;
+};
+export type getTransfersResponseError = getTransfersResponse400 & {
+  headers: Headers;
+};
 
-export const getGetTransfersUrl = (params?: GetTransfersParams,) => {
+export type getTransfersResponse = getTransfersResponseSuccess | getTransfersResponseError;
+
+export const getGetTransfersUrl = (params?: GetTransfersParams) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
-
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
+      normalizedParams.append(key, value === null ? "null" : String(value));
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/v1/transfers?${stringifiedParams}` : `/v1/transfers`
-}
+  return stringifiedParams.length > 0 ? `/v1/transfers?${stringifiedParams}` : `/v1/transfers`;
+};
 
 /**
  * @summary List sent or received branch transfers
  */
-export const getTransfers = async (params?: GetTransfersParams, options?: Parameters<typeof apiClient>[1]): Promise<getTransfersResponse> => {
-
-  return apiClient<getTransfersResponse>(getGetTransfersUrl(params),
-  {
+export const getTransfers = async (
+  params?: GetTransfersParams,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getTransfersResponse> => {
+  return apiClient<getTransfersResponse>(getGetTransfersUrl(params), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  });
+};
 
+export const getGetTransfersKey = (params?: GetTransfersParams) =>
+  [`/v1/transfers`, ...(params ? [params] : [])] as const;
 
-  }
-);}
-
-
-
-
-export const getGetTransfersKey = (params?: GetTransfersParams,) => [`/v1/transfers`, ...(params ? [params]: [])] as const;
-
-export type GetTransfersQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfers>>>
+export type GetTransfersQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfers>>>;
 
 /**
  * @summary List sent or received branch transfers
  */
 export const useGetTransfers = <TError = ApiError>(
-  params?: GetTransfersParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTransfers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  params?: GetTransfersParams,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getTransfers>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTransfersKey(params) : null);
-  const swrFn = () => getTransfers(params, requestOptions)
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetTransfersKey(params) : null));
+  const swrFn = () => getTransfers(params, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type postTransfersResponse201 = {
-  data: PostTransfers201
-  status: 201
-}
+  data: PostTransfers201;
+  status: 201;
+};
 
 export type postTransfersResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type postTransfersResponse403 = {
-  data: ApiError
-  status: 403
-}
+  data: ApiError;
+  status: 403;
+};
 
 export type postTransfersResponse404 = {
-  data: ApiError
-  status: 404
-}
+  data: ApiError;
+  status: 404;
+};
 
 export type postTransfersResponse409 = {
-  data: ApiError
-  status: 409
-}
-
-export type postTransfersResponseSuccess = (postTransfersResponse201) & {
-  headers: Headers;
-};
-export type postTransfersResponseError = (postTransfersResponse400 | postTransfersResponse403 | postTransfersResponse404 | postTransfersResponse409) & {
-  headers: Headers;
+  data: ApiError;
+  status: 409;
 };
 
-export type postTransfersResponse = (postTransfersResponseSuccess | postTransfersResponseError)
+export type postTransfersResponseSuccess = postTransfersResponse201 & {
+  headers: Headers;
+};
+export type postTransfersResponseError = (
+  | postTransfersResponse400
+  | postTransfersResponse403
+  | postTransfersResponse404
+  | postTransfersResponse409
+) & {
+  headers: Headers;
+};
+
+export type postTransfersResponse = postTransfersResponseSuccess | postTransfersResponseError;
 
 export const getPostTransfersUrl = () => {
-
-
-
-
-  return `/v1/transfers`
-}
+  return `/v1/transfers`;
+};
 
 /**
  * @summary Send a transfer to another branch
  */
-export const postTransfers = async (createTransfer: CreateTransfer, options?: Parameters<typeof apiClient>[1]): Promise<postTransfersResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+export const postTransfers = async (
+  createTransfer: CreateTransfer,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postTransfersResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -233,172 +230,194 @@ export const postTransfers = async (createTransfer: CreateTransfer, options?: Pa
     }
     return headers;
   };
-return apiClient<postTransfersResponse>(getPostTransfersUrl(),
-  {
+  return apiClient<postTransfersResponse>(getPostTransfersUrl(), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(createTransfer)
-  }
-);}
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(createTransfer),
+  });
+};
 
-
-
-
-export const getPostTransfersMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
+export const getPostTransfersMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateTransfer }) => {
     return postTransfers(arg, options);
-  }
-}
+  };
+};
 export const getPostTransfersMutationKey = () => [`/v1/transfers`] as const;
 
-export type PostTransfersMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfers>>>
+export type PostTransfersMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfers>>>;
 
 /**
  * @summary Send a transfer to another branch
  */
-export const usePostTransfers = <TError = ApiError>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postTransfers>>, TError, Key, CreateTransfer, Awaited<ReturnType<typeof postTransfers>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
-) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+export const usePostTransfers = <TError = ApiError>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postTransfers>>,
+    TError,
+    Key,
+    CreateTransfer,
+    Awaited<ReturnType<typeof postTransfers>>
+  > & { swrKey?: string };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getPostTransfersMutationKey();
   const swrFn = getPostTransfersMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type getTransfersTransferIdResponse200 = {
-  data: GetTransfersTransferId200
-  status: 200
-}
+  data: GetTransfersTransferId200;
+  status: 200;
+};
 
 export type getTransfersTransferIdResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type getTransfersTransferIdResponse404 = {
-  data: ApiError
-  status: 404
-}
-
-export type getTransfersTransferIdResponseSuccess = (getTransfersTransferIdResponse200) & {
-  headers: Headers;
-};
-export type getTransfersTransferIdResponseError = (getTransfersTransferIdResponse400 | getTransfersTransferIdResponse404) & {
-  headers: Headers;
+  data: ApiError;
+  status: 404;
 };
 
-export type getTransfersTransferIdResponse = (getTransfersTransferIdResponseSuccess | getTransfersTransferIdResponseError)
+export type getTransfersTransferIdResponseSuccess = getTransfersTransferIdResponse200 & {
+  headers: Headers;
+};
+export type getTransfersTransferIdResponseError = (
+  | getTransfersTransferIdResponse400
+  | getTransfersTransferIdResponse404
+) & {
+  headers: Headers;
+};
 
-export const getGetTransfersTransferIdUrl = (transferId: string,) => {
+export type getTransfersTransferIdResponse =
+  | getTransfersTransferIdResponseSuccess
+  | getTransfersTransferIdResponseError;
 
-
-
-
-  return `/v1/transfers/${transferId}`
-}
+export const getGetTransfersTransferIdUrl = (transferId: string) => {
+  return `/v1/transfers/${transferId}`;
+};
 
 /**
  * @summary Get a transfer detail
  */
-export const getTransfersTransferId = async (transferId: string, options?: Parameters<typeof apiClient>[1]): Promise<getTransfersTransferIdResponse> => {
-
-  return apiClient<getTransfersTransferIdResponse>(getGetTransfersTransferIdUrl(transferId),
-  {
+export const getTransfersTransferId = async (
+  transferId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getTransfersTransferIdResponse> => {
+  return apiClient<getTransfersTransferIdResponse>(getGetTransfersTransferIdUrl(transferId), {
     ...options,
-    method: 'GET'
+    method: "GET",
+  });
+};
 
+export const getGetTransfersTransferIdKey = (transferId: string) =>
+  [`/v1/transfers/${transferId}`] as const;
 
-  }
-);}
-
-
-
-
-export const getGetTransfersTransferIdKey = (transferId: string,) => [`/v1/transfers/${transferId}`] as const;
-
-export type GetTransfersTransferIdQueryResult = NonNullable<Awaited<ReturnType<typeof getTransfersTransferId>>>
+export type GetTransfersTransferIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTransfersTransferId>>
+>;
 
 /**
  * @summary Get a transfer detail
  */
 export const useGetTransfersTransferId = <TError = ApiError>(
-  transferId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getTransfersTransferId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+  transferId: string,
+  options?: {
+    swr?: SWRConfiguration<Awaited<ReturnType<typeof getTransfersTransferId>>, TError> & {
+      swrKey?: Key;
+      enabled?: boolean;
+    };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false && transferId !== null && transferId !== undefined
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetTransfersTransferIdKey(transferId) : null);
-  const swrFn = () => getTransfersTransferId(transferId, requestOptions)
+  const isEnabled =
+    swrOptions?.enabled !== false && transferId !== null && transferId !== undefined;
+  const swrKey =
+    swrOptions?.swrKey ?? (() => (isEnabled ? getGetTransfersTransferIdKey(transferId) : null));
+  const swrFn = () => getTransfersTransferId(transferId, requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type postTransfersTransferIdAcceptResponse200 = {
-  data: PostTransfersTransferIdAccept200
-  status: 200
-}
+  data: PostTransfersTransferIdAccept200;
+  status: 200;
+};
 
 export type postTransfersTransferIdAcceptResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type postTransfersTransferIdAcceptResponse403 = {
-  data: ApiError
-  status: 403
-}
+  data: ApiError;
+  status: 403;
+};
 
 export type postTransfersTransferIdAcceptResponse404 = {
-  data: ApiError
-  status: 404
-}
+  data: ApiError;
+  status: 404;
+};
 
 export type postTransfersTransferIdAcceptResponse409 = {
-  data: ApiError
-  status: 409
-}
-
-export type postTransfersTransferIdAcceptResponseSuccess = (postTransfersTransferIdAcceptResponse200) & {
-  headers: Headers;
-};
-export type postTransfersTransferIdAcceptResponseError = (postTransfersTransferIdAcceptResponse400 | postTransfersTransferIdAcceptResponse403 | postTransfersTransferIdAcceptResponse404 | postTransfersTransferIdAcceptResponse409) & {
-  headers: Headers;
+  data: ApiError;
+  status: 409;
 };
 
-export type postTransfersTransferIdAcceptResponse = (postTransfersTransferIdAcceptResponseSuccess | postTransfersTransferIdAcceptResponseError)
+export type postTransfersTransferIdAcceptResponseSuccess =
+  postTransfersTransferIdAcceptResponse200 & {
+    headers: Headers;
+  };
+export type postTransfersTransferIdAcceptResponseError = (
+  | postTransfersTransferIdAcceptResponse400
+  | postTransfersTransferIdAcceptResponse403
+  | postTransfersTransferIdAcceptResponse404
+  | postTransfersTransferIdAcceptResponse409
+) & {
+  headers: Headers;
+};
 
-export const getPostTransfersTransferIdAcceptUrl = (transferId: string,) => {
+export type postTransfersTransferIdAcceptResponse =
+  | postTransfersTransferIdAcceptResponseSuccess
+  | postTransfersTransferIdAcceptResponseError;
 
-
-
-
-  return `/v1/transfers/${transferId}/accept`
-}
+export const getPostTransfersTransferIdAcceptUrl = (transferId: string) => {
+  return `/v1/transfers/${transferId}/accept`;
+};
 
 /**
  * @summary Accept a transfer at the destination branch
  */
-export const postTransfersTransferIdAccept = async (transferId: string,
-    acceptTransfer: AcceptTransfer, options?: Parameters<typeof apiClient>[1]): Promise<postTransfersTransferIdAcceptResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+export const postTransfersTransferIdAccept = async (
+  transferId: string,
+  acceptTransfer: AcceptTransfer,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postTransfersTransferIdAcceptResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -407,130 +426,162 @@ export const postTransfersTransferIdAccept = async (transferId: string,
     }
     return headers;
   };
-return apiClient<postTransfersTransferIdAcceptResponse>(getPostTransfersTransferIdAcceptUrl(transferId),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(acceptTransfer)
-  }
-);}
+  return apiClient<postTransfersTransferIdAcceptResponse>(
+    getPostTransfersTransferIdAcceptUrl(transferId),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+      body: JSON.stringify(acceptTransfer),
+    },
+  );
+};
 
-
-
-
-export const getPostTransfersTransferIdAcceptMutationFetcher = (transferId: string, options?: SecondParameter<typeof apiClient>) => {
+export const getPostTransfersTransferIdAcceptMutationFetcher = (
+  transferId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
   return (_: Key, { arg }: { arg: AcceptTransfer }) => {
     return postTransfersTransferIdAccept(transferId, arg, options);
-  }
-}
-export const getPostTransfersTransferIdAcceptMutationKey = (transferId: string,) => [`/v1/transfers/${transferId}/accept`] as const;
+  };
+};
+export const getPostTransfersTransferIdAcceptMutationKey = (transferId: string) =>
+  [`/v1/transfers/${transferId}/accept`] as const;
 
-export type PostTransfersTransferIdAcceptMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfersTransferIdAccept>>>
+export type PostTransfersTransferIdAcceptMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postTransfersTransferIdAccept>>
+>;
 
 /**
  * @summary Accept a transfer at the destination branch
  */
 export const usePostTransfersTransferIdAccept = <TError = ApiError>(
-  transferId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postTransfersTransferIdAccept>>, TError, Key, AcceptTransfer, Awaited<ReturnType<typeof postTransfersTransferIdAccept>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+  transferId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof postTransfersTransferIdAccept>>,
+      TError,
+      Key,
+      AcceptTransfer,
+      Awaited<ReturnType<typeof postTransfersTransferIdAccept>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getPostTransfersTransferIdAcceptMutationKey(transferId);
   const swrFn = getPostTransfersTransferIdAcceptMutationFetcher(transferId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type postTransfersTransferIdCancelResponse200 = {
-  data: PostTransfersTransferIdCancel200
-  status: 200
-}
+  data: PostTransfersTransferIdCancel200;
+  status: 200;
+};
 
 export type postTransfersTransferIdCancelResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type postTransfersTransferIdCancelResponse403 = {
-  data: ApiError
-  status: 403
-}
+  data: ApiError;
+  status: 403;
+};
 
 export type postTransfersTransferIdCancelResponse404 = {
-  data: ApiError
-  status: 404
-}
+  data: ApiError;
+  status: 404;
+};
 
 export type postTransfersTransferIdCancelResponse409 = {
-  data: ApiError
-  status: 409
-}
-
-export type postTransfersTransferIdCancelResponseSuccess = (postTransfersTransferIdCancelResponse200) & {
-  headers: Headers;
-};
-export type postTransfersTransferIdCancelResponseError = (postTransfersTransferIdCancelResponse400 | postTransfersTransferIdCancelResponse403 | postTransfersTransferIdCancelResponse404 | postTransfersTransferIdCancelResponse409) & {
-  headers: Headers;
+  data: ApiError;
+  status: 409;
 };
 
-export type postTransfersTransferIdCancelResponse = (postTransfersTransferIdCancelResponseSuccess | postTransfersTransferIdCancelResponseError)
+export type postTransfersTransferIdCancelResponseSuccess =
+  postTransfersTransferIdCancelResponse200 & {
+    headers: Headers;
+  };
+export type postTransfersTransferIdCancelResponseError = (
+  | postTransfersTransferIdCancelResponse400
+  | postTransfersTransferIdCancelResponse403
+  | postTransfersTransferIdCancelResponse404
+  | postTransfersTransferIdCancelResponse409
+) & {
+  headers: Headers;
+};
 
-export const getPostTransfersTransferIdCancelUrl = (transferId: string,) => {
+export type postTransfersTransferIdCancelResponse =
+  | postTransfersTransferIdCancelResponseSuccess
+  | postTransfersTransferIdCancelResponseError;
 
-
-
-
-  return `/v1/transfers/${transferId}/cancel`
-}
+export const getPostTransfersTransferIdCancelUrl = (transferId: string) => {
+  return `/v1/transfers/${transferId}/cancel`;
+};
 
 /**
  * @summary Cancel a pending transfer and return its stock to the origin branch
  */
-export const postTransfersTransferIdCancel = async (transferId: string, options?: Parameters<typeof apiClient>[1]): Promise<postTransfersTransferIdCancelResponse> => {
+export const postTransfersTransferIdCancel = async (
+  transferId: string,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postTransfersTransferIdCancelResponse> => {
+  return apiClient<postTransfersTransferIdCancelResponse>(
+    getPostTransfersTransferIdCancelUrl(transferId),
+    {
+      ...options,
+      method: "POST",
+    },
+  );
+};
 
-  return apiClient<postTransfersTransferIdCancelResponse>(getPostTransfersTransferIdCancelUrl(transferId),
-  {
-    ...options,
-    method: 'POST'
-
-
-  }
-);}
-
-
-
-
-export const getPostTransfersTransferIdCancelMutationFetcher = (transferId: string, options?: SecondParameter<typeof apiClient>) => {
+export const getPostTransfersTransferIdCancelMutationFetcher = (
+  transferId: string,
+  options?: SecondParameter<typeof apiClient>,
+) => {
   return (_: Key, __: { arg: Arguments }) => {
     return postTransfersTransferIdCancel(transferId, options);
-  }
-}
-export const getPostTransfersTransferIdCancelMutationKey = (transferId: string,) => [`/v1/transfers/${transferId}/cancel`] as const;
+  };
+};
+export const getPostTransfersTransferIdCancelMutationKey = (transferId: string) =>
+  [`/v1/transfers/${transferId}/cancel`] as const;
 
-export type PostTransfersTransferIdCancelMutationResult = NonNullable<Awaited<ReturnType<typeof postTransfersTransferIdCancel>>>
+export type PostTransfersTransferIdCancelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postTransfersTransferIdCancel>>
+>;
 
 /**
  * @summary Cancel a pending transfer and return its stock to the origin branch
  */
 export const usePostTransfersTransferIdCancel = <TError = ApiError>(
-  transferId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postTransfersTransferIdCancel>>, TError, Key, Arguments, Awaited<ReturnType<typeof postTransfersTransferIdCancel>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+  transferId: string,
+  options?: {
+    swr?: SWRMutationConfiguration<
+      Awaited<ReturnType<typeof postTransfersTransferIdCancel>>,
+      TError,
+      Key,
+      Arguments,
+      Awaited<ReturnType<typeof postTransfersTransferIdCancel>>
+    > & { swrKey?: string };
+    request?: SecondParameter<typeof apiClient>;
+  },
 ) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getPostTransfersTransferIdCancelMutationKey(transferId);
   const swrFn = getPostTransfersTransferIdCancelMutationFetcher(transferId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};

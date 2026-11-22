@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { TransferItemsItemSupplyUnit } from './transferItemsItemSupplyUnit';
+import type { TransferItemsItemSupplyUnit } from "./transferItemsItemSupplyUnit";
 
 export type TransferItemsItemSupply = {
   id: string;

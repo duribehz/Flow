@@ -7,5 +7,5 @@
  */
 
 export type GetInventoryLastReportsParams = {
-branchId: string;
+  branchId: string;
 };

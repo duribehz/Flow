@@ -9,8 +9,8 @@
 export interface UpdateReplenishmentItem {
   usagePurposeId?: string;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   requestedQuantity?: number;
 }

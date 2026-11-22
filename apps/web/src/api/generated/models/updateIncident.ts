@@ -5,16 +5,16 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { UpdateIncidentStatus } from './updateIncidentStatus';
+import type { UpdateIncidentStatus } from "./updateIncidentStatus";
 
 export interface UpdateIncident {
   status?: UpdateIncidentStatus;
   /** @nullable */
   assignedTo?: string | null;
   /**
-     * @minLength 1
-     * @maxLength 4000
-     * @nullable
-     */
+   * @minLength 1
+   * @maxLength 4000
+   * @nullable
+   */
   resolution?: string | null;
 }

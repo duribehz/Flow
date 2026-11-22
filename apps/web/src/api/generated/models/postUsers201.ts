@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { User } from './user';
+import type { User } from "./user";
 
 export type PostUsers201 = {
   data: User;

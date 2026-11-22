@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { TransferBranchOption } from './transferBranchOption';
+import type { TransferBranchOption } from "./transferBranchOption";
 
 export type GetTransferBranches200 = {
   data: TransferBranchOption[];

@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventoryCountDetail } from './inventoryCountDetail';
+import type { InventoryCountDetail } from "./inventoryCountDetail";
 
 export type GetInventoryCountsCountId200 = {
   data: InventoryCountDetail;

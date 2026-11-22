@@ -8,13 +8,13 @@
 
 export type BranchSupplySettingWeeklyTargetsItem = {
   /**
-     * @minimum 1
-     * @maximum 7
-     */
+   * @minimum 1
+   * @maximum 7
+   */
   weekday: number;
   /**
-     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-     * @minimum 0
-     */
+   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+   * @minimum 0
+   */
   targetQuantity: number;
 };

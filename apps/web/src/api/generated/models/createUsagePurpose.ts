@@ -8,15 +8,15 @@
 
 export interface CreateUsagePurpose {
   /**
-     * @minLength 1
-     * @maxLength 100
-     */
+   * @minLength 1
+   * @maxLength 100
+   */
   name: string;
   /**
-     * @minLength 1
-     * @maxLength 500
-     * @nullable
-     */
+   * @minLength 1
+   * @maxLength 500
+   * @nullable
+   */
   description?: string | null;
   active?: boolean;
 }

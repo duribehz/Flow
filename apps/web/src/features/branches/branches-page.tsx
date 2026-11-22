@@ -49,14 +49,10 @@ export function BranchesPage() {
 
         <Card className="gap-0 py-0 shadow-sm">
           <Table>
-            <TableHeader className="bg-muted/60">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] pl-7 pr-7 text-xs font-semibold tracking-wide text-muted-foreground">
-                  SUCURSAL
-                </TableHead>
-                <TableHead className="h-[50px] pr-7 text-right text-xs font-semibold tracking-wide text-muted-foreground">
-                  ARTÍCULOS POR SUCURSAL
-                </TableHead>
+                <TableHead className="h-[50px]">SUCURSAL</TableHead>
+                <TableHead className="h-[50px] text-right">ARTÍCULOS POR SUCURSAL</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -84,10 +80,8 @@ export function BranchesPage() {
                 branches.length > 0 &&
                 branches.map((branch) => (
                   <TableRow key={branch.id} className="h-[76px] hover:bg-transparent">
-                    <TableCell className="pl-7 pr-7 text-base font-semibold">
-                      {branch.name}
-                    </TableCell>
-                    <TableCell className="pr-7 text-right">
+                    <TableCell className="text-base">{branch.name}</TableCell>
+                    <TableCell className="text-right">
                       <Link
                         to="/branches/$branchId/supply-settings"
                         params={{ branchId: branch.id }}
@@ -130,7 +124,7 @@ export function BranchesPage() {
 function LoadingRows() {
   return Array.from({ length: 4 }, (_, index) => (
     <TableRow key={index} className="h-[76px] hover:bg-transparent">
-      <TableCell className="pl-7 pr-7" colSpan={2}>
+      <TableCell colSpan={2}>
         <div className="h-4 w-full max-w-[320px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>

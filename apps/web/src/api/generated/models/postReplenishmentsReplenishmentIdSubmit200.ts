@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ReplenishmentDetail } from './replenishmentDetail';
+import type { ReplenishmentDetail } from "./replenishmentDetail";
 
 export type PostReplenishmentsReplenishmentIdSubmit200 = {
   data: ReplenishmentDetail;

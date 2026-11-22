@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type UserRole = typeof UserRole[keyof typeof UserRole];
-
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const UserRole = {
-  manager: 'manager',
-  admin: 'admin',
-  super_admin: 'super_admin',
+  manager: "manager",
+  admin: "admin",
+  super_admin: "super_admin",
 } as const;

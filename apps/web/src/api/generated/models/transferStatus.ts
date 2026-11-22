@@ -6,11 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type TransferStatus = typeof TransferStatus[keyof typeof TransferStatus];
-
+export type TransferStatus = (typeof TransferStatus)[keyof typeof TransferStatus];
 
 export const TransferStatus = {
-  pending: 'pending',
-  accepted: 'accepted',
-  cancelled: 'cancelled',
+  pending: "pending",
+  accepted: "accepted",
+  cancelled: "cancelled",
 } as const;

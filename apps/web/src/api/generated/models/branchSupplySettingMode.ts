@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type BranchSupplySettingMode = typeof BranchSupplySettingMode[keyof typeof BranchSupplySettingMode];
-
+export type BranchSupplySettingMode =
+  (typeof BranchSupplySettingMode)[keyof typeof BranchSupplySettingMode];
 
 export const BranchSupplySettingMode = {
-  fixed: 'fixed',
-  on_demand: 'on_demand',
+  fixed: "fixed",
+  on_demand: "on_demand",
 } as const;

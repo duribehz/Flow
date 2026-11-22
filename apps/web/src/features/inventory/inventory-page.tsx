@@ -9,10 +9,6 @@ import {
   usePostInventoryCounts,
   usePostInventoryDays,
 } from "@/api/generated/inventory/inventory";
-import {
-  postTransfersTransferIdCancel,
-  useGetTransfers,
-} from "@/api/generated/transfers/transfers";
 import { ApiError } from "@/api/http-client";
 import { PageFrame, PageHeader } from "@/components/operational/page-header";
 import { StatusBadge } from "@/components/operational/status-badge";
@@ -28,12 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getApiErrorMessage } from "@/lib/api-error";
-import {
-  formatDate,
-  formatDateTime,
-  formatStoredQuantity,
-  todayIsoDate,
-} from "@/lib/operational-format";
+import { formatDate, formatDateTime, todayIsoDate } from "@/lib/operational-format";
 
 export function InventoryPage() {
   const navigate = useNavigate();
@@ -54,33 +45,6 @@ export function InventoryPage() {
   const isLoading = branchesQuery.isLoading || daysQuery.isLoading || countsQuery.isLoading;
   const loadError = branchesQuery.error ?? daysQuery.error ?? countsQuery.error;
   const isStarting = openDay.isMutating || createCount.isMutating;
-  const pendingTransfersQuery = useGetTransfers<ApiError>({ direction: "sent", status: "pending" });
-  const pendingTransfers = (
-    pendingTransfersQuery.data?.status === 200 ? pendingTransfersQuery.data.data.data : []
-  ).filter((transfer) => !branchId || transfer.fromBranch.id === branchId);
-  const [sentError, setSentError] = useState<string>();
-  const [cancellingTransferId, setCancellingTransferId] = useState<string>();
-
-  async function cancelSent(transferId: string) {
-    if (!window.confirm("¿Cancelar este envío? El stock regresará a la sucursal origen.")) return;
-    setSentError(undefined);
-    setCancellingTransferId(transferId);
-    try {
-      await postTransfersTransferIdCancel(transferId);
-      await Promise.all([pendingTransfersQuery.mutate(), countsQuery.mutate()]);
-    } catch (error) {
-      setSentError(
-        getApiErrorMessage(
-          error,
-          { TRANSFER_NOT_PENDING: "Solo se pueden cancelar envíos pendientes." },
-          "No pudimos cancelar el envío.",
-        ),
-      );
-    } finally {
-      setCancellingTransferId(undefined);
-    }
-  }
-
   async function handleStart() {
     if (!branchId || !businessDate) return;
     setActionError(undefined);
@@ -125,7 +89,7 @@ export function InventoryPage() {
     <PageFrame>
       <PageHeader
         eyebrow="Operación diaria"
-        title="Inventario"
+        title="Existencias"
         description="Abre el día de una sucursal y continúa sus existencias desde cualquier dispositivo."
         actions={
           <Button variant="outline" onClick={() => void navigate({ to: "/inventory/review" })}>
@@ -186,82 +150,6 @@ export function InventoryPage() {
         )}
       </section>
 
-      <section aria-labelledby="sent-title" className="space-y-3">
-        <div>
-          <h2 id="sent-title" className="text-lg font-semibold">
-            Enviado
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Transferencias enviadas que todavía no se han recibido en la sucursal destino.
-          </p>
-          {sentError && (
-            <p role="alert" className="mt-2 text-sm font-medium text-destructive">
-              {sentError}
-            </p>
-          )}
-        </div>
-        <Card className="gap-0 py-0">
-          <div className="overflow-x-auto">
-            <Table className="min-w-[680px]">
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="pl-5">Fecha</TableHead>
-                  <TableHead>Origen</TableHead>
-                  <TableHead>Destino</TableHead>
-                  <TableHead>Artículos</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="pr-5 text-right">Acción</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingTransfers.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                      No hay envíos pendientes.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {pendingTransfers.map((transfer) => (
-                  <TableRow key={transfer.id}>
-                    <TableCell className="pl-5 font-medium">
-                      {formatDate(transfer.sentBusinessDate)}
-                    </TableCell>
-                    <TableCell>{transfer.fromBranch.name}</TableCell>
-                    <TableCell>{transfer.toBranch.name}</TableCell>
-                    <TableCell>
-                      <ul className="space-y-0.5 text-sm">
-                        {transfer.items.map((item) => (
-                          <li key={item.id}>
-                            {item.supply.name} · {formatStoredQuantity(item.quantity)}{" "}
-                            {item.supply.unit.symbol}
-                          </li>
-                        ))}
-                      </ul>
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={transfer.status} />
-                    </TableCell>
-                    <TableCell className="pr-5 text-right">
-                      <Button
-                        size="sm"
-                        className="bg-red-600 text-white hover:bg-red-700"
-                        disabled={cancellingTransferId === transfer.id}
-                        onClick={() => void cancelSent(transfer.id)}
-                      >
-                        {cancellingTransferId === transfer.id && (
-                          <Loader2 className="animate-spin" />
-                        )}
-                        Cancelar envío
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
-      </section>
-
       <section aria-labelledby="days-title" className="space-y-3">
         <div className="flex items-end justify-between gap-4">
           <div>
@@ -283,16 +171,16 @@ export function InventoryPage() {
             <RefreshCw className={isLoading ? "animate-spin" : ""} /> Actualizar
           </Button>
         </div>
-        <Card className="gap-0 py-0">
+        <Card className="gap-0 py-0 shadow-sm">
           <div className="overflow-x-auto">
             <Table className="min-w-[720px]">
-              <TableHeader className="bg-muted/50">
+              <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Fecha</TableHead>
-                  <TableHead>Sucursal</TableHead>
-                  <TableHead>Día</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="hidden md:table-cell">Sucursal</TableHead>
+                  <TableHead className="hidden sm:table-cell">Día</TableHead>
                   <TableHead>Existencias</TableHead>
-                  <TableHead className="pr-5 text-right">Acción</TableHead>
+                  <TableHead className="text-right">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -306,7 +194,7 @@ export function InventoryPage() {
                 {!isLoading && loadError && (
                   <TableRow>
                     <TableCell colSpan={5} className="h-40 text-center">
-                      <p className="font-medium">No pudimos cargar el inventario</p>
+                      <p className="font-medium">No pudimos cargar las existencias</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {getApiErrorMessage(
                           loadError,
@@ -331,13 +219,13 @@ export function InventoryPage() {
                     const count = countsByDay.get(day.id);
                     return (
                       <TableRow key={day.id}>
-                        <TableCell className="pl-5 font-medium">
+                        <TableCell className="font-medium">
                           {formatDate(day.businessDate)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           {branchNames.get(day.branchId) ?? "Sucursal no disponible"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <StatusBadge status={day.status} />
                         </TableCell>
                         <TableCell>
@@ -347,7 +235,7 @@ export function InventoryPage() {
                             <span className="text-muted-foreground">Sin existencias</span>
                           )}
                         </TableCell>
-                        <TableCell className="pr-5 text-right">
+                        <TableCell className="text-right">
                           {count ? (
                             <Button variant="default" size="sm" onClick={() => openCount(count.id)}>
                               {count.status === "draft" ? "Continuar" : "Ver detalle"}

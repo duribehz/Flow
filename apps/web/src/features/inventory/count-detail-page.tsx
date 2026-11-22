@@ -57,7 +57,7 @@ export function CountDetailPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [addSearch, setAddSearch] = useState("");
   const [addingSupplyId, setAddingSupplyId] = useState<string>();
-  const pendingTransfersQuery = useGetTransfers<ApiError>({ direction: "sent", status: "pending" });
+  const transfersQuery = useGetTransfers<ApiError>();
 
   useEffect(() => {
     if (!count || formCountId === count.id) return;
@@ -101,10 +101,15 @@ export function CountDetailPage() {
     reviewCount.isMutating ||
     savingSupplyId !== undefined;
   const notesDirty = notes.trim() !== baselineNotes.trim();
-  const pendingOutgoing =
-    pendingTransfersQuery.data?.status === 200 && count
-      ? pendingTransfersQuery.data.data.data.filter(
-          (transfer) => transfer.fromBranch.id === count.branchId,
+  // Transfers that involve this branch: any pending one, or any sent/accepted on this day.
+  const involvedTransfers =
+    transfersQuery.data?.status === 200 && count
+      ? transfersQuery.data.data.data.filter(
+          (transfer) =>
+            transfer.status !== "cancelled" &&
+            (transfer.fromBranch.id === count.branchId ||
+              transfer.toBranch.id === count.branchId) &&
+            (transfer.status === "pending" || transfer.sentBusinessDate === day?.businessDate),
         )
       : [];
   const normalizedSearch = search.trim().toLowerCase();
@@ -120,17 +125,19 @@ export function CountDetailPage() {
       `${supply.name} ${supply.sku}`.toLowerCase().includes(addSearch.trim().toLowerCase()),
   );
 
-  function pendingFor(supplyId: string) {
-    return pendingOutgoing.flatMap((transfer) =>
-      transfer.items
+  function transferMarksFor(supplyId: string) {
+    return involvedTransfers.flatMap((transfer) => {
+      const outgoing = transfer.fromBranch.id === count?.branchId;
+      const state = transfer.status === "pending" ? "pendiente" : "aceptada";
+      return transfer.items
         .filter((item) => item.supply.id === supplyId)
         .map((item) => ({
           key: `${transfer.id}-${item.id}`,
-          toBranch: transfer.toBranch.name,
-          quantity: item.quantity,
-          unit: item.supply.unit.symbol,
-        })),
-    );
+          text: outgoing
+            ? `Enviado: ${formatStoredQuantity(item.quantity)} ${item.supply.unit.symbol} a ${transfer.toBranch.name} (${state})`
+            : `Recibido: ${formatStoredQuantity(item.quantity)} ${item.supply.unit.symbol} de ${transfer.fromBranch.name} (${state})`,
+        }));
+    });
   }
 
   async function addSupply(supplyId: string) {
@@ -284,7 +291,7 @@ export function CountDetailPage() {
   return (
     <PageFrame>
       <PageHeader
-        eyebrow={day ? formatDate(day.businessDate) : "Existencias de inventario"}
+        eyebrow={day ? formatDate(day.businessDate) : "Existencias"}
         title={branchName ?? "Detalle de existencias"}
         description="Guarda cada artículo con su botón Guardar. Un campo vacío significa No contado; escribe 0 para registrar cero."
         actions={
@@ -418,10 +425,9 @@ export function CountDetailPage() {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {supply ? `${supply.sku} · ${supply.category.name}` : item.supplyId}
                     </p>
-                    {pendingFor(item.supplyId).map((pending) => (
-                      <p key={pending.key} className="mt-1 text-xs font-medium text-sky-700">
-                        Enviado: {formatStoredQuantity(pending.quantity)} {pending.unit} a{" "}
-                        {pending.toBranch} (pendiente)
+                    {transferMarksFor(item.supplyId).map((mark) => (
+                      <p key={mark.key} className="mt-1 text-xs font-medium text-sky-700">
+                        {mark.text}
                       </p>
                     ))}
                   </div>

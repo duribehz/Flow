@@ -16,6 +16,14 @@ import { PageFrame, PageHeader } from "@/components/operational/page-header";
 import { StatusBadge } from "@/components/operational/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/lib/api-error";
 import {
@@ -108,17 +116,34 @@ export function TransfersPage() {
         </Card>
       )}
       {!isLoading && !loadError && transfers.length > 0 && (
-        <div className="grid gap-3">
-          {transfers.map((transfer) => (
-            <TransferCard
-              key={transfer.id}
-              transfer={transfer}
-              direction={direction}
-              currentBranchId={currentUser?.role === "manager" ? currentUser.branch?.id : undefined}
-              onAccepted={() => transfersQuery.mutate()}
-            />
-          ))}
-        </div>
+        <Card className="gap-0 overflow-hidden py-0 shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Número</TableHead>
+                <TableHead>{direction === "sent" ? "Destino" : "Origen"}</TableHead>
+                <TableHead className="hidden md:table-cell">Fecha</TableHead>
+                <TableHead>Artículos</TableHead>
+                <TableHead className="hidden lg:table-cell">Responsable</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transfers.map((transfer) => (
+                <TransferCard
+                  key={transfer.id}
+                  transfer={transfer}
+                  direction={direction}
+                  currentBranchId={
+                    currentUser?.role === "manager" ? currentUser.branch?.id : undefined
+                  }
+                  onAccepted={() => transfersQuery.mutate()}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
 
       {isCreateOpen && currentUser && (
@@ -153,6 +178,7 @@ function TransferCard({
     direction === "received" &&
     transfer.status === "pending" &&
     (!currentBranchId || transfer.toBranch.id === currentBranchId);
+  const canCancel = direction === "sent" && transfer.status === "pending";
   const accept = usePostTransfersTransferIdAccept<ApiError>(transfer.id);
   const cancel = usePostTransfersTransferIdCancel<ApiError>(transfer.id);
   const [error, setError] = useState("");
@@ -197,57 +223,60 @@ function TransferCard({
   }
 
   return (
-    <Card className="p-4 sm:p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-mono font-semibold">{transfer.transferNumber}</h2>
-            <StatusBadge status={transfer.status} />
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {direction === "sent" ? "Destino" : "Origen"}: {otherBranch.name} · Enviada el{" "}
-            {formatDate(transfer.sentBusinessDate)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {direction === "sent" ? "Enviada por" : "Enviada por"} {transfer.sentBy.userName} ·{" "}
-            {formatDateTime(transfer.sentAt)}
-            {transfer.acceptedBy && ` · Aceptada por ${transfer.acceptedBy.userName}`}
-          </p>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+    <>
+      <TableRow>
+        <TableCell className="font-mono font-semibold">{transfer.transferNumber}</TableCell>
+        <TableCell>{otherBranch.name}</TableCell>
+        <TableCell className="hidden md:table-cell">
+          {formatDate(transfer.sentBusinessDate)}
+        </TableCell>
+        <TableCell className="min-w-0">
+          <ul className="space-y-0.5 text-sm">
             {transfer.items.map((item) => (
-              <li key={item.id} className="rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                <span className="font-medium">{item.supply.name}</span>
-                <span className="ml-2 text-muted-foreground">{item.supply.sku}</span>
-                <span className="float-right font-semibold tabular-nums">
-                  {formatStoredQuantity(item.quantity)} {item.supply.unit.symbol}
-                </span>
+              <li key={item.id}>
+                {item.supply.name} · {formatStoredQuantity(item.quantity)} {item.supply.unit.symbol}
               </li>
             ))}
           </ul>
-        </div>
-        {canAccept && (
-          <Button disabled={accept.isMutating} onClick={() => void handleAccept()}>
-            {accept.isMutating ? <Loader2 className="animate-spin" /> : <Check />}
-            Aceptar
-          </Button>
-        )}
-        {direction === "sent" && transfer.status === "pending" && (
-          <Button
-            className="bg-red-600 text-white hover:bg-red-700"
-            disabled={cancel.isMutating}
-            onClick={() => void handleCancel()}
-          >
-            {cancel.isMutating ? <Loader2 className="animate-spin" /> : null}
-            Cancelar envío
-          </Button>
-        )}
-      </div>
+        </TableCell>
+        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+          {transfer.sentBy.userName}
+          {transfer.acceptedBy && ` · acepta ${transfer.acceptedBy.userName}`}
+          <span className="block text-xs">{formatDateTime(transfer.sentAt)}</span>
+        </TableCell>
+        <TableCell>
+          <StatusBadge status={transfer.status} />
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-2">
+            {canAccept && (
+              <Button size="sm" disabled={accept.isMutating} onClick={() => void handleAccept()}>
+                {accept.isMutating ? <Loader2 className="animate-spin" /> : <Check />}
+                Aceptar
+              </Button>
+            )}
+            {canCancel && (
+              <Button
+                size="sm"
+                className="bg-red-600 text-white hover:bg-red-700"
+                disabled={cancel.isMutating}
+                onClick={() => void handleCancel()}
+              >
+                {cancel.isMutating ? <Loader2 className="animate-spin" /> : null}
+                Cancelar
+              </Button>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
       {error && (
-        <p role="alert" className="mt-3 text-sm font-medium text-destructive">
-          {error}
-        </p>
+        <TableRow className="hover:bg-transparent">
+          <TableCell colSpan={7} className="text-sm font-medium text-destructive">
+            {error}
+          </TableCell>
+        </TableRow>
       )}
-    </Card>
+    </>
   );
 }
 

@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetTransfersDirection = typeof GetTransfersDirection[keyof typeof GetTransfersDirection];
-
+export type GetTransfersDirection =
+  (typeof GetTransfersDirection)[keyof typeof GetTransfersDirection];
 
 export const GetTransfersDirection = {
-  sent: 'sent',
-  received: 'received',
+  sent: "sent",
+  received: "received",
 } as const;

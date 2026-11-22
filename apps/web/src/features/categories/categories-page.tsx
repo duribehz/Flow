@@ -51,14 +51,10 @@ export function CategoriesPage() {
 
         <Card className="gap-0 py-0 shadow-sm">
           <Table>
-            <TableHeader className="bg-muted/60">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
-                  CATEGORÍA
-                </TableHead>
-                <TableHead className="w-[180px] pr-7 text-right text-xs font-semibold tracking-wide text-muted-foreground">
-                  ARTÍCULOS
-                </TableHead>
+                <TableHead className="h-[50px]">CATEGORÍA</TableHead>
+                <TableHead className="w-[180px] text-right">ARTÍCULOS</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -86,8 +82,8 @@ export function CategoriesPage() {
                 categories.length > 0 &&
                 categories.map((category) => (
                   <TableRow key={category.id} className="h-[76px] hover:bg-transparent">
-                    <TableCell className="pl-7 text-base font-semibold">{category.name}</TableCell>
-                    <TableCell className="pr-7 text-right text-base text-muted-foreground">
+                    <TableCell className="text-base">{category.name}</TableCell>
+                    <TableCell className="text-right text-base">
                       {supplies.filter((supply) => supply.category.id === category.id).length}
                     </TableCell>
                   </TableRow>
@@ -124,7 +120,7 @@ export function CategoriesPage() {
 function LoadingRows() {
   return Array.from({ length: 4 }, (_, index) => (
     <TableRow key={index} className="h-[76px] hover:bg-transparent">
-      <TableCell className="pl-7" colSpan={2}>
+      <TableCell colSpan={2}>
         <div className="h-4 w-full max-w-[560px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>

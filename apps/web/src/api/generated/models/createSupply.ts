@@ -8,25 +8,25 @@
 
 export interface CreateSupply {
   /**
-     * @minLength 1
-     * @maxLength 100
-     */
+   * @minLength 1
+   * @maxLength 100
+   */
   sku: string;
   /**
-     * @minLength 1
-     * @maxLength 200
-     */
+   * @minLength 1
+   * @maxLength 200
+   */
   name: string;
   /**
-     * @minLength 1
-     * @nullable
-     */
+   * @minLength 1
+   * @nullable
+   */
   description?: string | null;
   unitId: string;
   /**
-     * Money amount in integer cents.
-     * @minimum 0
-     */
+   * Money amount in integer cents.
+   * @minimum 0
+   */
   unitCost?: number;
   categoryId: string;
   /** @minItems 1 */

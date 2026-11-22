@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ApiErrorError } from './apiErrorError';
+import type { ApiErrorError } from "./apiErrorError";
 
 export interface ApiError {
   error: ApiErrorError;

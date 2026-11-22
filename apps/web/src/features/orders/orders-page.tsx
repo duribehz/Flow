@@ -112,15 +112,15 @@ export function OrdersPage() {
 
       {!isLoading && !error && orders.length > 0 && (
         <>
-          <Card className="hidden py-0 md:flex">
+          <Card className="hidden gap-0 overflow-hidden py-0 shadow-sm md:flex">
             <Table>
-              <TableHeader className="bg-muted/50">
+              <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-6">PEDIDO</TableHead>
+                  <TableHead>PEDIDO</TableHead>
                   <TableHead>SUCURSAL</TableHead>
                   <TableHead>SOLICITÓ / ENVIÓ</TableHead>
                   <TableHead>ACTUALIZADO</TableHead>
-                  <TableHead className="pr-6">ETAPA</TableHead>
+                  <TableHead>ETAPA</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -139,15 +139,13 @@ export function OrdersPage() {
                       }
                     }}
                   >
-                    <TableCell className="pl-6 font-mono font-semibold">
+                    <TableCell className="font-mono">
                       {order.shipmentNumber ?? order.requestNumber}
                     </TableCell>
                     <TableCell>{order.branch.name}</TableCell>
                     <TableCell>{order.requestedBy.userName}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {formatDateTime(order.createdAt)}
-                    </TableCell>
-                    <TableCell className="pr-6">
+                    <TableCell>{formatDateTime(order.createdAt)}</TableCell>
+                    <TableCell>
                       <StatusBadge status={order.status} />
                     </TableCell>
                   </TableRow>

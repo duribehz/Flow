@@ -36,7 +36,7 @@ export function InventoryReviewPage() {
         description="Existencias enviadas por las sucursales, ordenados por la respuesta del servicio."
         actions={
           <Button variant="outline" onClick={() => void navigate({ to: "/inventory" })}>
-            Volver a inventario
+            Volver a existencias
           </Button>
         }
       />

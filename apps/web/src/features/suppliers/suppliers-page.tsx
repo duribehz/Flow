@@ -48,17 +48,11 @@ export function SuppliersPage() {
 
         <Card className="gap-0 py-0 shadow-sm">
           <Table className="min-w-[680px]">
-            <TableHeader className="bg-muted/60">
+            <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] w-[300px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
-                  NOMBRE
-                </TableHead>
-                <TableHead className="w-[190px] text-xs font-semibold tracking-wide text-muted-foreground">
-                  TELÉFONO
-                </TableHead>
-                <TableHead className="pr-7 text-xs font-semibold tracking-wide text-muted-foreground">
-                  CORREO
-                </TableHead>
+                <TableHead className="h-[50px] w-[300px]">NOMBRE</TableHead>
+                <TableHead className="w-[190px]">TELÉFONO</TableHead>
+                <TableHead>CORREO</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -85,13 +79,11 @@ export function SuppliersPage() {
                 !error &&
                 suppliers.map((supplier) => (
                   <TableRow key={supplier.id} className="h-[76px] hover:bg-transparent">
-                    <TableCell className="pl-7 text-base font-semibold">{supplier.name}</TableCell>
-                    <TableCell className="text-base text-muted-foreground">
+                    <TableCell className="text-base">{supplier.name}</TableCell>
+                    <TableCell className="text-base">
                       {supplier.phoneNumber ?? "No registrado"}
                     </TableCell>
-                    <TableCell className="pr-7 text-base text-muted-foreground">
-                      {supplier.email ?? "No registrado"}
-                    </TableCell>
+                    <TableCell className="text-base">{supplier.email ?? "No registrado"}</TableCell>
                   </TableRow>
                 ))}
               {!isLoading && !error && suppliers.length === 0 && (
@@ -126,7 +118,7 @@ export function SuppliersPage() {
 function LoadingRows() {
   return Array.from({ length: 4 }, (_, index) => (
     <TableRow key={index} className="h-[76px] hover:bg-transparent">
-      <TableCell className="pl-7" colSpan={3}>
+      <TableCell colSpan={3}>
         <div className="h-4 w-full max-w-[720px] animate-pulse rounded bg-muted" />
       </TableCell>
     </TableRow>

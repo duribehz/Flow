@@ -6,12 +6,11 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetIncidentsStatus = typeof GetIncidentsStatus[keyof typeof GetIncidentsStatus];
-
+export type GetIncidentsStatus = (typeof GetIncidentsStatus)[keyof typeof GetIncidentsStatus];
 
 export const GetIncidentsStatus = {
-  open: 'open',
-  investigating: 'investigating',
-  resolved: 'resolved',
-  closed: 'closed',
+  open: "open",
+  investigating: "investigating",
+  resolved: "resolved",
+  closed: "closed",
 } as const;

@@ -6,13 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ReplenishmentDetailStatus = typeof ReplenishmentDetailStatus[keyof typeof ReplenishmentDetailStatus];
-
+export type ReplenishmentDetailStatus =
+  (typeof ReplenishmentDetailStatus)[keyof typeof ReplenishmentDetailStatus];
 
 export const ReplenishmentDetailStatus = {
-  draft: 'draft',
-  submitted: 'submitted',
-  rejected: 'rejected',
-  fulfilled: 'fulfilled',
-  cancelled: 'cancelled',
+  draft: "draft",
+  submitted: "submitted",
+  rejected: "rejected",
+  fulfilled: "fulfilled",
+  cancelled: "cancelled",
 } as const;

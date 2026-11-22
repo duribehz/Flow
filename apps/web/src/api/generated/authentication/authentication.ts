@@ -5,76 +5,64 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from 'swr';
-import type {
-  Arguments,
-  Key,
-  SWRConfiguration
-} from 'swr';
+import useSwr from "swr";
+import type { Arguments, Key, SWRConfiguration } from "swr";
 
-import useSWRMutation from 'swr/mutation';
-import type {
-  SWRMutationConfiguration
-} from 'swr/mutation';
+import useSWRMutation from "swr/mutation";
+import type { SWRMutationConfiguration } from "swr/mutation";
 
-import type {
-  ApiError,
-  GetAuthMe200,
-  Login,
-  PostAuthLogin200
-} from '../models';
+import type { ApiError, GetAuthMe200, Login, PostAuthLogin200 } from "../models";
 
-import { apiClient } from '../../http-client';
+import { apiClient } from "../../http-client";
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-
-  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
-
- export type postAuthLoginResponse200 = {
-  data: PostAuthLogin200
-  status: 200
-}
+export type postAuthLoginResponse200 = {
+  data: PostAuthLogin200;
+  status: 200;
+};
 
 export type postAuthLoginResponse400 = {
-  data: ApiError
-  status: 400
-}
+  data: ApiError;
+  status: 400;
+};
 
 export type postAuthLoginResponse401 = {
-  data: ApiError
-  status: 401
-}
+  data: ApiError;
+  status: 401;
+};
 
-export type postAuthLoginResponseSuccess = (postAuthLoginResponse200) & {
+export type postAuthLoginResponseSuccess = postAuthLoginResponse200 & {
   headers: Headers;
 };
 export type postAuthLoginResponseError = (postAuthLoginResponse400 | postAuthLoginResponse401) & {
   headers: Headers;
 };
 
-export type postAuthLoginResponse = (postAuthLoginResponseSuccess | postAuthLoginResponseError)
+export type postAuthLoginResponse = postAuthLoginResponseSuccess | postAuthLoginResponseError;
 
 export const getPostAuthLoginUrl = () => {
-
-
-
-
-  return `/v1/auth/login`
-}
+  return `/v1/auth/login`;
+};
 
 /**
  * @summary Start a user session
  */
-export const postAuthLogin = async (login: Login, options?: Parameters<typeof apiClient>[1]): Promise<postAuthLoginResponse> => {
-
-    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+export const postAuthLogin = async (
+  login: Login,
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postAuthLoginResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -83,175 +71,168 @@ export const postAuthLogin = async (login: Login, options?: Parameters<typeof ap
     }
     return headers;
   };
-return apiClient<postAuthLoginResponse>(getPostAuthLoginUrl(),
-  {
+  return apiClient<postAuthLoginResponse>(getPostAuthLoginUrl(), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(login)
-  }
-);}
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
+    body: JSON.stringify(login),
+  });
+};
 
-
-
-
-export const getPostAuthLoginMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
+export const getPostAuthLoginMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: Login }) => {
     return postAuthLogin(arg, options);
-  }
-}
+  };
+};
 export const getPostAuthLoginMutationKey = () => [`/v1/auth/login`] as const;
 
-export type PostAuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthLogin>>>
+export type PostAuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthLogin>>>;
 
 /**
  * @summary Start a user session
  */
-export const usePostAuthLogin = <TError = ApiError>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postAuthLogin>>, TError, Key, Login, Awaited<ReturnType<typeof postAuthLogin>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
-) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+export const usePostAuthLogin = <TError = ApiError>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postAuthLogin>>,
+    TError,
+    Key,
+    Login,
+    Awaited<ReturnType<typeof postAuthLogin>>
+  > & { swrKey?: string };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getPostAuthLoginMutationKey();
   const swrFn = getPostAuthLoginMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type getAuthMeResponse200 = {
-  data: GetAuthMe200
-  status: 200
-}
+  data: GetAuthMe200;
+  status: 200;
+};
 
 export type getAuthMeResponse401 = {
-  data: ApiError
-  status: 401
-}
-
-export type getAuthMeResponseSuccess = (getAuthMeResponse200) & {
-  headers: Headers;
-};
-export type getAuthMeResponseError = (getAuthMeResponse401) & {
-  headers: Headers;
+  data: ApiError;
+  status: 401;
 };
 
-export type getAuthMeResponse = (getAuthMeResponseSuccess | getAuthMeResponseError)
+export type getAuthMeResponseSuccess = getAuthMeResponse200 & {
+  headers: Headers;
+};
+export type getAuthMeResponseError = getAuthMeResponse401 & {
+  headers: Headers;
+};
+
+export type getAuthMeResponse = getAuthMeResponseSuccess | getAuthMeResponseError;
 
 export const getGetAuthMeUrl = () => {
-
-
-
-
-  return `/v1/auth/me`
-}
+  return `/v1/auth/me`;
+};
 
 /**
  * @summary Get the current authenticated user
  */
-export const getAuthMe = async ( options?: Parameters<typeof apiClient>[1]): Promise<getAuthMeResponse> => {
-
-  return apiClient<getAuthMeResponse>(getGetAuthMeUrl(),
-  {
+export const getAuthMe = async (
+  options?: Parameters<typeof apiClient>[1],
+): Promise<getAuthMeResponse> => {
+  return apiClient<getAuthMeResponse>(getGetAuthMeUrl(), {
     ...options,
-    method: 'GET'
-
-
-  }
-);}
-
-
-
+    method: "GET",
+  });
+};
 
 export const getGetAuthMeKey = () => [`/v1/auth/me`] as const;
 
-export type GetAuthMeQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthMe>>>
+export type GetAuthMeQueryResult = NonNullable<Awaited<ReturnType<typeof getAuthMe>>>;
 
 /**
  * @summary Get the current authenticated user
  */
-export const useGetAuthMe = <TError = ApiError>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getAuthMe>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
-) => {
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+export const useGetAuthMe = <TError = ApiError>(options?: {
+  swr?: SWRConfiguration<Awaited<ReturnType<typeof getAuthMe>>, TError> & {
+    swrKey?: Key;
+    enabled?: boolean;
+  };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetAuthMeKey() : null);
-  const swrFn = () => getAuthMe(requestOptions)
+  const isEnabled = swrOptions?.enabled !== false;
+  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetAuthMeKey() : null));
+  const swrFn = () => getAuthMe(requestOptions);
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};
 export type postAuthLogoutResponse204 = {
-  data: void
-  status: 204
-}
+  data: void;
+  status: 204;
+};
 
-export type postAuthLogoutResponseSuccess = (postAuthLogoutResponse204) & {
+export type postAuthLogoutResponseSuccess = postAuthLogoutResponse204 & {
   headers: Headers;
 };
-;
 
-export type postAuthLogoutResponse = (postAuthLogoutResponseSuccess)
+export type postAuthLogoutResponse = postAuthLogoutResponseSuccess;
 
 export const getPostAuthLogoutUrl = () => {
-
-
-
-
-  return `/v1/auth/logout`
-}
+  return `/v1/auth/logout`;
+};
 
 /**
  * @summary End the current user session
  */
-export const postAuthLogout = async ( options?: Parameters<typeof apiClient>[1]): Promise<postAuthLogoutResponse> => {
-
-  return apiClient<postAuthLogoutResponse>(getPostAuthLogoutUrl(),
-  {
+export const postAuthLogout = async (
+  options?: Parameters<typeof apiClient>[1],
+): Promise<postAuthLogoutResponse> => {
+  return apiClient<postAuthLogoutResponse>(getPostAuthLogoutUrl(), {
     ...options,
-    method: 'POST'
+    method: "POST",
+  });
+};
 
-
-  }
-);}
-
-
-
-
-export const getPostAuthLogoutMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
+export const getPostAuthLogoutMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, __: { arg: Arguments }) => {
     return postAuthLogout(options);
-  }
-}
+  };
+};
 export const getPostAuthLogoutMutationKey = () => [`/v1/auth/logout`] as const;
 
-export type PostAuthLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthLogout>>>
+export type PostAuthLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof postAuthLogout>>>;
 
 /**
  * @summary End the current user session
  */
-export const usePostAuthLogout = <TError = unknown>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postAuthLogout>>, TError, Key, Arguments, Awaited<ReturnType<typeof postAuthLogout>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
-) => {
-
-  const {swr: swrOptions, request: requestOptions} = options ?? {}
+export const usePostAuthLogout = <TError = unknown>(options?: {
+  swr?: SWRMutationConfiguration<
+    Awaited<ReturnType<typeof postAuthLogout>>,
+    TError,
+    Key,
+    Arguments,
+    Awaited<ReturnType<typeof postAuthLogout>>
+  > & { swrKey?: string };
+  request?: SecondParameter<typeof apiClient>;
+}) => {
+  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
   const swrKey = swrOptions?.swrKey ?? getPostAuthLogoutMutationKey();
   const swrFn = getPostAuthLogoutMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+  const query = useSWRMutation(swrKey, swrFn, swrOptions);
 
   return {
     swrKey,
-    ...query
-  }
-}
+    ...query,
+  };
+};

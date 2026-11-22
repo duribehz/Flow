@@ -5,6 +5,15 @@ import { useGetIncidents } from "@/api/generated/incidents/incidents";
 import { ApiError } from "@/api/http-client";
 import { PageFrame, PageHeader } from "@/components/operational/page-header";
 import { StatusBadge } from "@/components/operational/status-badge";
+import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatDateTime } from "@/lib/operational-format";
 import { EmptyState, ErrorState, incidentTypeLabels, LoadingState } from "./logistics-ui";
 
@@ -31,39 +40,60 @@ export function IncidentsPage() {
         />
       )}
       {!query.isLoading && !query.error && incidents.length > 0 && (
-        <div className="grid gap-3">
-          {incidents.map((incident) => (
-            <button
-              key={incident.id}
-              type="button"
-              className="group flex w-full flex-col gap-4 rounded-xl border bg-card p-5 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:flex-row sm:items-center sm:justify-between"
-              onClick={() =>
-                void navigate({ to: "/incidents/$incidentId", params: { incidentId: incident.id } })
-              }
-            >
-              <span className="flex min-w-0 items-start gap-4">
-                <span className="rounded-lg bg-amber-50 p-2.5 text-amber-700">
-                  <AlertTriangle className="size-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold">
-                    {incident.incidentNumber} · {incidentTypeLabels[incident.type]}
-                  </span>
-                  <span className="mt-1 line-clamp-2 block text-sm text-muted-foreground">
-                    {incident.description}
-                  </span>
-                  <span className="mt-1 block text-xs text-muted-foreground">
-                    Reportada {formatDateTime(incident.createdAt)}
-                  </span>
-                </span>
-              </span>
-              <span className="flex shrink-0 items-center justify-between gap-4 sm:justify-end">
-                <StatusBadge status={incident.status} />
-                <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-              </span>
-            </button>
-          ))}
-        </div>
+        <Card className="gap-0 overflow-hidden py-0 shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Número</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                <TableHead className="hidden sm:table-cell">Reportada</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">
+                  <span className="sr-only">Abrir</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {incidents.map((incident) => (
+                <TableRow
+                  key={incident.id}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    void navigate({
+                      to: "/incidents/$incidentId",
+                      params: { incidentId: incident.id },
+                    })
+                  }
+                >
+                  <TableCell className="font-mono font-semibold">
+                    {incident.incidentNumber}
+                  </TableCell>
+                  <TableCell>
+                    <span className="inline-flex items-center gap-2">
+                      <AlertTriangle className="size-4 text-amber-700" />
+                      {incidentTypeLabels[incident.type]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden max-w-xs md:table-cell">
+                    <span className="line-clamp-2 text-sm text-muted-foreground">
+                      {incident.description}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
+                    {formatDateTime(incident.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={incident.status} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <ArrowRight className="ml-auto size-4 text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </PageFrame>
   );

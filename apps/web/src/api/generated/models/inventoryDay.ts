@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventoryDayStatus } from './inventoryDayStatus';
+import type { InventoryDayStatus } from "./inventoryDayStatus";
 
 export interface InventoryDay {
   id: string;
