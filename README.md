@@ -17,3 +17,13 @@ bun run dev:web
 ```
 
 Build the workspace with `bun run build`.
+
+Before using authentication against a database, apply migrations and create the first super admin:
+
+```sh
+bun run --filter api db:migrate
+INITIAL_SUPER_ADMIN_USERNAME=flow-admin INITIAL_SUPER_ADMIN_PASSWORD='use-a-long-unique-password' bun run --filter api db:bootstrap-super-admin
+```
+
+The initial password must contain at least 12 characters. The bootstrap command only runs when
+there is no active super admin.

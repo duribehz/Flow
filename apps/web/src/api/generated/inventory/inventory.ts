@@ -5,11 +5,17 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Arguments, Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Arguments,
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   ApiError,
@@ -21,84 +27,213 @@ import type {
   GetInventoryDays200,
   GetInventoryDaysDayId200,
   GetInventoryDaysParams,
+  GetInventoryLastReports200,
+  GetInventoryLastReportsParams,
+  GetInventorySupplies200,
   PatchInventoryCountsCountId200,
   PostInventoryCounts201,
   PostInventoryCountsCountIdReview200,
   PostInventoryCountsCountIdSubmit200,
   PostInventoryDays200,
   PostInventoryDays201,
-  UpdateInventoryCount,
-} from "../models";
+  UpdateInventoryCount
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type postInventoryDaysResponse200 = {
-  data: PostInventoryDays200;
-  status: 200;
+
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getInventorySuppliesResponse200 = {
+  data: GetInventorySupplies200
+  status: 200
+}
+
+export type getInventorySuppliesResponseSuccess = (getInventorySuppliesResponse200) & {
+  headers: Headers;
 };
+;
+
+export type getInventorySuppliesResponse = (getInventorySuppliesResponseSuccess)
+
+export const getGetInventorySuppliesUrl = () => {
+
+
+
+
+  return `/v1/inventory/supplies`
+}
+
+/**
+ * @summary List article details needed for inventory counts
+ */
+export const getInventorySupplies = async ( options?: Parameters<typeof apiClient>[1]): Promise<getInventorySuppliesResponse> => {
+
+  return apiClient<getInventorySuppliesResponse>(getGetInventorySuppliesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+export const getGetInventorySuppliesKey = () => [`/v1/inventory/supplies`] as const;
+
+export type GetInventorySuppliesQueryResult = NonNullable<Awaited<ReturnType<typeof getInventorySupplies>>>
+
+/**
+ * @summary List article details needed for inventory counts
+ */
+export const useGetInventorySupplies = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventorySupplies>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventorySuppliesKey() : null);
+  const swrFn = () => getInventorySupplies(requestOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+export type getInventoryLastReportsResponse200 = {
+  data: GetInventoryLastReports200
+  status: 200
+}
+
+export type getInventoryLastReportsResponse400 = {
+  data: ApiError
+  status: 400
+}
+
+export type getInventoryLastReportsResponseSuccess = (getInventoryLastReportsResponse200) & {
+  headers: Headers;
+};
+export type getInventoryLastReportsResponseError = (getInventoryLastReportsResponse400) & {
+  headers: Headers;
+};
+
+export type getInventoryLastReportsResponse = (getInventoryLastReportsResponseSuccess | getInventoryLastReportsResponseError)
+
+export const getGetInventoryLastReportsUrl = (params: GetInventoryLastReportsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/v1/inventory/last-reports?${stringifiedParams}` : `/v1/inventory/last-reports`
+}
+
+/**
+ * @summary Last reported stock per article for a branch
+ */
+export const getInventoryLastReports = async (params: GetInventoryLastReportsParams, options?: Parameters<typeof apiClient>[1]): Promise<getInventoryLastReportsResponse> => {
+
+  return apiClient<getInventoryLastReportsResponse>(getGetInventoryLastReportsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+export const getGetInventoryLastReportsKey = (params: GetInventoryLastReportsParams,) => [`/v1/inventory/last-reports`, ...(params ? [params]: [])] as const;
+
+export type GetInventoryLastReportsQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryLastReports>>>
+
+/**
+ * @summary Last reported stock per article for a branch
+ */
+export const useGetInventoryLastReports = <TError = ApiError>(
+  params: GetInventoryLastReportsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventoryLastReports>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventoryLastReportsKey(params) : null);
+  const swrFn = () => getInventoryLastReports(params, requestOptions)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+export type postInventoryDaysResponse200 = {
+  data: PostInventoryDays200
+  status: 200
+}
 
 export type postInventoryDaysResponse201 = {
-  data: PostInventoryDays201;
-  status: 201;
-};
+  data: PostInventoryDays201
+  status: 201
+}
 
 export type postInventoryDaysResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postInventoryDaysResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postInventoryDaysResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postInventoryDaysResponseSuccess = (
-  | postInventoryDaysResponse200
-  | postInventoryDaysResponse201
-) & {
+export type postInventoryDaysResponseSuccess = (postInventoryDaysResponse200 | postInventoryDaysResponse201) & {
   headers: Headers;
 };
-export type postInventoryDaysResponseError = (
-  | postInventoryDaysResponse400
-  | postInventoryDaysResponse404
-  | postInventoryDaysResponse409
-) & {
+export type postInventoryDaysResponseError = (postInventoryDaysResponse400 | postInventoryDaysResponse404 | postInventoryDaysResponse409) & {
   headers: Headers;
 };
 
-export type postInventoryDaysResponse =
-  | postInventoryDaysResponseSuccess
-  | postInventoryDaysResponseError;
+export type postInventoryDaysResponse = (postInventoryDaysResponseSuccess | postInventoryDaysResponseError)
 
 export const getPostInventoryDaysUrl = () => {
-  return `/v1/inventory-days`;
-};
+
+
+
+
+  return `/v1/inventory-days`
+}
 
 /**
  * @summary Open or get an operational day
  */
-export const postInventoryDays = async (
-  createInventoryDay: CreateInventoryDay,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryDaysResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postInventoryDays = async (createInventoryDay: CreateInventoryDay, options?: Parameters<typeof apiClient>[1]): Promise<postInventoryDaysResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -107,264 +242,235 @@ export const postInventoryDays = async (
     }
     return headers;
   };
-  return apiClient<postInventoryDaysResponse>(getPostInventoryDaysUrl(), {
+return apiClient<postInventoryDaysResponse>(getPostInventoryDaysUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createInventoryDay),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createInventoryDay)
+  }
+);}
 
-export const getPostInventoryDaysMutationFetcher = (
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostInventoryDaysMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateInventoryDay }) => {
     return postInventoryDays(arg, options);
-  };
-};
+  }
+}
 export const getPostInventoryDaysMutationKey = () => [`/v1/inventory-days`] as const;
 
-export type PostInventoryDaysMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryDays>>
->;
+export type PostInventoryDaysMutationResult = NonNullable<Awaited<ReturnType<typeof postInventoryDays>>>
 
 /**
  * @summary Open or get an operational day
  */
-export const usePostInventoryDays = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postInventoryDays>>,
-    TError,
-    Key,
-    CreateInventoryDay,
-    Awaited<ReturnType<typeof postInventoryDays>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostInventoryDays = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postInventoryDays>>, TError, Key, CreateInventoryDay, Awaited<ReturnType<typeof postInventoryDays>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostInventoryDaysMutationKey();
   const swrFn = getPostInventoryDaysMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getInventoryDaysResponse200 = {
-  data: GetInventoryDays200;
-  status: 200;
-};
+  data: GetInventoryDays200
+  status: 200
+}
 
 export type getInventoryDaysResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
-export type getInventoryDaysResponseSuccess = getInventoryDaysResponse200 & {
+export type getInventoryDaysResponseSuccess = (getInventoryDaysResponse200) & {
   headers: Headers;
 };
-export type getInventoryDaysResponseError = getInventoryDaysResponse400 & {
+export type getInventoryDaysResponseError = (getInventoryDaysResponse400) & {
   headers: Headers;
 };
 
-export type getInventoryDaysResponse =
-  | getInventoryDaysResponseSuccess
-  | getInventoryDaysResponseError;
+export type getInventoryDaysResponse = (getInventoryDaysResponseSuccess | getInventoryDaysResponseError)
 
-export const getGetInventoryDaysUrl = (params?: GetInventoryDaysParams) => {
+export const getGetInventoryDaysUrl = (params?: GetInventoryDaysParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : String(value));
+      normalizedParams.append(key, value === null ? 'null' : String(value))
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0
-    ? `/v1/inventory-days?${stringifiedParams}`
-    : `/v1/inventory-days`;
-};
+  return stringifiedParams.length > 0 ? `/v1/inventory-days?${stringifiedParams}` : `/v1/inventory-days`
+}
 
 /**
  * @summary List inventory days
  */
-export const getInventoryDays = async (
-  params?: GetInventoryDaysParams,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryDaysResponse> => {
-  return apiClient<getInventoryDaysResponse>(getGetInventoryDaysUrl(params), {
+export const getInventoryDays = async (params?: GetInventoryDaysParams, options?: Parameters<typeof apiClient>[1]): Promise<getInventoryDaysResponse> => {
+
+  return apiClient<getInventoryDaysResponse>(getGetInventoryDaysUrl(params),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetInventoryDaysKey = (params?: GetInventoryDaysParams) =>
-  [`/v1/inventory-days`, ...(params ? [params] : [])] as const;
 
-export type GetInventoryDaysQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryDays>>>;
+  }
+);}
+
+
+
+
+export const getGetInventoryDaysKey = (params?: GetInventoryDaysParams,) => [`/v1/inventory-days`, ...(params ? [params]: [])] as const;
+
+export type GetInventoryDaysQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryDays>>>
 
 /**
  * @summary List inventory days
  */
 export const useGetInventoryDays = <TError = ApiError>(
-  params?: GetInventoryDaysParams,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryDays>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  params?: GetInventoryDaysParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventoryDays>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryDaysKey(params) : null));
-  const swrFn = () => getInventoryDays(params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventoryDaysKey(params) : null);
+  const swrFn = () => getInventoryDays(params, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getInventoryDaysDayIdResponse200 = {
-  data: GetInventoryDaysDayId200;
-  status: 200;
-};
+  data: GetInventoryDaysDayId200
+  status: 200
+}
 
 export type getInventoryDaysDayIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getInventoryDaysDayIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getInventoryDaysDayIdResponseSuccess = getInventoryDaysDayIdResponse200 & {
+export type getInventoryDaysDayIdResponseSuccess = (getInventoryDaysDayIdResponse200) & {
   headers: Headers;
 };
-export type getInventoryDaysDayIdResponseError = (
-  | getInventoryDaysDayIdResponse400
-  | getInventoryDaysDayIdResponse404
-) & {
+export type getInventoryDaysDayIdResponseError = (getInventoryDaysDayIdResponse400 | getInventoryDaysDayIdResponse404) & {
   headers: Headers;
 };
 
-export type getInventoryDaysDayIdResponse =
-  | getInventoryDaysDayIdResponseSuccess
-  | getInventoryDaysDayIdResponseError;
+export type getInventoryDaysDayIdResponse = (getInventoryDaysDayIdResponseSuccess | getInventoryDaysDayIdResponseError)
 
-export const getGetInventoryDaysDayIdUrl = (dayId: string) => {
-  return `/v1/inventory-days/${dayId}`;
-};
+export const getGetInventoryDaysDayIdUrl = (dayId: string,) => {
+
+
+
+
+  return `/v1/inventory-days/${dayId}`
+}
 
 /**
  * @summary Get an inventory day
  */
-export const getInventoryDaysDayId = async (
-  dayId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryDaysDayIdResponse> => {
-  return apiClient<getInventoryDaysDayIdResponse>(getGetInventoryDaysDayIdUrl(dayId), {
+export const getInventoryDaysDayId = async (dayId: string, options?: Parameters<typeof apiClient>[1]): Promise<getInventoryDaysDayIdResponse> => {
+
+  return apiClient<getInventoryDaysDayIdResponse>(getGetInventoryDaysDayIdUrl(dayId),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetInventoryDaysDayIdKey = (dayId: string) =>
-  [`/v1/inventory-days/${dayId}`] as const;
 
-export type GetInventoryDaysDayIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryDaysDayId>>
->;
+  }
+);}
+
+
+
+
+export const getGetInventoryDaysDayIdKey = (dayId: string,) => [`/v1/inventory-days/${dayId}`] as const;
+
+export type GetInventoryDaysDayIdQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryDaysDayId>>>
 
 /**
  * @summary Get an inventory day
  */
 export const useGetInventoryDaysDayId = <TError = ApiError>(
-  dayId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryDaysDayId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  dayId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventoryDaysDayId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && dayId !== null && dayId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryDaysDayIdKey(dayId) : null));
-  const swrFn = () => getInventoryDaysDayId(dayId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && dayId !== null && dayId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventoryDaysDayIdKey(dayId) : null);
+  const swrFn = () => getInventoryDaysDayId(dayId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postInventoryCountsResponse201 = {
-  data: PostInventoryCounts201;
-  status: 201;
-};
+  data: PostInventoryCounts201
+  status: 201
+}
 
 export type postInventoryCountsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postInventoryCountsResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postInventoryCountsResponseSuccess = postInventoryCountsResponse201 & {
+export type postInventoryCountsResponseSuccess = (postInventoryCountsResponse201) & {
   headers: Headers;
 };
-export type postInventoryCountsResponseError = (
-  | postInventoryCountsResponse400
-  | postInventoryCountsResponse409
-) & {
+export type postInventoryCountsResponseError = (postInventoryCountsResponse400 | postInventoryCountsResponse409) & {
   headers: Headers;
 };
 
-export type postInventoryCountsResponse =
-  | postInventoryCountsResponseSuccess
-  | postInventoryCountsResponseError;
+export type postInventoryCountsResponse = (postInventoryCountsResponseSuccess | postInventoryCountsResponseError)
 
 export const getPostInventoryCountsUrl = () => {
-  return `/v1/inventory-counts`;
-};
+
+
+
+
+  return `/v1/inventory-counts`
+}
 
 /**
  * @summary Create a draft inventory count
  */
-export const postInventoryCounts = async (
-  createInventoryCount: CreateInventoryCount,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryCountsResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postInventoryCounts = async (createInventoryCount: CreateInventoryCount, options?: Parameters<typeof apiClient>[1]): Promise<postInventoryCountsResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -373,274 +479,241 @@ export const postInventoryCounts = async (
     }
     return headers;
   };
-  return apiClient<postInventoryCountsResponse>(getPostInventoryCountsUrl(), {
+return apiClient<postInventoryCountsResponse>(getPostInventoryCountsUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createInventoryCount),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createInventoryCount)
+  }
+);}
 
-export const getPostInventoryCountsMutationFetcher = (
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostInventoryCountsMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateInventoryCount }) => {
     return postInventoryCounts(arg, options);
-  };
-};
+  }
+}
 export const getPostInventoryCountsMutationKey = () => [`/v1/inventory-counts`] as const;
 
-export type PostInventoryCountsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryCounts>>
->;
+export type PostInventoryCountsMutationResult = NonNullable<Awaited<ReturnType<typeof postInventoryCounts>>>
 
 /**
  * @summary Create a draft inventory count
  */
-export const usePostInventoryCounts = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postInventoryCounts>>,
-    TError,
-    Key,
-    CreateInventoryCount,
-    Awaited<ReturnType<typeof postInventoryCounts>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostInventoryCounts = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postInventoryCounts>>, TError, Key, CreateInventoryCount, Awaited<ReturnType<typeof postInventoryCounts>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsMutationKey();
   const swrFn = getPostInventoryCountsMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getInventoryCountsResponse200 = {
-  data: GetInventoryCounts200;
-  status: 200;
-};
+  data: GetInventoryCounts200
+  status: 200
+}
 
 export type getInventoryCountsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
-export type getInventoryCountsResponseSuccess = getInventoryCountsResponse200 & {
+export type getInventoryCountsResponseSuccess = (getInventoryCountsResponse200) & {
   headers: Headers;
 };
-export type getInventoryCountsResponseError = getInventoryCountsResponse400 & {
+export type getInventoryCountsResponseError = (getInventoryCountsResponse400) & {
   headers: Headers;
 };
 
-export type getInventoryCountsResponse =
-  | getInventoryCountsResponseSuccess
-  | getInventoryCountsResponseError;
+export type getInventoryCountsResponse = (getInventoryCountsResponseSuccess | getInventoryCountsResponseError)
 
-export const getGetInventoryCountsUrl = (params?: GetInventoryCountsParams) => {
+export const getGetInventoryCountsUrl = (params?: GetInventoryCountsParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : String(value));
+      normalizedParams.append(key, value === null ? 'null' : String(value))
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0
-    ? `/v1/inventory-counts?${stringifiedParams}`
-    : `/v1/inventory-counts`;
-};
+  return stringifiedParams.length > 0 ? `/v1/inventory-counts?${stringifiedParams}` : `/v1/inventory-counts`
+}
 
 /**
  * @summary List inventory counts
  */
-export const getInventoryCounts = async (
-  params?: GetInventoryCountsParams,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryCountsResponse> => {
-  return apiClient<getInventoryCountsResponse>(getGetInventoryCountsUrl(params), {
+export const getInventoryCounts = async (params?: GetInventoryCountsParams, options?: Parameters<typeof apiClient>[1]): Promise<getInventoryCountsResponse> => {
+
+  return apiClient<getInventoryCountsResponse>(getGetInventoryCountsUrl(params),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetInventoryCountsKey = (params?: GetInventoryCountsParams) =>
-  [`/v1/inventory-counts`, ...(params ? [params] : [])] as const;
 
-export type GetInventoryCountsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryCounts>>
->;
+  }
+);}
+
+
+
+
+export const getGetInventoryCountsKey = (params?: GetInventoryCountsParams,) => [`/v1/inventory-counts`, ...(params ? [params]: [])] as const;
+
+export type GetInventoryCountsQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCounts>>>
 
 /**
  * @summary List inventory counts
  */
 export const useGetInventoryCounts = <TError = ApiError>(
-  params?: GetInventoryCountsParams,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryCounts>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  params?: GetInventoryCountsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventoryCounts>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryCountsKey(params) : null));
-  const swrFn = () => getInventoryCounts(params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventoryCountsKey(params) : null);
+  const swrFn = () => getInventoryCounts(params, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getInventoryCountsCountIdResponse200 = {
-  data: GetInventoryCountsCountId200;
-  status: 200;
-};
+  data: GetInventoryCountsCountId200
+  status: 200
+}
 
 export type getInventoryCountsCountIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getInventoryCountsCountIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getInventoryCountsCountIdResponseSuccess = getInventoryCountsCountIdResponse200 & {
+export type getInventoryCountsCountIdResponseSuccess = (getInventoryCountsCountIdResponse200) & {
   headers: Headers;
 };
-export type getInventoryCountsCountIdResponseError = (
-  | getInventoryCountsCountIdResponse400
-  | getInventoryCountsCountIdResponse404
-) & {
+export type getInventoryCountsCountIdResponseError = (getInventoryCountsCountIdResponse400 | getInventoryCountsCountIdResponse404) & {
   headers: Headers;
 };
 
-export type getInventoryCountsCountIdResponse =
-  | getInventoryCountsCountIdResponseSuccess
-  | getInventoryCountsCountIdResponseError;
+export type getInventoryCountsCountIdResponse = (getInventoryCountsCountIdResponseSuccess | getInventoryCountsCountIdResponseError)
 
-export const getGetInventoryCountsCountIdUrl = (countId: string) => {
-  return `/v1/inventory-counts/${countId}`;
-};
+export const getGetInventoryCountsCountIdUrl = (countId: string,) => {
+
+
+
+
+  return `/v1/inventory-counts/${countId}`
+}
 
 /**
  * @summary Get an inventory count
  */
-export const getInventoryCountsCountId = async (
-  countId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getInventoryCountsCountIdResponse> => {
-  return apiClient<getInventoryCountsCountIdResponse>(getGetInventoryCountsCountIdUrl(countId), {
+export const getInventoryCountsCountId = async (countId: string, options?: Parameters<typeof apiClient>[1]): Promise<getInventoryCountsCountIdResponse> => {
+
+  return apiClient<getInventoryCountsCountIdResponse>(getGetInventoryCountsCountIdUrl(countId),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetInventoryCountsCountIdKey = (countId: string) =>
-  [`/v1/inventory-counts/${countId}`] as const;
 
-export type GetInventoryCountsCountIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getInventoryCountsCountId>>
->;
+  }
+);}
+
+
+
+
+export const getGetInventoryCountsCountIdKey = (countId: string,) => [`/v1/inventory-counts/${countId}`] as const;
+
+export type GetInventoryCountsCountIdQueryResult = NonNullable<Awaited<ReturnType<typeof getInventoryCountsCountId>>>
 
 /**
  * @summary Get an inventory count
  */
 export const useGetInventoryCountsCountId = <TError = ApiError>(
-  countId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getInventoryCountsCountId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  countId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getInventoryCountsCountId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && countId !== null && countId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetInventoryCountsCountIdKey(countId) : null));
-  const swrFn = () => getInventoryCountsCountId(countId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && countId !== null && countId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetInventoryCountsCountIdKey(countId) : null);
+  const swrFn = () => getInventoryCountsCountId(countId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchInventoryCountsCountIdResponse200 = {
-  data: PatchInventoryCountsCountId200;
-  status: 200;
-};
+  data: PatchInventoryCountsCountId200
+  status: 200
+}
 
 export type patchInventoryCountsCountIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchInventoryCountsCountIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchInventoryCountsCountIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchInventoryCountsCountIdResponseSuccess = patchInventoryCountsCountIdResponse200 & {
+export type patchInventoryCountsCountIdResponseSuccess = (patchInventoryCountsCountIdResponse200) & {
   headers: Headers;
 };
-export type patchInventoryCountsCountIdResponseError = (
-  | patchInventoryCountsCountIdResponse400
-  | patchInventoryCountsCountIdResponse404
-  | patchInventoryCountsCountIdResponse409
-) & {
+export type patchInventoryCountsCountIdResponseError = (patchInventoryCountsCountIdResponse400 | patchInventoryCountsCountIdResponse404 | patchInventoryCountsCountIdResponse409) & {
   headers: Headers;
 };
 
-export type patchInventoryCountsCountIdResponse =
-  | patchInventoryCountsCountIdResponseSuccess
-  | patchInventoryCountsCountIdResponseError;
+export type patchInventoryCountsCountIdResponse = (patchInventoryCountsCountIdResponseSuccess | patchInventoryCountsCountIdResponseError)
 
-export const getPatchInventoryCountsCountIdUrl = (countId: string) => {
-  return `/v1/inventory-counts/${countId}`;
-};
+export const getPatchInventoryCountsCountIdUrl = (countId: string,) => {
+
+
+
+
+  return `/v1/inventory-counts/${countId}`
+}
 
 /**
  * @summary Update a draft inventory count
  */
-export const patchInventoryCountsCountId = async (
-  countId: string,
-  updateInventoryCount: UpdateInventoryCount,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchInventoryCountsCountIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchInventoryCountsCountId = async (countId: string,
+    updateInventoryCount: UpdateInventoryCount, options?: Parameters<typeof apiClient>[1]): Promise<patchInventoryCountsCountIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -649,255 +722,207 @@ export const patchInventoryCountsCountId = async (
     }
     return headers;
   };
-  return apiClient<patchInventoryCountsCountIdResponse>(
-    getPatchInventoryCountsCountIdUrl(countId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(updateInventoryCount),
-    },
-  );
-};
+return apiClient<patchInventoryCountsCountIdResponse>(getPatchInventoryCountsCountIdUrl(countId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateInventoryCount)
+  }
+);}
 
-export const getPatchInventoryCountsCountIdMutationFetcher = (
-  countId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchInventoryCountsCountIdMutationFetcher = (countId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateInventoryCount }) => {
     return patchInventoryCountsCountId(countId, arg, options);
-  };
-};
-export const getPatchInventoryCountsCountIdMutationKey = (countId: string) =>
-  [`/v1/inventory-counts/${countId}`] as const;
+  }
+}
+export const getPatchInventoryCountsCountIdMutationKey = (countId: string,) => [`/v1/inventory-counts/${countId}`] as const;
 
-export type PatchInventoryCountsCountIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchInventoryCountsCountId>>
->;
+export type PatchInventoryCountsCountIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchInventoryCountsCountId>>>
 
 /**
  * @summary Update a draft inventory count
  */
 export const usePatchInventoryCountsCountId = <TError = ApiError>(
-  countId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchInventoryCountsCountId>>,
-      TError,
-      Key,
-      UpdateInventoryCount,
-      Awaited<ReturnType<typeof patchInventoryCountsCountId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  countId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchInventoryCountsCountId>>, TError, Key, UpdateInventoryCount, Awaited<ReturnType<typeof patchInventoryCountsCountId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPatchInventoryCountsCountIdMutationKey(countId);
   const swrFn = getPatchInventoryCountsCountIdMutationFetcher(countId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postInventoryCountsCountIdSubmitResponse200 = {
-  data: PostInventoryCountsCountIdSubmit200;
-  status: 200;
-};
+  data: PostInventoryCountsCountIdSubmit200
+  status: 200
+}
 
 export type postInventoryCountsCountIdSubmitResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postInventoryCountsCountIdSubmitResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postInventoryCountsCountIdSubmitResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postInventoryCountsCountIdSubmitResponseSuccess =
-  postInventoryCountsCountIdSubmitResponse200 & {
-    headers: Headers;
-  };
-export type postInventoryCountsCountIdSubmitResponseError = (
-  | postInventoryCountsCountIdSubmitResponse400
-  | postInventoryCountsCountIdSubmitResponse404
-  | postInventoryCountsCountIdSubmitResponse409
-) & {
+export type postInventoryCountsCountIdSubmitResponseSuccess = (postInventoryCountsCountIdSubmitResponse200) & {
+  headers: Headers;
+};
+export type postInventoryCountsCountIdSubmitResponseError = (postInventoryCountsCountIdSubmitResponse400 | postInventoryCountsCountIdSubmitResponse404 | postInventoryCountsCountIdSubmitResponse409) & {
   headers: Headers;
 };
 
-export type postInventoryCountsCountIdSubmitResponse =
-  | postInventoryCountsCountIdSubmitResponseSuccess
-  | postInventoryCountsCountIdSubmitResponseError;
+export type postInventoryCountsCountIdSubmitResponse = (postInventoryCountsCountIdSubmitResponseSuccess | postInventoryCountsCountIdSubmitResponseError)
 
-export const getPostInventoryCountsCountIdSubmitUrl = (countId: string) => {
-  return `/v1/inventory-counts/${countId}/submit`;
-};
+export const getPostInventoryCountsCountIdSubmitUrl = (countId: string,) => {
+
+
+
+
+  return `/v1/inventory-counts/${countId}/submit`
+}
 
 /**
  * @summary Submit an inventory count and close its day
  */
-export const postInventoryCountsCountIdSubmit = async (
-  countId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryCountsCountIdSubmitResponse> => {
-  return apiClient<postInventoryCountsCountIdSubmitResponse>(
-    getPostInventoryCountsCountIdSubmitUrl(countId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
+export const postInventoryCountsCountIdSubmit = async (countId: string, options?: Parameters<typeof apiClient>[1]): Promise<postInventoryCountsCountIdSubmitResponse> => {
 
-export const getPostInventoryCountsCountIdSubmitMutationFetcher = (
-  countId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+  return apiClient<postInventoryCountsCountIdSubmitResponse>(getPostInventoryCountsCountIdSubmitUrl(countId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getPostInventoryCountsCountIdSubmitMutationFetcher = (countId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, __: { arg: Arguments }) => {
     return postInventoryCountsCountIdSubmit(countId, options);
-  };
-};
-export const getPostInventoryCountsCountIdSubmitMutationKey = (countId: string) =>
-  [`/v1/inventory-counts/${countId}/submit`] as const;
+  }
+}
+export const getPostInventoryCountsCountIdSubmitMutationKey = (countId: string,) => [`/v1/inventory-counts/${countId}/submit`] as const;
 
-export type PostInventoryCountsCountIdSubmitMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>
->;
+export type PostInventoryCountsCountIdSubmitMutationResult = NonNullable<Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>>
 
 /**
  * @summary Submit an inventory count and close its day
  */
 export const usePostInventoryCountsCountIdSubmit = <TError = ApiError>(
-  countId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  countId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>, TError, Key, Arguments, Awaited<ReturnType<typeof postInventoryCountsCountIdSubmit>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsCountIdSubmitMutationKey(countId);
   const swrFn = getPostInventoryCountsCountIdSubmitMutationFetcher(countId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postInventoryCountsCountIdReviewResponse200 = {
-  data: PostInventoryCountsCountIdReview200;
-  status: 200;
-};
+  data: PostInventoryCountsCountIdReview200
+  status: 200
+}
 
 export type postInventoryCountsCountIdReviewResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postInventoryCountsCountIdReviewResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postInventoryCountsCountIdReviewResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postInventoryCountsCountIdReviewResponseSuccess =
-  postInventoryCountsCountIdReviewResponse200 & {
-    headers: Headers;
-  };
-export type postInventoryCountsCountIdReviewResponseError = (
-  | postInventoryCountsCountIdReviewResponse400
-  | postInventoryCountsCountIdReviewResponse404
-  | postInventoryCountsCountIdReviewResponse409
-) & {
+export type postInventoryCountsCountIdReviewResponseSuccess = (postInventoryCountsCountIdReviewResponse200) & {
+  headers: Headers;
+};
+export type postInventoryCountsCountIdReviewResponseError = (postInventoryCountsCountIdReviewResponse400 | postInventoryCountsCountIdReviewResponse404 | postInventoryCountsCountIdReviewResponse409) & {
   headers: Headers;
 };
 
-export type postInventoryCountsCountIdReviewResponse =
-  | postInventoryCountsCountIdReviewResponseSuccess
-  | postInventoryCountsCountIdReviewResponseError;
+export type postInventoryCountsCountIdReviewResponse = (postInventoryCountsCountIdReviewResponseSuccess | postInventoryCountsCountIdReviewResponseError)
 
-export const getPostInventoryCountsCountIdReviewUrl = (countId: string) => {
-  return `/v1/inventory-counts/${countId}/review`;
-};
+export const getPostInventoryCountsCountIdReviewUrl = (countId: string,) => {
+
+
+
+
+  return `/v1/inventory-counts/${countId}/review`
+}
 
 /**
  * @summary Review a submitted inventory count
  */
-export const postInventoryCountsCountIdReview = async (
-  countId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postInventoryCountsCountIdReviewResponse> => {
-  return apiClient<postInventoryCountsCountIdReviewResponse>(
-    getPostInventoryCountsCountIdReviewUrl(countId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
+export const postInventoryCountsCountIdReview = async (countId: string, options?: Parameters<typeof apiClient>[1]): Promise<postInventoryCountsCountIdReviewResponse> => {
 
-export const getPostInventoryCountsCountIdReviewMutationFetcher = (
-  countId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+  return apiClient<postInventoryCountsCountIdReviewResponse>(getPostInventoryCountsCountIdReviewUrl(countId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getPostInventoryCountsCountIdReviewMutationFetcher = (countId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, __: { arg: Arguments }) => {
     return postInventoryCountsCountIdReview(countId, options);
-  };
-};
-export const getPostInventoryCountsCountIdReviewMutationKey = (countId: string) =>
-  [`/v1/inventory-counts/${countId}/review`] as const;
+  }
+}
+export const getPostInventoryCountsCountIdReviewMutationKey = (countId: string,) => [`/v1/inventory-counts/${countId}/review`] as const;
 
-export type PostInventoryCountsCountIdReviewMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>
->;
+export type PostInventoryCountsCountIdReviewMutationResult = NonNullable<Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>>
 
 /**
  * @summary Review a submitted inventory count
  */
 export const usePostInventoryCountsCountIdReview = <TError = ApiError>(
-  countId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  countId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>, TError, Key, Arguments, Awaited<ReturnType<typeof postInventoryCountsCountIdReview>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostInventoryCountsCountIdReviewMutationKey(countId);
   const swrFn = getPostInventoryCountsCountIdReviewMutationFetcher(countId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

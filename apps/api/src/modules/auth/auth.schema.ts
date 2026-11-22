@@ -9,7 +9,7 @@ export const authSessions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    refreshTokenHash: text("refresh_token_hash").notNull(),
+    sessionTokenHash: text("refresh_token_hash").notNull(),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -18,7 +18,7 @@ export const authSessions = pgTable(
     userAgent: text("user_agent"),
   },
   (table) => [
-    uniqueIndex("auth_sessions_refresh_token_hash_unique").on(table.refreshTokenHash),
+    uniqueIndex("auth_sessions_refresh_token_hash_unique").on(table.sessionTokenHash),
     index("auth_sessions_user_id_idx").on(table.userId),
     index("auth_sessions_expires_at_idx").on(table.expiresAt),
   ],

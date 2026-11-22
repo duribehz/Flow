@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type SubmittedReplenishmentStatus =
-  (typeof SubmittedReplenishmentStatus)[keyof typeof SubmittedReplenishmentStatus];
+export type SubmittedReplenishmentStatus = typeof SubmittedReplenishmentStatus[keyof typeof SubmittedReplenishmentStatus];
+
 
 export const SubmittedReplenishmentStatus = {
-  submitted: "submitted",
+  submitted: 'submitted',
 } as const;

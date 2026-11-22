@@ -218,7 +218,7 @@ function PurposeCard({
               {error}
             </p>
           )}
-          <Button type="submit" variant="outline" disabled={!dirty || update.isMutating}>
+          <Button type="submit" variant="default" disabled={!dirty || update.isMutating}>
             {update.isMutating ? <Loader2 className="animate-spin" /> : <Save />}
             Guardar cambios
           </Button>

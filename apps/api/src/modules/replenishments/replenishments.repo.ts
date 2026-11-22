@@ -9,13 +9,7 @@ import {
   inventoryCounts,
   inventoryDays,
 } from "../inventory/inventory.schema.js";
-import {
-  branchSupplySettings,
-  branchSupplyWeeklyTargets,
-  categories,
-  supplies,
-  units,
-} from "../supplies/supplies.schema.js";
+import { categories, supplies, units } from "../supplies/supplies.schema.js";
 import { usagePurposes } from "../usage-purposes/usage-purposes.schema.js";
 import { users } from "../users/users.schema.js";
 import {
@@ -64,35 +58,6 @@ export class ReplenishmentsRepo {
       );
     }
 
-    const tomorrowWeekday = getNextWeekday(count.businessDate);
-    const configuredItems = await this.conn
-      .select({
-        supplyId: inventoryCountItems.supplyId,
-        counted: inventoryCountItems.counted,
-        closingQuantity: inventoryCountItems.closingQuantity,
-        mode: branchSupplySettings.mode,
-        usagePurposeId: branchSupplySettings.defaultUsagePurposeId,
-        targetQuantity: branchSupplyWeeklyTargets.targetQuantity,
-        unitCost: supplies.unitCost,
-      })
-      .from(inventoryCountItems)
-      .innerJoin(
-        branchSupplySettings,
-        and(
-          eq(branchSupplySettings.branchId, count.branchId),
-          eq(branchSupplySettings.supplyId, inventoryCountItems.supplyId),
-        ),
-      )
-      .innerJoin(supplies, eq(supplies.id, inventoryCountItems.supplyId))
-      .leftJoin(
-        branchSupplyWeeklyTargets,
-        and(
-          eq(branchSupplyWeeklyTargets.branchSupplySettingId, branchSupplySettings.id),
-          eq(branchSupplyWeeklyTargets.weekday, tomorrowWeekday),
-        ),
-      )
-      .where(eq(inventoryCountItems.inventoryCountId, countId));
-
     const sequence = await this.nextRequestCounter(count.branchId.slice(0, 8).toUpperCase());
     const prefix = count.branchId.slice(0, 8).toUpperCase();
     const requestNumber = `REQ-${prefix}-${String(sequence).padStart(6, "0")}`;
@@ -105,29 +70,6 @@ export class ReplenishmentsRepo {
         requestedBy,
       })
       .returning();
-
-    const fixedItems = configuredItems.filter((item) => item.mode === "fixed");
-    if (fixedItems.length > 0) {
-      await this.conn.insert(replenishmentRequestItems).values(
-        fixedItems.map((item) => {
-          const suggestedQuantity =
-            item.counted && item.closingQuantity !== null && item.targetQuantity !== null
-              ? Math.max(item.targetQuantity - item.closingQuantity, 0)
-              : null;
-          const requestedQuantity = suggestedQuantity ?? 0;
-          return {
-            replenishmentRequestId: request!.id,
-            supplyId: item.supplyId,
-            usagePurposeId: item.usagePurposeId,
-            suggestedQuantity,
-            requestedQuantity,
-            fulfilledQuantity: 0,
-            unitCost: item.unitCost,
-            lineTotal: calculateLineTotalOrAppError(requestedQuantity, item.unitCost),
-          };
-        }),
-      );
-    }
 
     return request!;
   }
@@ -440,13 +382,6 @@ export class ReplenishmentsRepo {
     if ("transaction" in this.conn) return this.conn.transaction(callback);
     return callback(this.conn);
   }
-}
-
-function getNextWeekday(businessDate: string) {
-  const next = new Date(`${businessDate}T00:00:00.000Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  const weekday = next.getUTCDay();
-  return weekday === 0 ? 7 : weekday;
 }
 
 function calculateLineTotalOrAppError(storedQuantity: number, unitCostCents: number) {

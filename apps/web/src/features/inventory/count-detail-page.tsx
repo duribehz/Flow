@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, Check, CircleAlert, Loader2, Save, Send } from "lucide-react";
 
 import { useGetBranches } from "@/api/generated/branches/branches";
+import { useGetInventoryLastReports } from "@/api/generated/inventory/inventory";
 import {
   useGetInventoryCountsCountId,
   useGetInventoryDaysDayId,
@@ -33,6 +34,10 @@ export function CountDetailPage() {
   const dayQuery = useGetInventoryDaysDayId<ApiError>(count?.inventoryDayId ?? "", {
     swr: { enabled: Boolean(count) },
   });
+  const lastReportsQuery = useGetInventoryLastReports<ApiError>(
+    { branchId: count?.branchId ?? "" },
+    { swr: { enabled: Boolean(count) } },
+  );
   const suppliesQuery = useGetSupplies<ApiError>();
   const branchesQuery = useGetBranches<ApiError>();
   const updateCount = usePatchInventoryCountsCountId<ApiError>(countId);
@@ -40,7 +45,7 @@ export function CountDetailPage() {
   const reviewCount = usePostInventoryCountsCountIdReview<ApiError>(countId);
   const [values, setValues] = useState<Record<string, string>>({});
   const [baselineValues, setBaselineValues] = useState<Record<string, string>>({});
-  const [touchedSupplyIds, setTouchedSupplyIds] = useState<Set<string>>(() => new Set());
+  const [savingSupplyId, setSavingSupplyId] = useState<string>();
   const [notes, setNotes] = useState("");
   const [baselineNotes, setBaselineNotes] = useState("");
   const [formCountId, setFormCountId] = useState<string>();
@@ -63,6 +68,8 @@ export function CountDetailPage() {
   const supplies = suppliesQuery.data?.data.data ?? [];
   const branches = branchesQuery.data?.data.data ?? [];
   const supplyById = new Map(supplies.map((supply) => [supply.id, supply]));
+  const lastReports = lastReportsQuery.data?.status === 200 ? lastReportsQuery.data.data.data : [];
+  const lastReportBySupply = new Map(lastReports.map((report) => [report.supplyId, report]));
   const branchName = branches.find((branch) => branch.id === count?.branchId)?.name;
   const day = dayQuery.data?.status === 200 ? dayQuery.data.data.data : undefined;
   const isDraft = count?.status === "draft";
@@ -82,47 +89,89 @@ export function CountDetailPage() {
   const progress = total ? Math.round((counted / total) * 100) : 0;
   const loadError =
     countQuery.error ?? suppliesQuery.error ?? branchesQuery.error ?? dayQuery.error;
-  const isBusy = updateCount.isMutating || submitCount.isMutating || reviewCount.isMutating;
+  const isBusy =
+    updateCount.isMutating ||
+    submitCount.isMutating ||
+    reviewCount.isMutating ||
+    savingSupplyId !== undefined;
+  const notesDirty = notes.trim() !== baselineNotes.trim();
 
-  async function saveDraft() {
-    if (!count || !parsedValues) return false;
-    if (invalidSupplyIds.size) {
+  function isRowDirty(supplyId: string) {
+    return (values[supplyId] ?? "") !== (baselineValues[supplyId] ?? "");
+  }
+
+  async function saveRow(supplyId: string) {
+    if (!count) return false;
+    const raw = values[supplyId] ?? "";
+    const quantity = raw.trim() ? parseStoredQuantity(raw) : null;
+    if (raw.trim() && quantity === null) {
       setShowQuantityValidation(true);
       return false;
     }
     setActionError(undefined);
     setSaved(false);
+    setSavingSupplyId(supplyId);
     try {
-      const items = parsedValues
-        .filter((item) => item.value !== (baselineValues[item.supplyId] ?? ""))
-        .map((item) => ({
-          supplyId: item.supplyId,
-          closingQuantity: item.quantity,
-        }));
-      const normalizedNotes = notes.trim() || null;
-      const notesChanged = normalizedNotes !== (baselineNotes.trim() || null);
-      if (items.length || notesChanged) {
-        await updateCount.trigger({
-          ...(notesChanged ? { notes: normalizedNotes } : {}),
-          ...(items.length ? { items } : {}),
-        });
-      }
-      setBaselineValues({ ...values });
-      setBaselineNotes(notes);
-      await countQuery.mutate();
+      await updateCount.trigger({ items: [{ supplyId, closingQuantity: quantity }] });
+      setBaselineValues((current) => ({ ...current, [supplyId]: raw }));
+      await Promise.all([countQuery.mutate(), lastReportsQuery.mutate()]);
       setSaved(true);
       return true;
     } catch (error) {
       setActionError(
-        getApiErrorMessage(error, {}, "No pudimos guardar el avance. Inténtalo de nuevo."),
+        getApiErrorMessage(error, {}, "No pudimos guardar esta existencia. Inténtalo de nuevo."),
+      );
+      return false;
+    } finally {
+      setSavingSupplyId(undefined);
+    }
+  }
+
+  async function saveNotes() {
+    if (!count) return;
+    const normalizedNotes = notes.trim() || null;
+    setActionError(undefined);
+    setSaved(false);
+    try {
+      await updateCount.trigger({ notes: normalizedNotes });
+      setBaselineNotes(notes);
+      await countQuery.mutate();
+      setSaved(true);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error, {}, "No pudimos guardar las notas."));
+    }
+  }
+
+  async function saveAllPending() {
+    if (!count || !parsedValues) return false;
+    if (invalidSupplyIds.size) {
+      setShowQuantityValidation(true);
+      return false;
+    }
+    const pending = parsedValues.filter((item) => isRowDirty(item.supplyId));
+    if (pending.length === 0) return true;
+    setActionError(undefined);
+    try {
+      await updateCount.trigger({
+        items: pending.map((item) => ({ supplyId: item.supplyId, closingQuantity: item.quantity })),
+      });
+      setBaselineValues({ ...values });
+      await Promise.all([countQuery.mutate(), lastReportsQuery.mutate()]);
+      return true;
+    } catch (error) {
+      setActionError(
+        getApiErrorMessage(error, {}, "No pudimos guardar las existencias pendientes."),
       );
       return false;
     }
   }
 
   async function handleSubmit() {
-    if (!window.confirm("¿Enviar este conteo a revisión? Después ya no podrás editarlo.")) return;
-    if (!(await saveDraft())) return;
+    if (!window.confirm("¿Enviar estas existencias a revisión? Después ya no podrás editarlas.")) {
+      return;
+    }
+    if (!(await saveAllPending())) return;
+    if (notesDirty) await saveNotes();
     try {
       await submitCount.trigger();
       await countQuery.mutate();
@@ -130,15 +179,18 @@ export function CountDetailPage() {
       setActionError(
         getApiErrorMessage(
           error,
-          { INVENTORY_COUNT_INCOMPLETE: "Completa todos los artículos antes de enviar el conteo." },
-          "No pudimos enviar el conteo a revisión.",
+          {
+            INVENTORY_COUNT_INCOMPLETE:
+              "Completa todos los artículos antes de enviar las existencias.",
+          },
+          "No pudimos enviar las existencias a revisión.",
         ),
       );
     }
   }
 
   async function handleReview() {
-    if (!window.confirm("¿Marcar este conteo como revisado?")) return;
+    if (!window.confirm("¿Marcar estas existencias como revisadas?")) return;
     setActionError(undefined);
     try {
       await reviewCount.trigger();
@@ -152,7 +204,7 @@ export function CountDetailPage() {
     return (
       <PageFrame>
         <div className="flex min-h-64 items-center justify-center gap-3 text-muted-foreground">
-          <Loader2 className="animate-spin" /> Cargando conteo...
+          <Loader2 className="animate-spin" /> Cargando existencias...
         </div>
       </PageFrame>
     );
@@ -163,9 +215,13 @@ export function CountDetailPage() {
       <PageFrame>
         <Card className="items-center p-8 text-center">
           <CircleAlert className="size-8 text-destructive" />
-          <h1 className="text-xl font-semibold">No pudimos cargar el conteo</h1>
+          <h1 className="text-xl font-semibold">No pudimos cargar las existencias</h1>
           <p className="max-w-md text-muted-foreground">
-            {getApiErrorMessage(loadError, {}, "El conteo no está disponible o no tienes acceso.")}
+            {getApiErrorMessage(
+              loadError,
+              {},
+              "Las existencias no están disponibles o no tienes acceso.",
+            )}
           </p>
           <Button variant="outline" onClick={() => void countQuery.mutate()}>
             Intentar de nuevo
@@ -178,13 +234,13 @@ export function CountDetailPage() {
   return (
     <PageFrame>
       <PageHeader
-        eyebrow={day ? formatDate(day.businessDate) : "Conteo de inventario"}
-        title={branchName ?? "Detalle de conteo"}
-        description="Registra cada cantidad. Un campo vacío significa No contado; escribe 0 para registrar cero."
+        eyebrow={day ? formatDate(day.businessDate) : "Existencias de inventario"}
+        title={branchName ?? "Detalle de existencias"}
+        description="Guarda cada artículo con su botón Guardar. Un campo vacío significa No contado; escribe 0 para registrar cero."
         actions={
           <>
             <Button variant="outline" onClick={() => void navigate({ to: "/inventory" })}>
-              <ArrowLeft /> Inventario
+              <ArrowLeft /> Existencias
             </Button>
             <StatusBadge status={count.status} />
           </>
@@ -201,7 +257,7 @@ export function CountDetailPage() {
           </div>
           <div
             role="progressbar"
-            aria-label="Progreso del conteo"
+            aria-label="Progreso de existencias"
             aria-valuemin={0}
             aria-valuemax={total}
             aria-valuenow={counted}
@@ -213,18 +269,15 @@ export function CountDetailPage() {
             />
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Los cambios solo se envían al presionar Guardar avance.
-        </p>
       </section>
 
       <section aria-labelledby="items-title" className="space-y-3">
         <h2 id="items-title" className="text-lg font-semibold">
-          Artículos del snapshot
+          Artículos
         </h2>
         {count.items.length === 0 ? (
           <Card className="p-8 text-center text-muted-foreground">
-            Este conteo no contiene artículos para registrar.
+            Estas existencias no contienen artículos para registrar.
           </Card>
         ) : (
           <div className="grid gap-3">
@@ -232,13 +285,14 @@ export function CountDetailPage() {
               const supply = supplyById.get(item.supplyId);
               const inputId = `quantity-${item.id}`;
               const value = values[item.supplyId] ?? "";
-              const showItemError =
-                invalidSupplyIds.has(item.supplyId) &&
-                (showQuantityValidation || touchedSupplyIds.has(item.supplyId));
+              const report = lastReportBySupply.get(item.supplyId);
+              const unit = supply?.unit.symbol ?? "unidad";
+              const dirty = isRowDirty(item.supplyId);
+              const showItemError = invalidSupplyIds.has(item.supplyId) && showQuantityValidation;
               return (
                 <article
                   key={item.id}
-                  className="grid gap-4 rounded-xl border bg-card p-4 sm:grid-cols-[minmax(0,1fr)_auto_minmax(150px,0.35fr)] sm:items-center sm:p-5"
+                  className="grid gap-4 rounded-xl border bg-card p-4 sm:p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1.3fr)_minmax(180px,0.8fr)_auto] lg:items-end"
                 >
                   <div className="min-w-0">
                     <p className="truncate font-semibold">
@@ -248,7 +302,37 @@ export function CountDetailPage() {
                       {supply ? `${supply.sku} · ${supply.category.name}` : item.supplyId}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-5 text-sm sm:min-w-52">
+                  <div className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Último reporte</p>
+                      {report && report.closingQuantity !== null ? (
+                        <>
+                          <p className="mt-1 font-medium tabular-nums">
+                            {formatStoredQuantity(report.closingQuantity)} {unit}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(report.businessDate)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Sin reporte de existencias para este artículo
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Stock actual</p>
+                      {report && report.currentQuantity !== null ? (
+                        <p
+                          className="mt-1 font-semibold tabular-nums"
+                          title="Último reporte más envíos y recepciones posteriores"
+                        >
+                          {formatStoredQuantity(report.currentQuantity)} {unit}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">Sin reporte</p>
+                      )}
+                    </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Apertura</p>
                       <p className="mt-1 font-medium tabular-nums">
@@ -263,7 +347,7 @@ export function CountDetailPage() {
                     </div>
                   </div>
                   <label htmlFor={inputId} className="grid gap-1.5 text-sm font-medium">
-                    Cierre ({supply?.unit.symbol ?? "unidad"})
+                    Cierre ({unit})
                     {isDraft ? (
                       <>
                         <Input
@@ -277,19 +361,11 @@ export function CountDetailPage() {
                             const inputValue = event.currentTarget.value;
                             setSaved(false);
                             setShowQuantityValidation(false);
-                            setTouchedSupplyIds((current) => {
-                              const next = new Set(current);
-                              next.delete(item.supplyId);
-                              return next;
-                            });
                             setValues((current) => ({
                               ...current,
                               [item.supplyId]: inputValue,
                             }));
                           }}
-                          onBlur={() =>
-                            setTouchedSupplyIds((current) => new Set(current).add(item.supplyId))
-                          }
                         />
                         {showItemError && (
                           <span id={`${inputId}-error`} className="text-xs text-destructive">
@@ -303,6 +379,20 @@ export function CountDetailPage() {
                       </p>
                     )}
                   </label>
+                  {isDraft && (
+                    <Button
+                      variant="default"
+                      disabled={!dirty || invalidSupplyIds.has(item.supplyId) || isBusy}
+                      onClick={() => void saveRow(item.supplyId)}
+                    >
+                      {savingSupplyId === item.supplyId ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <Save />
+                      )}
+                      Guardar
+                    </Button>
+                  )}
                 </article>
               );
             })}
@@ -324,27 +414,25 @@ export function CountDetailPage() {
           }}
           maxLength={1000}
           rows={4}
-          placeholder="Observaciones del conteo"
+          placeholder="Observaciones de existencias"
           className="mt-2 w-full resize-y rounded-xl border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:bg-muted/50"
         />
         <div className="mt-4 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div aria-live="polite" className="text-sm">
             {actionError && <span className="font-medium text-destructive">{actionError}</span>}
             {saved && !actionError && (
-              <span className="font-medium text-emerald-700">Avance guardado.</span>
+              <span className="font-medium text-emerald-700">Guardado.</span>
             )}
           </div>
           {isDraft && (
             <div className="flex flex-col gap-2 sm:flex-row">
+              {notesDirty && (
+                <Button variant="default" disabled={isBusy} onClick={() => void saveNotes()}>
+                  <Save /> Guardar notas
+                </Button>
+              )}
               <Button
-                variant="outline"
-                disabled={isBusy || invalidSupplyIds.size > 0}
-                onClick={() => void saveDraft()}
-              >
-                {updateCount.isMutating ? <Loader2 className="animate-spin" /> : <Save />}
-                Guardar avance
-              </Button>
-              <Button
+                variant="default"
                 disabled={isBusy || invalidSupplyIds.size > 0}
                 onClick={() => void handleSubmit()}
               >
@@ -354,7 +442,7 @@ export function CountDetailPage() {
             </div>
           )}
           {count.status === "submitted" && (
-            <Button disabled={isBusy} onClick={() => void handleReview()}>
+            <Button variant="default" disabled={isBusy} onClick={() => void handleReview()}>
               {reviewCount.isMutating ? <Loader2 className="animate-spin" /> : <Check />}
               Marcar como revisado
             </Button>

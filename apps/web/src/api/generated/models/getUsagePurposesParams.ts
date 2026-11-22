@@ -5,8 +5,8 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { GetUsagePurposesActive } from "./getUsagePurposesActive";
+import type { GetUsagePurposesActive } from './getUsagePurposesActive';
 
 export type GetUsagePurposesParams = {
-  active?: GetUsagePurposesActive;
+active?: GetUsagePurposesActive;
 };

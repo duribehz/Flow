@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export function PageHeader({
   eyebrow,
@@ -27,9 +28,14 @@ export function PageHeader({
   );
 }
 
-export function PageFrame({ children }: { children: ReactNode }) {
+export function PageFrame({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <main className="mx-auto w-full max-w-[1180px] space-y-7 px-5 py-8 sm:px-8 sm:py-10">
+    <main
+      className={cn(
+        "mx-auto w-full max-w-[1180px] space-y-7 px-5 py-8 sm:px-8 sm:py-10",
+        className,
+      )}
+    >
       {children}
     </main>
   );

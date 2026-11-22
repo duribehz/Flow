@@ -5,121 +5,135 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
-import type { ApiError, CreateCategory, GetCategories200, PostCategories201 } from "../models";
+import type {
+  ApiError,
+  CreateCategory,
+  GetCategories200,
+  PostCategories201
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getCategoriesResponse200 = {
-  data: GetCategories200;
-  status: 200;
-};
 
-export type getCategoriesResponseSuccess = getCategoriesResponse200 & {
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getCategoriesResponse200 = {
+  data: GetCategories200
+  status: 200
+}
+
+export type getCategoriesResponseSuccess = (getCategoriesResponse200) & {
   headers: Headers;
 };
+;
 
-export type getCategoriesResponse = getCategoriesResponseSuccess;
+export type getCategoriesResponse = (getCategoriesResponseSuccess)
 
 export const getGetCategoriesUrl = () => {
-  return `/v1/categories`;
-};
+
+
+
+
+  return `/v1/categories`
+}
 
 /**
  * @summary List categories
  */
-export const getCategories = async (
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getCategoriesResponse> => {
-  return apiClient<getCategoriesResponse>(getGetCategoriesUrl(), {
+export const getCategories = async ( options?: Parameters<typeof apiClient>[1]): Promise<getCategoriesResponse> => {
+
+  return apiClient<getCategoriesResponse>(getGetCategoriesUrl(),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+
+
+  }
+);}
+
+
+
 
 export const getGetCategoriesKey = () => [`/v1/categories`] as const;
 
-export type GetCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getCategories>>>;
+export type GetCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getCategories>>>
 
 /**
  * @summary List categories
  */
-export const useGetCategories = <TError = unknown>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getCategories>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const useGetCategories = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getCategories>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetCategoriesKey() : null));
-  const swrFn = () => getCategories(requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetCategoriesKey() : null);
+  const swrFn = () => getCategories(requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postCategoriesResponse201 = {
-  data: PostCategories201;
-  status: 201;
-};
+  data: PostCategories201
+  status: 201
+}
 
 export type postCategoriesResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postCategoriesResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postCategoriesResponseSuccess = postCategoriesResponse201 & {
+export type postCategoriesResponseSuccess = (postCategoriesResponse201) & {
   headers: Headers;
 };
-export type postCategoriesResponseError = (
-  | postCategoriesResponse400
-  | postCategoriesResponse409
-) & {
+export type postCategoriesResponseError = (postCategoriesResponse400 | postCategoriesResponse409) & {
   headers: Headers;
 };
 
-export type postCategoriesResponse = postCategoriesResponseSuccess | postCategoriesResponseError;
+export type postCategoriesResponse = (postCategoriesResponseSuccess | postCategoriesResponseError)
 
 export const getPostCategoriesUrl = () => {
-  return `/v1/categories`;
-};
+
+
+
+
+  return `/v1/categories`
+}
 
 /**
  * @summary Create a category
  */
-export const postCategories = async (
-  createCategory: CreateCategory,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postCategoriesResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postCategories = async (createCategory: CreateCategory, options?: Parameters<typeof apiClient>[1]): Promise<postCategoriesResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -128,45 +142,43 @@ export const postCategories = async (
     }
     return headers;
   };
-  return apiClient<postCategoriesResponse>(getPostCategoriesUrl(), {
+return apiClient<postCategoriesResponse>(getPostCategoriesUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createCategory),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createCategory)
+  }
+);}
 
-export const getPostCategoriesMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
+
+
+
+export const getPostCategoriesMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateCategory }) => {
     return postCategories(arg, options);
-  };
-};
+  }
+}
 export const getPostCategoriesMutationKey = () => [`/v1/categories`] as const;
 
-export type PostCategoriesMutationResult = NonNullable<Awaited<ReturnType<typeof postCategories>>>;
+export type PostCategoriesMutationResult = NonNullable<Awaited<ReturnType<typeof postCategories>>>
 
 /**
  * @summary Create a category
  */
-export const usePostCategories = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postCategories>>,
-    TError,
-    Key,
-    CreateCategory,
-    Awaited<ReturnType<typeof postCategories>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostCategories = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postCategories>>, TError, Key, CreateCategory, Awaited<ReturnType<typeof postCategories>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostCategoriesMutationKey();
   const swrFn = getPostCategoriesMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

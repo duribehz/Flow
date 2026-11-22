@@ -12,6 +12,7 @@ const actorId = "00000000-0000-4000-8000-000000000001";
 const incidentId = "10000000-0000-4000-8000-000000000001";
 const receiptId = "10000000-0000-4000-8000-000000000002";
 const receiptItemId = "10000000-0000-4000-8000-000000000003";
+const branchId = "10000000-0000-4000-8000-000000000004";
 const now = new Date("2026-10-24T12:00:00.000Z");
 const incident: Incident = {
   id: incidentId,
@@ -38,11 +39,13 @@ const getIncidentUseCase = mock(async (_id: string, _db: Executor) => incident);
 const updateIncidentUseCase = mock(
   async (_id: string, _actorId: string, _input: unknown, _db: Executor) => incident,
 );
+const getReceiptUseCase = mock(async () => ({ branch: { id: branchId, name: "Centro" } }));
 
 mock.module("./use-cases/create-incident.usecase.js", () => ({ createIncidentUseCase }));
 mock.module("./use-cases/list-incidents.usecase.js", () => ({ listIncidentsUseCase }));
 mock.module("./use-cases/get-incident.usecase.js", () => ({ getIncidentUseCase }));
 mock.module("./use-cases/update-incident.usecase.js", () => ({ updateIncidentUseCase }));
+mock.module("./use-cases/get-receipt.usecase.js", () => ({ getReceiptUseCase }));
 
 const { incidentsRouter } = await import("./incidents.router.js");
 
@@ -103,6 +106,7 @@ describe("incident routes", () => {
       actorId,
       { status: "investigating", assignedTo: actorId },
       expect.anything(),
+      undefined,
     );
   });
 

@@ -5,11 +5,17 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Arguments, Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Arguments,
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   AddReplenishmentItem,
@@ -24,270 +30,258 @@ import type {
   PostReplenishmentsReplenishmentIdSubmit200,
   SubmitReplenishment,
   UpdateReplenishmentItem,
-  UpdateReplenishmentNotes,
-} from "../models";
+  UpdateReplenishmentNotes
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getDraftReplenishmentsResponse200 = {
-  data: GetDraftReplenishments200;
-  status: 200;
-};
 
-export type getDraftReplenishmentsResponseSuccess = getDraftReplenishmentsResponse200 & {
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getDraftReplenishmentsResponse200 = {
+  data: GetDraftReplenishments200
+  status: 200
+}
+
+export type getDraftReplenishmentsResponseSuccess = (getDraftReplenishmentsResponse200) & {
   headers: Headers;
 };
+;
 
-export type getDraftReplenishmentsResponse = getDraftReplenishmentsResponseSuccess;
+export type getDraftReplenishmentsResponse = (getDraftReplenishmentsResponseSuccess)
 
 export const getGetDraftReplenishmentsUrl = () => {
-  return `/v1/replenishments/drafts`;
-};
+
+
+
+
+  return `/v1/replenishments/drafts`
+}
 
 /**
  * @summary List draft replenishment requests
  */
-export const getDraftReplenishments = async (
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getDraftReplenishmentsResponse> => {
-  return apiClient<getDraftReplenishmentsResponse>(getGetDraftReplenishmentsUrl(), {
+export const getDraftReplenishments = async ( options?: Parameters<typeof apiClient>[1]): Promise<getDraftReplenishmentsResponse> => {
+
+  return apiClient<getDraftReplenishmentsResponse>(getGetDraftReplenishmentsUrl(),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+
+
+  }
+);}
+
+
+
 
 export const getGetDraftReplenishmentsKey = () => [`/v1/replenishments/drafts`] as const;
 
-export type GetDraftReplenishmentsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getDraftReplenishments>>
->;
+export type GetDraftReplenishmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getDraftReplenishments>>>
 
 /**
  * @summary List draft replenishment requests
  */
-export const useGetDraftReplenishments = <TError = unknown>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getDraftReplenishments>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const useGetDraftReplenishments = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getDraftReplenishments>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetDraftReplenishmentsKey() : null));
-  const swrFn = () => getDraftReplenishments(requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetDraftReplenishmentsKey() : null);
+  const swrFn = () => getDraftReplenishments(requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getReplenishmentsResponse200 = {
-  data: GetReplenishments200;
-  status: 200;
-};
+  data: GetReplenishments200
+  status: 200
+}
 
-export type getReplenishmentsResponseSuccess = getReplenishmentsResponse200 & {
+export type getReplenishmentsResponseSuccess = (getReplenishmentsResponse200) & {
   headers: Headers;
 };
+;
 
-export type getReplenishmentsResponse = getReplenishmentsResponseSuccess;
+export type getReplenishmentsResponse = (getReplenishmentsResponseSuccess)
 
 export const getGetReplenishmentsUrl = () => {
-  return `/v1/replenishments`;
-};
+
+
+
+
+  return `/v1/replenishments`
+}
 
 /**
  * @summary List submitted replenishment requests
  */
-export const getReplenishments = async (
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getReplenishmentsResponse> => {
-  return apiClient<getReplenishmentsResponse>(getGetReplenishmentsUrl(), {
+export const getReplenishments = async ( options?: Parameters<typeof apiClient>[1]): Promise<getReplenishmentsResponse> => {
+
+  return apiClient<getReplenishmentsResponse>(getGetReplenishmentsUrl(),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+
+
+  }
+);}
+
+
+
 
 export const getGetReplenishmentsKey = () => [`/v1/replenishments`] as const;
 
-export type GetReplenishmentsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getReplenishments>>
->;
+export type GetReplenishmentsQueryResult = NonNullable<Awaited<ReturnType<typeof getReplenishments>>>
 
 /**
  * @summary List submitted replenishment requests
  */
-export const useGetReplenishments = <TError = unknown>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getReplenishments>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const useGetReplenishments = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getReplenishments>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetReplenishmentsKey() : null));
-  const swrFn = () => getReplenishments(requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetReplenishmentsKey() : null);
+  const swrFn = () => getReplenishments(requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getReplenishmentsReplenishmentIdResponse200 = {
-  data: GetReplenishmentsReplenishmentId200;
-  status: 200;
-};
+  data: GetReplenishmentsReplenishmentId200
+  status: 200
+}
 
 export type getReplenishmentsReplenishmentIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getReplenishmentsReplenishmentIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getReplenishmentsReplenishmentIdResponseSuccess =
-  getReplenishmentsReplenishmentIdResponse200 & {
-    headers: Headers;
-  };
-export type getReplenishmentsReplenishmentIdResponseError = (
-  | getReplenishmentsReplenishmentIdResponse400
-  | getReplenishmentsReplenishmentIdResponse404
-) & {
+export type getReplenishmentsReplenishmentIdResponseSuccess = (getReplenishmentsReplenishmentIdResponse200) & {
+  headers: Headers;
+};
+export type getReplenishmentsReplenishmentIdResponseError = (getReplenishmentsReplenishmentIdResponse400 | getReplenishmentsReplenishmentIdResponse404) & {
   headers: Headers;
 };
 
-export type getReplenishmentsReplenishmentIdResponse =
-  | getReplenishmentsReplenishmentIdResponseSuccess
-  | getReplenishmentsReplenishmentIdResponseError;
+export type getReplenishmentsReplenishmentIdResponse = (getReplenishmentsReplenishmentIdResponseSuccess | getReplenishmentsReplenishmentIdResponseError)
 
-export const getGetReplenishmentsReplenishmentIdUrl = (replenishmentId: string) => {
-  return `/v1/replenishments/${replenishmentId}`;
-};
+export const getGetReplenishmentsReplenishmentIdUrl = (replenishmentId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}`
+}
 
 /**
  * @summary Get a replenishment request
  */
-export const getReplenishmentsReplenishmentId = async (
-  replenishmentId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getReplenishmentsReplenishmentIdResponse> => {
-  return apiClient<getReplenishmentsReplenishmentIdResponse>(
-    getGetReplenishmentsReplenishmentIdUrl(replenishmentId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const getReplenishmentsReplenishmentId = async (replenishmentId: string, options?: Parameters<typeof apiClient>[1]): Promise<getReplenishmentsReplenishmentIdResponse> => {
 
-export const getGetReplenishmentsReplenishmentIdKey = (replenishmentId: string) =>
-  [`/v1/replenishments/${replenishmentId}`] as const;
+  return apiClient<getReplenishmentsReplenishmentIdResponse>(getGetReplenishmentsReplenishmentIdUrl(replenishmentId),
+  {
+    ...options,
+    method: 'GET'
 
-export type GetReplenishmentsReplenishmentIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getReplenishmentsReplenishmentId>>
->;
+
+  }
+);}
+
+
+
+
+export const getGetReplenishmentsReplenishmentIdKey = (replenishmentId: string,) => [`/v1/replenishments/${replenishmentId}`] as const;
+
+export type GetReplenishmentsReplenishmentIdQueryResult = NonNullable<Awaited<ReturnType<typeof getReplenishmentsReplenishmentId>>>
 
 /**
  * @summary Get a replenishment request
  */
 export const useGetReplenishmentsReplenishmentId = <TError = ApiError>(
-  replenishmentId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getReplenishmentsReplenishmentId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  replenishmentId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getReplenishmentsReplenishmentId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled =
-    swrOptions?.enabled !== false && replenishmentId !== null && replenishmentId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getGetReplenishmentsReplenishmentIdKey(replenishmentId) : null));
-  const swrFn = () => getReplenishmentsReplenishmentId(replenishmentId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && replenishmentId !== null && replenishmentId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetReplenishmentsReplenishmentIdKey(replenishmentId) : null);
+  const swrFn = () => getReplenishmentsReplenishmentId(replenishmentId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchReplenishmentsReplenishmentIdResponse200 = {
-  data: PatchReplenishmentsReplenishmentId200;
-  status: 200;
-};
+  data: PatchReplenishmentsReplenishmentId200
+  status: 200
+}
 
 export type patchReplenishmentsReplenishmentIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchReplenishmentsReplenishmentIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchReplenishmentsReplenishmentIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchReplenishmentsReplenishmentIdResponseSuccess =
-  patchReplenishmentsReplenishmentIdResponse200 & {
-    headers: Headers;
-  };
-export type patchReplenishmentsReplenishmentIdResponseError = (
-  | patchReplenishmentsReplenishmentIdResponse400
-  | patchReplenishmentsReplenishmentIdResponse404
-  | patchReplenishmentsReplenishmentIdResponse409
-) & {
+export type patchReplenishmentsReplenishmentIdResponseSuccess = (patchReplenishmentsReplenishmentIdResponse200) & {
+  headers: Headers;
+};
+export type patchReplenishmentsReplenishmentIdResponseError = (patchReplenishmentsReplenishmentIdResponse400 | patchReplenishmentsReplenishmentIdResponse404 | patchReplenishmentsReplenishmentIdResponse409) & {
   headers: Headers;
 };
 
-export type patchReplenishmentsReplenishmentIdResponse =
-  | patchReplenishmentsReplenishmentIdResponseSuccess
-  | patchReplenishmentsReplenishmentIdResponseError;
+export type patchReplenishmentsReplenishmentIdResponse = (patchReplenishmentsReplenishmentIdResponseSuccess | patchReplenishmentsReplenishmentIdResponseError)
 
-export const getPatchReplenishmentsReplenishmentIdUrl = (replenishmentId: string) => {
-  return `/v1/replenishments/${replenishmentId}`;
-};
+export const getPatchReplenishmentsReplenishmentIdUrl = (replenishmentId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}`
+}
 
 /**
  * @summary Update draft replenishment notes
  */
-export const patchReplenishmentsReplenishmentId = async (
-  replenishmentId: string,
-  updateReplenishmentNotes: UpdateReplenishmentNotes,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchReplenishmentsReplenishmentIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchReplenishmentsReplenishmentId = async (replenishmentId: string,
+    updateReplenishmentNotes: UpdateReplenishmentNotes, options?: Parameters<typeof apiClient>[1]): Promise<patchReplenishmentsReplenishmentIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -296,123 +290,95 @@ export const patchReplenishmentsReplenishmentId = async (
     }
     return headers;
   };
-  return apiClient<patchReplenishmentsReplenishmentIdResponse>(
-    getPatchReplenishmentsReplenishmentIdUrl(replenishmentId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(updateReplenishmentNotes),
-    },
-  );
-};
+return apiClient<patchReplenishmentsReplenishmentIdResponse>(getPatchReplenishmentsReplenishmentIdUrl(replenishmentId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateReplenishmentNotes)
+  }
+);}
 
-export const getPatchReplenishmentsReplenishmentIdMutationFetcher = (
-  replenishmentId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchReplenishmentsReplenishmentIdMutationFetcher = (replenishmentId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateReplenishmentNotes }) => {
     return patchReplenishmentsReplenishmentId(replenishmentId, arg, options);
-  };
-};
-export const getPatchReplenishmentsReplenishmentIdMutationKey = (replenishmentId: string) =>
-  [`/v1/replenishments/${replenishmentId}`] as const;
+  }
+}
+export const getPatchReplenishmentsReplenishmentIdMutationKey = (replenishmentId: string,) => [`/v1/replenishments/${replenishmentId}`] as const;
 
-export type PatchReplenishmentsReplenishmentIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>
->;
+export type PatchReplenishmentsReplenishmentIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>>
 
 /**
  * @summary Update draft replenishment notes
  */
 export const usePatchReplenishmentsReplenishmentId = <TError = ApiError>(
-  replenishmentId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>,
-      TError,
-      Key,
-      UpdateReplenishmentNotes,
-      Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  replenishmentId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>, TError, Key, UpdateReplenishmentNotes, Awaited<ReturnType<typeof patchReplenishmentsReplenishmentId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPatchReplenishmentsReplenishmentIdMutationKey(replenishmentId);
-  const swrFn = getPatchReplenishmentsReplenishmentIdMutationFetcher(
-    replenishmentId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getPatchReplenishmentsReplenishmentIdMutationKey(replenishmentId);
+  const swrFn = getPatchReplenishmentsReplenishmentIdMutationFetcher(replenishmentId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postReplenishmentsReplenishmentIdItemsResponse200 = {
-  data: PostReplenishmentsReplenishmentIdItems200;
-  status: 200;
-};
+  data: PostReplenishmentsReplenishmentIdItems200
+  status: 200
+}
 
 export type postReplenishmentsReplenishmentIdItemsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postReplenishmentsReplenishmentIdItemsResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postReplenishmentsReplenishmentIdItemsResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postReplenishmentsReplenishmentIdItemsResponseSuccess =
-  postReplenishmentsReplenishmentIdItemsResponse200 & {
-    headers: Headers;
-  };
-export type postReplenishmentsReplenishmentIdItemsResponseError = (
-  | postReplenishmentsReplenishmentIdItemsResponse400
-  | postReplenishmentsReplenishmentIdItemsResponse404
-  | postReplenishmentsReplenishmentIdItemsResponse409
-) & {
+export type postReplenishmentsReplenishmentIdItemsResponseSuccess = (postReplenishmentsReplenishmentIdItemsResponse200) & {
+  headers: Headers;
+};
+export type postReplenishmentsReplenishmentIdItemsResponseError = (postReplenishmentsReplenishmentIdItemsResponse400 | postReplenishmentsReplenishmentIdItemsResponse404 | postReplenishmentsReplenishmentIdItemsResponse409) & {
   headers: Headers;
 };
 
-export type postReplenishmentsReplenishmentIdItemsResponse =
-  | postReplenishmentsReplenishmentIdItemsResponseSuccess
-  | postReplenishmentsReplenishmentIdItemsResponseError;
+export type postReplenishmentsReplenishmentIdItemsResponse = (postReplenishmentsReplenishmentIdItemsResponseSuccess | postReplenishmentsReplenishmentIdItemsResponseError)
 
-export const getPostReplenishmentsReplenishmentIdItemsUrl = (replenishmentId: string) => {
-  return `/v1/replenishments/${replenishmentId}/items`;
-};
+export const getPostReplenishmentsReplenishmentIdItemsUrl = (replenishmentId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}/items`
+}
 
 /**
  * @summary Add a line to a draft replenishment
  */
-export const postReplenishmentsReplenishmentIdItems = async (
-  replenishmentId: string,
-  addReplenishmentItem: AddReplenishmentItem,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postReplenishmentsReplenishmentIdItemsResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postReplenishmentsReplenishmentIdItems = async (replenishmentId: string,
+    addReplenishmentItem: AddReplenishmentItem, options?: Parameters<typeof apiClient>[1]): Promise<postReplenishmentsReplenishmentIdItemsResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -421,127 +387,97 @@ export const postReplenishmentsReplenishmentIdItems = async (
     }
     return headers;
   };
-  return apiClient<postReplenishmentsReplenishmentIdItemsResponse>(
-    getPostReplenishmentsReplenishmentIdItemsUrl(replenishmentId),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(addReplenishmentItem),
-    },
-  );
-};
+return apiClient<postReplenishmentsReplenishmentIdItemsResponse>(getPostReplenishmentsReplenishmentIdItemsUrl(replenishmentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(addReplenishmentItem)
+  }
+);}
 
-export const getPostReplenishmentsReplenishmentIdItemsMutationFetcher = (
-  replenishmentId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostReplenishmentsReplenishmentIdItemsMutationFetcher = (replenishmentId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: AddReplenishmentItem }) => {
     return postReplenishmentsReplenishmentIdItems(replenishmentId, arg, options);
-  };
-};
-export const getPostReplenishmentsReplenishmentIdItemsMutationKey = (replenishmentId: string) =>
-  [`/v1/replenishments/${replenishmentId}/items`] as const;
+  }
+}
+export const getPostReplenishmentsReplenishmentIdItemsMutationKey = (replenishmentId: string,) => [`/v1/replenishments/${replenishmentId}/items`] as const;
 
-export type PostReplenishmentsReplenishmentIdItemsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>
->;
+export type PostReplenishmentsReplenishmentIdItemsMutationResult = NonNullable<Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>>
 
 /**
  * @summary Add a line to a draft replenishment
  */
 export const usePostReplenishmentsReplenishmentIdItems = <TError = ApiError>(
-  replenishmentId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>,
-      TError,
-      Key,
-      AddReplenishmentItem,
-      Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  replenishmentId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>, TError, Key, AddReplenishmentItem, Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdItems>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPostReplenishmentsReplenishmentIdItemsMutationKey(replenishmentId);
-  const swrFn = getPostReplenishmentsReplenishmentIdItemsMutationFetcher(
-    replenishmentId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getPostReplenishmentsReplenishmentIdItemsMutationKey(replenishmentId);
+  const swrFn = getPostReplenishmentsReplenishmentIdItemsMutationFetcher(replenishmentId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchReplenishmentsReplenishmentIdItemsItemIdResponse200 = {
-  data: PatchReplenishmentsReplenishmentIdItemsItemId200;
-  status: 200;
-};
+  data: PatchReplenishmentsReplenishmentIdItemsItemId200
+  status: 200
+}
 
 export type patchReplenishmentsReplenishmentIdItemsItemIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchReplenishmentsReplenishmentIdItemsItemIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchReplenishmentsReplenishmentIdItemsItemIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchReplenishmentsReplenishmentIdItemsItemIdResponseSuccess =
-  patchReplenishmentsReplenishmentIdItemsItemIdResponse200 & {
-    headers: Headers;
-  };
-export type patchReplenishmentsReplenishmentIdItemsItemIdResponseError = (
-  | patchReplenishmentsReplenishmentIdItemsItemIdResponse400
-  | patchReplenishmentsReplenishmentIdItemsItemIdResponse404
-  | patchReplenishmentsReplenishmentIdItemsItemIdResponse409
-) & {
+export type patchReplenishmentsReplenishmentIdItemsItemIdResponseSuccess = (patchReplenishmentsReplenishmentIdItemsItemIdResponse200) & {
+  headers: Headers;
+};
+export type patchReplenishmentsReplenishmentIdItemsItemIdResponseError = (patchReplenishmentsReplenishmentIdItemsItemIdResponse400 | patchReplenishmentsReplenishmentIdItemsItemIdResponse404 | patchReplenishmentsReplenishmentIdItemsItemIdResponse409) & {
   headers: Headers;
 };
 
-export type patchReplenishmentsReplenishmentIdItemsItemIdResponse =
-  | patchReplenishmentsReplenishmentIdItemsItemIdResponseSuccess
-  | patchReplenishmentsReplenishmentIdItemsItemIdResponseError;
+export type patchReplenishmentsReplenishmentIdItemsItemIdResponse = (patchReplenishmentsReplenishmentIdItemsItemIdResponseSuccess | patchReplenishmentsReplenishmentIdItemsItemIdResponseError)
 
-export const getPatchReplenishmentsReplenishmentIdItemsItemIdUrl = (
-  replenishmentId: string,
-  itemId: string,
-) => {
-  return `/v1/replenishments/${replenishmentId}/items/${itemId}`;
-};
+export const getPatchReplenishmentsReplenishmentIdItemsItemIdUrl = (replenishmentId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}/items/${itemId}`
+}
 
 /**
  * @summary Update a draft replenishment line
  */
-export const patchReplenishmentsReplenishmentIdItemsItemId = async (
-  replenishmentId: string,
-  itemId: string,
-  updateReplenishmentItem: UpdateReplenishmentItem,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchReplenishmentsReplenishmentIdItemsItemIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchReplenishmentsReplenishmentIdItemsItemId = async (replenishmentId: string,
+    itemId: string,
+    updateReplenishmentItem: UpdateReplenishmentItem, options?: Parameters<typeof apiClient>[1]): Promise<patchReplenishmentsReplenishmentIdItemsItemIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -550,242 +486,185 @@ export const patchReplenishmentsReplenishmentIdItemsItemId = async (
     }
     return headers;
   };
-  return apiClient<patchReplenishmentsReplenishmentIdItemsItemIdResponse>(
-    getPatchReplenishmentsReplenishmentIdItemsItemIdUrl(replenishmentId, itemId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(updateReplenishmentItem),
-    },
-  );
-};
+return apiClient<patchReplenishmentsReplenishmentIdItemsItemIdResponse>(getPatchReplenishmentsReplenishmentIdItemsItemIdUrl(replenishmentId,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateReplenishmentItem)
+  }
+);}
 
-export const getPatchReplenishmentsReplenishmentIdItemsItemIdMutationFetcher = (
-  replenishmentId: string,
-  itemId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchReplenishmentsReplenishmentIdItemsItemIdMutationFetcher = (replenishmentId: string,
+    itemId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateReplenishmentItem }) => {
     return patchReplenishmentsReplenishmentIdItemsItemId(replenishmentId, itemId, arg, options);
-  };
-};
-export const getPatchReplenishmentsReplenishmentIdItemsItemIdMutationKey = (
-  replenishmentId: string,
-  itemId: string,
-) => [`/v1/replenishments/${replenishmentId}/items/${itemId}`] as const;
+  }
+}
+export const getPatchReplenishmentsReplenishmentIdItemsItemIdMutationKey = (replenishmentId: string,
+    itemId: string,) => [`/v1/replenishments/${replenishmentId}/items/${itemId}`] as const;
 
-export type PatchReplenishmentsReplenishmentIdItemsItemIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>
->;
+export type PatchReplenishmentsReplenishmentIdItemsItemIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>>
 
 /**
  * @summary Update a draft replenishment line
  */
 export const usePatchReplenishmentsReplenishmentIdItemsItemId = <TError = ApiError>(
   replenishmentId: string,
-  itemId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>,
-      TError,
-      Key,
-      UpdateReplenishmentItem,
-      Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+    itemId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>, TError, Key, UpdateReplenishmentItem, Awaited<ReturnType<typeof patchReplenishmentsReplenishmentIdItemsItemId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ??
-    getPatchReplenishmentsReplenishmentIdItemsItemIdMutationKey(replenishmentId, itemId);
-  const swrFn = getPatchReplenishmentsReplenishmentIdItemsItemIdMutationFetcher(
-    replenishmentId,
-    itemId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getPatchReplenishmentsReplenishmentIdItemsItemIdMutationKey(replenishmentId,itemId);
+  const swrFn = getPatchReplenishmentsReplenishmentIdItemsItemIdMutationFetcher(replenishmentId,itemId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse200 = {
-  data: DeleteReplenishmentsReplenishmentIdItemsItemId200;
-  status: 200;
-};
+  data: DeleteReplenishmentsReplenishmentIdItemsItemId200
+  status: 200
+}
 
 export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type deleteReplenishmentsReplenishmentIdItemsItemIdResponseSuccess =
-  deleteReplenishmentsReplenishmentIdItemsItemIdResponse200 & {
-    headers: Headers;
-  };
-export type deleteReplenishmentsReplenishmentIdItemsItemIdResponseError = (
-  | deleteReplenishmentsReplenishmentIdItemsItemIdResponse400
-  | deleteReplenishmentsReplenishmentIdItemsItemIdResponse404
-  | deleteReplenishmentsReplenishmentIdItemsItemIdResponse409
-) & {
+export type deleteReplenishmentsReplenishmentIdItemsItemIdResponseSuccess = (deleteReplenishmentsReplenishmentIdItemsItemIdResponse200) & {
+  headers: Headers;
+};
+export type deleteReplenishmentsReplenishmentIdItemsItemIdResponseError = (deleteReplenishmentsReplenishmentIdItemsItemIdResponse400 | deleteReplenishmentsReplenishmentIdItemsItemIdResponse404 | deleteReplenishmentsReplenishmentIdItemsItemIdResponse409) & {
   headers: Headers;
 };
 
-export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse =
-  | deleteReplenishmentsReplenishmentIdItemsItemIdResponseSuccess
-  | deleteReplenishmentsReplenishmentIdItemsItemIdResponseError;
+export type deleteReplenishmentsReplenishmentIdItemsItemIdResponse = (deleteReplenishmentsReplenishmentIdItemsItemIdResponseSuccess | deleteReplenishmentsReplenishmentIdItemsItemIdResponseError)
 
-export const getDeleteReplenishmentsReplenishmentIdItemsItemIdUrl = (
-  replenishmentId: string,
-  itemId: string,
-) => {
-  return `/v1/replenishments/${replenishmentId}/items/${itemId}`;
-};
+export const getDeleteReplenishmentsReplenishmentIdItemsItemIdUrl = (replenishmentId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}/items/${itemId}`
+}
 
 /**
  * @summary Remove a line from a draft replenishment
  */
-export const deleteReplenishmentsReplenishmentIdItemsItemId = async (
-  replenishmentId: string,
-  itemId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<deleteReplenishmentsReplenishmentIdItemsItemIdResponse> => {
-  return apiClient<deleteReplenishmentsReplenishmentIdItemsItemIdResponse>(
-    getDeleteReplenishmentsReplenishmentIdItemsItemIdUrl(replenishmentId, itemId),
-    {
-      ...options,
-      method: "DELETE",
-    },
-  );
-};
+export const deleteReplenishmentsReplenishmentIdItemsItemId = async (replenishmentId: string,
+    itemId: string, options?: Parameters<typeof apiClient>[1]): Promise<deleteReplenishmentsReplenishmentIdItemsItemIdResponse> => {
 
-export const getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationFetcher = (
-  replenishmentId: string,
-  itemId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+  return apiClient<deleteReplenishmentsReplenishmentIdItemsItemIdResponse>(getDeleteReplenishmentsReplenishmentIdItemsItemIdUrl(replenishmentId,itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationFetcher = (replenishmentId: string,
+    itemId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, __: { arg: Arguments }) => {
     return deleteReplenishmentsReplenishmentIdItemsItemId(replenishmentId, itemId, options);
-  };
-};
-export const getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationKey = (
-  replenishmentId: string,
-  itemId: string,
-) => [`/v1/replenishments/${replenishmentId}/items/${itemId}`] as const;
+  }
+}
+export const getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationKey = (replenishmentId: string,
+    itemId: string,) => [`/v1/replenishments/${replenishmentId}/items/${itemId}`] as const;
 
-export type DeleteReplenishmentsReplenishmentIdItemsItemIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>
->;
+export type DeleteReplenishmentsReplenishmentIdItemsItemIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>>
 
 /**
  * @summary Remove a line from a draft replenishment
  */
 export const useDeleteReplenishmentsReplenishmentIdItemsItemId = <TError = ApiError>(
   replenishmentId: string,
-  itemId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+    itemId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>, TError, Key, Arguments, Awaited<ReturnType<typeof deleteReplenishmentsReplenishmentIdItemsItemId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ??
-    getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationKey(replenishmentId, itemId);
-  const swrFn = getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationFetcher(
-    replenishmentId,
-    itemId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationKey(replenishmentId,itemId);
+  const swrFn = getDeleteReplenishmentsReplenishmentIdItemsItemIdMutationFetcher(replenishmentId,itemId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postReplenishmentsReplenishmentIdSubmitResponse200 = {
-  data: PostReplenishmentsReplenishmentIdSubmit200;
-  status: 200;
-};
+  data: PostReplenishmentsReplenishmentIdSubmit200
+  status: 200
+}
 
 export type postReplenishmentsReplenishmentIdSubmitResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postReplenishmentsReplenishmentIdSubmitResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postReplenishmentsReplenishmentIdSubmitResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postReplenishmentsReplenishmentIdSubmitResponseSuccess =
-  postReplenishmentsReplenishmentIdSubmitResponse200 & {
-    headers: Headers;
-  };
-export type postReplenishmentsReplenishmentIdSubmitResponseError = (
-  | postReplenishmentsReplenishmentIdSubmitResponse400
-  | postReplenishmentsReplenishmentIdSubmitResponse404
-  | postReplenishmentsReplenishmentIdSubmitResponse409
-) & {
+export type postReplenishmentsReplenishmentIdSubmitResponseSuccess = (postReplenishmentsReplenishmentIdSubmitResponse200) & {
+  headers: Headers;
+};
+export type postReplenishmentsReplenishmentIdSubmitResponseError = (postReplenishmentsReplenishmentIdSubmitResponse400 | postReplenishmentsReplenishmentIdSubmitResponse404 | postReplenishmentsReplenishmentIdSubmitResponse409) & {
   headers: Headers;
 };
 
-export type postReplenishmentsReplenishmentIdSubmitResponse =
-  | postReplenishmentsReplenishmentIdSubmitResponseSuccess
-  | postReplenishmentsReplenishmentIdSubmitResponseError;
+export type postReplenishmentsReplenishmentIdSubmitResponse = (postReplenishmentsReplenishmentIdSubmitResponseSuccess | postReplenishmentsReplenishmentIdSubmitResponseError)
 
-export const getPostReplenishmentsReplenishmentIdSubmitUrl = (replenishmentId: string) => {
-  return `/v1/replenishments/${replenishmentId}/submit`;
-};
+export const getPostReplenishmentsReplenishmentIdSubmitUrl = (replenishmentId: string,) => {
+
+
+
+
+  return `/v1/replenishments/${replenishmentId}/submit`
+}
 
 /**
  * @summary Submit a replenishment request and start its receipt
  */
-export const postReplenishmentsReplenishmentIdSubmit = async (
-  replenishmentId: string,
-  submitReplenishment: SubmitReplenishment,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postReplenishmentsReplenishmentIdSubmitResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postReplenishmentsReplenishmentIdSubmit = async (replenishmentId: string,
+    submitReplenishment: SubmitReplenishment, options?: Parameters<typeof apiClient>[1]): Promise<postReplenishmentsReplenishmentIdSubmitResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -794,61 +673,43 @@ export const postReplenishmentsReplenishmentIdSubmit = async (
     }
     return headers;
   };
-  return apiClient<postReplenishmentsReplenishmentIdSubmitResponse>(
-    getPostReplenishmentsReplenishmentIdSubmitUrl(replenishmentId),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(submitReplenishment),
-    },
-  );
-};
+return apiClient<postReplenishmentsReplenishmentIdSubmitResponse>(getPostReplenishmentsReplenishmentIdSubmitUrl(replenishmentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(submitReplenishment)
+  }
+);}
 
-export const getPostReplenishmentsReplenishmentIdSubmitMutationFetcher = (
-  replenishmentId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostReplenishmentsReplenishmentIdSubmitMutationFetcher = (replenishmentId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: SubmitReplenishment }) => {
     return postReplenishmentsReplenishmentIdSubmit(replenishmentId, arg, options);
-  };
-};
-export const getPostReplenishmentsReplenishmentIdSubmitMutationKey = (replenishmentId: string) =>
-  [`/v1/replenishments/${replenishmentId}/submit`] as const;
+  }
+}
+export const getPostReplenishmentsReplenishmentIdSubmitMutationKey = (replenishmentId: string,) => [`/v1/replenishments/${replenishmentId}/submit`] as const;
 
-export type PostReplenishmentsReplenishmentIdSubmitMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>
->;
+export type PostReplenishmentsReplenishmentIdSubmitMutationResult = NonNullable<Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>>
 
 /**
  * @summary Submit a replenishment request and start its receipt
  */
 export const usePostReplenishmentsReplenishmentIdSubmit = <TError = ApiError>(
-  replenishmentId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>,
-      TError,
-      Key,
-      SubmitReplenishment,
-      Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  replenishmentId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>, TError, Key, SubmitReplenishment, Awaited<ReturnType<typeof postReplenishmentsReplenishmentIdSubmit>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPostReplenishmentsReplenishmentIdSubmitMutationKey(replenishmentId);
-  const swrFn = getPostReplenishmentsReplenishmentIdSubmitMutationFetcher(
-    replenishmentId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getPostReplenishmentsReplenishmentIdSubmitMutationKey(replenishmentId);
+  const swrFn = getPostReplenishmentsReplenishmentIdSubmitMutationFetcher(replenishmentId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

@@ -37,6 +37,8 @@ const receipt: ReceiptDetail = {
       usagePurposeName: "Cocina general",
       expectedQuantity: 300,
       receivedQuantity: 0,
+      unitPriceAtReceipt: 4200,
+      receivedAmount: 0,
       condition: "good",
       checkedAt: null,
       createdAt: now,
@@ -110,6 +112,7 @@ describe("receipt routes", () => {
       actorId,
       { businessDate: "2026-10-24" },
       expect.anything(),
+      undefined,
     );
   });
 

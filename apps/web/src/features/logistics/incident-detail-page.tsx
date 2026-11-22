@@ -120,7 +120,7 @@ export function IncidentDetailPage() {
                   </div>
                 </dl>
                 <Button
-                  variant="outline"
+                  variant="default"
                   onClick={() =>
                     void navigate({
                       to: "/receipts/$receiptId",

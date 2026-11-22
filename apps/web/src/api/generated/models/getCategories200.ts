@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Category } from "./category";
+import type { Category } from './category';
 
 export type GetCategories200 = {
   data: Category[];

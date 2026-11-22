@@ -18,6 +18,7 @@ export const createSupplySchema = z
     categoryId: z.uuid(),
     supplierIds: supplierIdsSchema,
     active: z.boolean().default(true),
+    trackInventory: z.boolean().default(false),
   })
   .openapi("CreateSupply");
 
@@ -39,6 +40,7 @@ export const supplySchema = z
     description: z.string().nullable(),
     unitCost: moneyCentsSchema,
     active: z.boolean(),
+    trackInventory: z.boolean(),
     category: z.object({
       id: z.uuid(),
       name: z.string(),
@@ -62,6 +64,26 @@ export const supplySchema = z
 export const supplyIdParamsSchema = z.object({
   supplyId: z.uuid().openapi({ param: { name: "supplyId", in: "path" } }),
 });
+
+export const updateSupplyInventoryTrackingSchema = z
+  .object({ trackInventory: z.boolean() })
+  .openapi("UpdateSupplyInventoryTracking");
+
+export const updateSupplySchema = z
+  .object({
+    sku: z.string().trim().min(1).max(100).optional(),
+    name: z.string().trim().min(1).max(200).optional(),
+    description: z.string().trim().min(1).nullable().optional(),
+    unitId: z.uuid().optional(),
+    unitCost: moneyCentsSchema.optional(),
+    categoryId: z.uuid().optional(),
+    supplierIds: supplierIdsSchema.optional(),
+    active: z.boolean().optional(),
+    trackInventory: z.boolean().optional(),
+  })
+  .openapi("UpdateSupply");
+
+export type UpdateSupplyInput = z.infer<typeof updateSupplySchema>;
 
 export type SupplyDto = z.infer<typeof supplySchema>;
 export type SupplyIdParams = z.infer<typeof supplyIdParamsSchema>;

@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Plus, X } from "lucide-react";
 
-import type { Category, Supplier, Unit } from "@/api/generated/models";
-import { usePostSupplies } from "@/api/generated/supplies/supplies";
+import type { Category, Supply, Supplier, Unit } from "@/api/generated/models";
+import { usePatchSuppliesSupplyId, usePostSupplies } from "@/api/generated/supplies/supplies";
 import { ApiError } from "@/api/http-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { CreateUnitForm } from "./create-unit-form";
 import { SupplierChecklist } from "./supplier-checklist";
 
 type CreateSupplyDialogProps = {
+  supply?: Supply;
   categories: Category[];
   units: Unit[];
   suppliers: Supplier[];
@@ -37,6 +38,7 @@ const errorMessages: Record<string, string> = {
 };
 
 export function CreateSupplyDialog({
+  supply,
   categories,
   units,
   suppliers,
@@ -44,12 +46,18 @@ export function CreateSupplyDialog({
   onCreated,
   onUnitCreated,
 }: CreateSupplyDialogProps) {
-  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
-  const [unitId, setUnitId] = useState(units[0]?.id ?? "");
-  const [supplierIds, setSupplierIds] = useState<string[]>([]);
+  const isEditing = Boolean(supply);
+  const [categoryId, setCategoryId] = useState(supply?.category.id ?? categories[0]?.id ?? "");
+  const [unitId, setUnitId] = useState(supply?.unit.id ?? units[0]?.id ?? "");
+  const [supplierIds, setSupplierIds] = useState<string[]>(
+    supply?.suppliers.map((item) => item.id) ?? [],
+  );
+  const [isActive, setIsActive] = useState(supply?.active ?? true);
   const [isCreatingUnit, setIsCreatingUnit] = useState(false);
   const [submissionError, setSubmissionError] = useState<string>();
-  const { trigger, isMutating } = usePostSupplies<ApiError>();
+  const createMutation = usePostSupplies<ApiError>();
+  const updateMutation = usePatchSuppliesSupplyId<ApiError>(supply?.id ?? "");
+  const isMutating = createMutation.isMutating || updateMutation.isMutating;
   const hasReferenceData = categories.length > 0 && units.length > 0 && suppliers.length > 0;
 
   useEffect(() => {
@@ -65,7 +73,7 @@ export function CreateSupplyDialog({
     setSubmissionError(undefined);
 
     if (supplierIds.length === 0) {
-      setSubmissionError("Selecciona al menos un proveedor.");
+      setSubmissionError("Selecciona al menos un proveedor marcando la casilla correspondiente.");
       return;
     }
 
@@ -77,17 +85,23 @@ export function CreateSupplyDialog({
       return;
     }
 
+    const payload = {
+      sku: String(formData.get("sku") ?? "").trim(),
+      name: String(formData.get("name") ?? "").trim(),
+      description: description || null,
+      categoryId,
+      unitId,
+      supplierIds,
+      unitCost,
+      active: isActive,
+    };
+
     try {
-      await trigger({
-        sku: String(formData.get("sku") ?? "").trim(),
-        name: String(formData.get("name") ?? "").trim(),
-        description: description || null,
-        categoryId,
-        unitId,
-        supplierIds,
-        unitCost,
-        active: formData.get("active") === "on",
-      });
+      if (supply) {
+        await updateMutation.trigger(payload);
+      } else {
+        await createMutation.trigger(payload);
+      }
       await onCreated();
       onClose();
     } catch (error) {
@@ -107,10 +121,12 @@ export function CreateSupplyDialog({
           <div className="flex items-start justify-between border-b px-6 py-5">
             <div>
               <h2 id="create-supply-title" className="text-xl font-semibold">
-                Agregar artículo
+                {isEditing ? "Editar artículo" : "Agregar artículo"}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Registra un nuevo artículo y sus proveedores.
+                {isEditing
+                  ? "Modifica los datos del artículo y sus proveedores."
+                  : "Registra un nuevo artículo y sus proveedores."}
               </p>
             </div>
             <Button variant="ghost" size="icon" aria-label="Cerrar" onClick={onClose}>
@@ -124,6 +140,7 @@ export function CreateSupplyDialog({
                 <Input
                   id="supply-sku"
                   name="sku"
+                  defaultValue={supply?.sku ?? ""}
                   required
                   maxLength={100}
                   autoFocus
@@ -135,6 +152,7 @@ export function CreateSupplyDialog({
                 <Input
                   id="supply-name"
                   name="name"
+                  defaultValue={supply?.name ?? ""}
                   required
                   maxLength={200}
                   placeholder="Nombre del artículo"
@@ -147,6 +165,7 @@ export function CreateSupplyDialog({
               <textarea
                 id="supply-description"
                 name="description"
+                defaultValue={supply?.description ?? ""}
                 rows={3}
                 placeholder="Descripción opcional"
                 className="w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -220,10 +239,9 @@ export function CreateSupplyDialog({
               <Input
                 id="supply-unit-cost"
                 name="unitCost"
-                type="number"
-                min={0}
-                step={0.01}
-                defaultValue={0}
+                type="text"
+                inputMode="decimal"
+                defaultValue={supply ? (supply.unitCost / 100).toFixed(2) : "0.00"}
                 required
                 className="h-11"
               />
@@ -232,8 +250,8 @@ export function CreateSupplyDialog({
             <label className="flex items-center gap-3 text-sm font-medium">
               <input
                 type="checkbox"
-                name="active"
-                defaultChecked
+                checked={isActive}
+                onChange={(event) => setIsActive(event.currentTarget.checked)}
                 className="size-4 rounded border-input accent-foreground"
               />
               Artículo activo
@@ -255,11 +273,8 @@ export function CreateSupplyDialog({
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
               </Button>
-              <Button
-                type="submit"
-                disabled={!hasReferenceData || supplierIds.length === 0 || isMutating}
-              >
-                {isMutating ? "Guardando..." : "Guardar artículo"}
+              <Button type="submit" disabled={!hasReferenceData || isMutating}>
+                {isMutating ? "Guardando..." : isEditing ? "Guardar cambios" : "Guardar artículo"}
               </Button>
             </div>
           </form>

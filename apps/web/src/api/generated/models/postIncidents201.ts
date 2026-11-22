@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Incident } from "./incident";
+import type { Incident } from './incident';
 
 export type PostIncidents201 = {
   data: Incident;

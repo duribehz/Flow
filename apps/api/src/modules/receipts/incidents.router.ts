@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
+import { assertBranchAccess } from "@/shared/infrastructure/http/auth-middleware.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
 import {
   createIncidentDTO,
@@ -13,6 +14,7 @@ import { createIncidentUseCase } from "./use-cases/create-incident.usecase.js";
 import { getIncidentUseCase } from "./use-cases/get-incident.usecase.js";
 import { listIncidentsUseCase } from "./use-cases/list-incidents.usecase.js";
 import { updateIncidentUseCase } from "./use-cases/update-incident.usecase.js";
+import { getReceiptUseCase } from "./use-cases/get-receipt.usecase.js";
 
 export const incidentsRouter = new OpenAPIHono<State>({
   defaultHook: (result, context) => {
@@ -54,7 +56,11 @@ incidentsRouter.openapi(
     },
   }),
   async (context) => {
-    const incidents = await listIncidentsUseCase(context.req.valid("query"), context.get("db"));
+    const incidents = await listIncidentsUseCase(
+      context.req.valid("query"),
+      context.get("db"),
+      context.get("userRole") === "manager" ? context.get("branchId")! : undefined,
+    );
     return context.json({ data: incidents.map(serializeIncident) }, 200);
   },
 );
@@ -80,11 +86,10 @@ incidentsRouter.openapi(
     },
   }),
   async (context) => {
-    const incident = await createIncidentUseCase(
-      context.get("userId"),
-      context.req.valid("json"),
-      context.get("db"),
-    );
+    const input = context.req.valid("json");
+    const receipt = await getReceiptUseCase(input.receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), receipt.branch.id);
+    const incident = await createIncidentUseCase(context.get("userId"), input, context.get("db"));
     return context.json({ data: serializeIncident(incident) }, 201);
   },
 );
@@ -111,6 +116,8 @@ incidentsRouter.openapi(
       context.req.valid("param").incidentId,
       context.get("db"),
     );
+    const receipt = await getReceiptUseCase(incident.receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), receipt.branch.id);
     return context.json({ data: serializeIncident(incident) }, 200);
   },
 );
@@ -135,11 +142,16 @@ incidentsRouter.openapi(
     },
   }),
   async (context) => {
+    const incidentId = context.req.valid("param").incidentId;
+    const current = await getIncidentUseCase(incidentId, context.get("db"));
+    const receipt = await getReceiptUseCase(current.receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), receipt.branch.id);
     const incident = await updateIncidentUseCase(
-      context.req.valid("param").incidentId,
+      incidentId,
       context.get("userId"),
       context.req.valid("json"),
       context.get("db"),
+      context.get("userRole") === "manager" ? context.get("branchId")! : undefined,
     );
     return context.json({ data: serializeIncident(incident) }, 200);
   },

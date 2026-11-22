@@ -17,13 +17,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   formatDate,
   formatStoredQuantity,
   parseStoredQuantity,
@@ -129,7 +122,7 @@ export function ReceiptDetailPage() {
                 />
                 <div className="flex flex-wrap items-center gap-3">
                   {editable && (
-                    <Button type="submit" variant="outline" disabled={updateNotes.isMutating}>
+                    <Button type="submit" variant="default" disabled={updateNotes.isMutating}>
                       {updateNotes.isMutating ? <Loader2 className="animate-spin" /> : <Save />}{" "}
                       Guardar notas
                     </Button>
@@ -339,7 +332,7 @@ function ReceiptItemEditor({
               {editable && (
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="default"
                   disabled={updateItem.isMutating}
                   onClick={() => void handleReport()}
                 >
@@ -350,7 +343,7 @@ function ReceiptItemEditor({
           </div>
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             {editable && (
-              <Button type="submit" variant="outline" disabled={updateItem.isMutating}>
+              <Button type="submit" variant="default" disabled={updateItem.isMutating}>
                 {updateItem.isMutating ? <Loader2 className="animate-spin" /> : <Save />} Guardar
                 línea
               </Button>
@@ -446,23 +439,19 @@ function IncidentDialog({
           <label className="mb-2 block text-sm font-medium" htmlFor="incident-type">
             Tipo de incidencia
           </label>
-          <Select
+          <select
+            id="incident-type"
             value={type}
-            onValueChange={(value) => setType((value ?? "") as IncidentType | "")}
+            onChange={(event) => setType(event.currentTarget.value as IncidentType | "")}
+            className={`${fieldClassName} h-11 w-full px-3`}
           >
-            <SelectTrigger id="incident-type" className="h-11 w-full px-3">
-              <SelectValue placeholder="Selecciona un tipo">
-                {type ? incidentTypeLabels[type] : undefined}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {incidentTypes.map((incidentType) => (
-                <SelectItem key={incidentType} value={incidentType}>
-                  {incidentTypeLabels[incidentType]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value="">Selecciona un tipo</option>
+            {incidentTypes.map((incidentType) => (
+              <option key={incidentType} value={incidentType}>
+                {incidentTypeLabels[incidentType]}
+              </option>
+            ))}
+          </select>
         </div>
         <label className="block text-sm font-medium" htmlFor="incident-description">
           Descripción

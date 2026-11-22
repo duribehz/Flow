@@ -55,7 +55,7 @@ export function InventoryReviewPage() {
 
       {isLoading && (
         <Card className="min-h-52 items-center justify-center text-muted-foreground">
-          <Loader2 className="animate-spin" /> Cargando conteos enviados...
+          <Loader2 className="animate-spin" /> Cargando existencias enviadas...
         </Card>
       )}
       {!isLoading && error && (
@@ -70,7 +70,9 @@ export function InventoryReviewPage() {
         <Card className="items-center p-10 text-center">
           <ClipboardCheck className="size-9 text-muted-foreground" />
           <h2 className="text-lg font-semibold">La bandeja está al día</h2>
-          <p className="text-muted-foreground">No hay conteos enviados pendientes de revisión.</p>
+          <p className="text-muted-foreground">
+            No hay existencias enviadas pendientes de revisión.
+          </p>
         </Card>
       )}
       {!isLoading && !error && counts.length > 0 && (

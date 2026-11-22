@@ -7,6 +7,7 @@ export function updateIncidentUseCase(
   actorId: string,
   input: UpdateIncidentInput,
   db: Executor = DB,
+  branchScopeId?: string,
 ) {
-  return new IncidentsRepo(db).update(incidentId, actorId, input);
+  return new IncidentsRepo(db).update(incidentId, actorId, input, branchScopeId);
 }

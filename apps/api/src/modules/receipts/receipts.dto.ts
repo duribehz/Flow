@@ -1,5 +1,5 @@
 import { z } from "@hono/zod-openapi";
-import { storedQuantitySchema } from "@/shared/domain/quantities.js";
+import { moneyCentsSchema, storedQuantitySchema } from "@/shared/domain/quantities.js";
 
 export const receiptStatusValues = ["pending", "in_progress", "completed", "cancelled"] as const;
 export const receiptConditionValues = [
@@ -50,6 +50,8 @@ export const receiptItemDTO = z
     usagePurposeName: z.string(),
     expectedQuantity: storedQuantitySchema,
     receivedQuantity: storedQuantitySchema,
+    unitPriceAtReceipt: moneyCentsSchema,
+    receivedAmount: moneyCentsSchema,
     condition: z.enum(receiptConditionValues),
     checkedAt: z.iso.datetime().nullable(),
     createdAt: z.iso.datetime(),

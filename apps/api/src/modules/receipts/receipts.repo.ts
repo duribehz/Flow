@@ -4,9 +4,10 @@ import { and, asc, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { AppError } from "@/shared/errors/app-error.js";
+import { calculateLineTotal } from "@/shared/domain/quantities.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
 import { branches } from "../branches/branches.schema.js";
-import { inventoryDays } from "../inventory/inventory.schema.js";
+import { inventoryDays, inventoryMovements } from "../inventory/inventory.schema.js";
 import {
   replenishmentRequestItems,
   replenishmentRequests,
@@ -23,7 +24,12 @@ const receivers = alias(users, "receivers");
 export class ReceiptsRepo {
   constructor(private readonly conn: Executor) {}
 
-  async createFromShipment(shipmentId: string, actorId: string, input: CreateReceiptInput) {
+  async createFromShipment(
+    shipmentId: string,
+    actorId: string,
+    input: CreateReceiptInput,
+    branchScopeId?: string,
+  ) {
     return this.runInTransaction(async (conn) => {
       const [shipment] = await conn
         .select({ id: shipments.id, branchId: shipments.branchId, status: shipments.status })
@@ -31,6 +37,9 @@ export class ReceiptsRepo {
         .where(eq(shipments.id, shipmentId))
         .for("update");
       if (!shipment) throw new AppError(404, "SHIPMENT_NOT_FOUND", "Shipment not found");
+      if (branchScopeId && shipment.branchId !== branchScopeId) {
+        throw new AppError(403, "BRANCH_ACCESS_DENIED", "This user cannot access another branch");
+      }
       if (shipment.status !== "dispatched") {
         throw new AppError(
           409,
@@ -99,7 +108,6 @@ export class ReceiptsRepo {
           );
         }
       }
-
       const now = new Date();
       const [receipt] = await conn
         .insert(receipts)
@@ -127,8 +135,13 @@ export class ReceiptsRepo {
           id: shipmentItems.id,
           supplyId: shipmentItems.supplyId,
           shippedQuantity: shipmentItems.shippedQuantity,
+          unitPriceAtReceipt: replenishmentRequestItems.unitCost,
         })
         .from(shipmentItems)
+        .innerJoin(
+          replenishmentRequestItems,
+          eq(shipmentItems.replenishmentRequestItemId, replenishmentRequestItems.id),
+        )
         .where(eq(shipmentItems.shipmentId, shipmentId));
       await conn.insert(receiptItems).values(
         sentItems.map((item) => ({
@@ -137,6 +150,8 @@ export class ReceiptsRepo {
           supplyId: item.supplyId,
           expectedQuantity: item.shippedQuantity,
           receivedQuantity: 0,
+          unitPriceAtReceipt: item.unitPriceAtReceipt,
+          receivedAmount: calculateReceivedAmount(0, item.unitPriceAtReceipt),
           condition: "good" as const,
         })),
       );
@@ -196,6 +211,8 @@ export class ReceiptsRepo {
         usagePurposeName: usagePurposes.name,
         expectedQuantity: receiptItems.expectedQuantity,
         receivedQuantity: receiptItems.receivedQuantity,
+        unitPriceAtReceipt: receiptItems.unitPriceAtReceipt,
+        receivedAmount: receiptItems.receivedAmount,
         condition: receiptItems.condition,
         checkedAt: receiptItems.checkedAt,
         createdAt: receiptItems.createdAt,
@@ -243,6 +260,10 @@ export class ReceiptsRepo {
         .update(receiptItems)
         .set({
           receivedQuantity: input.receivedQuantity,
+          receivedAmount: calculateReceivedAmount(
+            input.receivedQuantity,
+            currentItem.unitPriceAtReceipt,
+          ),
           condition: input.condition,
           checkedAt: new Date(),
         })
@@ -322,6 +343,31 @@ export class ReceiptsRepo {
         .select({ id: shipments.id, replenishmentRequestId: shipments.replenishmentRequestId })
         .from(shipments)
         .where(eq(shipments.id, receipt.shipmentId));
+      const [receiptRow] = await conn
+        .select({ branchId: receipts.branchId })
+        .from(receipts)
+        .where(eq(receipts.id, receiptId));
+      const receivedRows = await conn
+        .select({
+          supplyId: receiptItems.supplyId,
+          receivedQuantity: receiptItems.receivedQuantity,
+          condition: receiptItems.condition,
+        })
+        .from(receiptItems)
+        .where(eq(receiptItems.receiptId, receiptId));
+      const stockRows = receivedRows
+        .filter((row) => row.condition === "good" && row.receivedQuantity > 0)
+        .map((row) => ({
+          branchId: receiptRow!.branchId,
+          supplyId: row.supplyId,
+          kind: "receipt_in" as const,
+          quantity: row.receivedQuantity,
+          referenceId: receiptId,
+        }));
+      if (stockRows.length > 0) {
+        await conn.insert(inventoryMovements).values(stockRows);
+      }
+
       await conn
         .update(shipments)
         .set({ status: "delivered", updatedAt: completedAt })
@@ -359,3 +405,14 @@ export class ReceiptsRepo {
 }
 
 export type ReceiptDetail = NonNullable<Awaited<ReturnType<ReceiptsRepo["getById"]>>>;
+
+function calculateReceivedAmount(storedQuantity: number, unitPriceAtReceipt: number) {
+  try {
+    return calculateLineTotal(storedQuantity, unitPriceAtReceipt);
+  } catch (error) {
+    if (error instanceof RangeError) {
+      throw new AppError(400, "INVALID_RECEIPT_AMOUNT", error.message);
+    }
+    throw error;
+  }
+}

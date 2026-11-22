@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Supply } from "./supply";
+import type { Supply } from './supply';
 
 export type GetSupplies200 = {
   data: Supply[];

@@ -9,9 +9,9 @@
 export interface CreateReceipt {
   businessDate: string;
   /**
-   * @minLength 1
-   * @maxLength 2000
-   * @nullable
-   */
+     * @minLength 1
+     * @maxLength 2000
+     * @nullable
+     */
   notes?: string | null;
 }

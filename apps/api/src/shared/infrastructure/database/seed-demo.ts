@@ -373,6 +373,7 @@ async function seedDemoData() {
           categoryId: categoryIds.get(supply.category)!,
           unitCost: supply.unitCost,
           active: true,
+          trackInventory: true,
         })
         .onConflictDoUpdate({
           target: supplies.sku,
@@ -383,6 +384,7 @@ async function seedDemoData() {
             categoryId: categoryIds.get(supply.category)!,
             unitCost: supply.unitCost,
             active: true,
+            trackInventory: true,
             updatedAt: new Date(),
           },
         })

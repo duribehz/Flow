@@ -5,11 +5,11 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ShipmentBranch } from "./shipmentBranch";
-import type { ShipmentDispatchedBy } from "./shipmentDispatchedBy";
-import type { ShipmentItem } from "./shipmentItem";
-import type { ShipmentPreparedBy } from "./shipmentPreparedBy";
-import type { ShipmentStatus } from "./shipmentStatus";
+import type { ShipmentBranch } from './shipmentBranch';
+import type { ShipmentDispatchedBy } from './shipmentDispatchedBy';
+import type { ShipmentItem } from './shipmentItem';
+import type { ShipmentPreparedBy } from './shipmentPreparedBy';
+import type { ShipmentStatus } from './shipmentStatus';
 
 export interface Shipment {
   id: string;

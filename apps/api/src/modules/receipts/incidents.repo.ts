@@ -51,17 +51,22 @@ export class IncidentsRepo {
     return (await this.getById(incident!.id))!;
   }
 
-  async list(filters: {
-    receiptId?: string;
-    status?: "open" | "investigating" | "resolved" | "closed";
-  }) {
+  async list(
+    filters: {
+      receiptId?: string;
+      status?: "open" | "investigating" | "resolved" | "closed";
+    },
+    branchScopeId?: string,
+  ) {
     const rows = await this.conn
       .select({ id: incidents.id })
       .from(incidents)
+      .innerJoin(receipts, eq(incidents.receiptId, receipts.id))
       .where(
         and(
           filters.receiptId ? eq(incidents.receiptId, filters.receiptId) : undefined,
           filters.status ? eq(incidents.status, filters.status) : undefined,
+          branchScopeId ? eq(receipts.branchId, branchScopeId) : undefined,
         ),
       )
       .orderBy(asc(incidents.createdAt));
@@ -95,7 +100,12 @@ export class IncidentsRepo {
     return incident;
   }
 
-  async update(incidentId: string, actorId: string, input: UpdateIncidentInput) {
+  async update(
+    incidentId: string,
+    actorId: string,
+    input: UpdateIncidentInput,
+    branchScopeId?: string,
+  ) {
     return this.runInTransaction(async (conn) => {
       const [incident] = await conn
         .select()
@@ -106,10 +116,17 @@ export class IncidentsRepo {
 
       if (input.assignedTo) {
         const [assignee] = await conn
-          .select({ id: users.id })
+          .select({ id: users.id, branchId: users.branchId, role: users.role })
           .from(users)
           .where(eq(users.id, input.assignedTo));
         if (!assignee) throw new AppError(404, "USER_NOT_FOUND", "Assigned user not found");
+        if (branchScopeId && assignee.role === "manager" && assignee.branchId !== branchScopeId) {
+          throw new AppError(
+            403,
+            "BRANCH_ACCESS_DENIED",
+            "Managers can only assign incidents within their branch",
+          );
+        }
       }
 
       const status = input.status ?? incident.status;

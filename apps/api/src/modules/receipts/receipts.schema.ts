@@ -91,6 +91,8 @@ export const receiptItems = pgTable(
       .references(() => supplies.id),
     expectedQuantity: bigint("expected_quantity", { mode: "number" }).notNull(),
     receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull(),
+    unitPriceAtReceipt: bigint("unit_price_at_receipt", { mode: "number" }).notNull(),
+    receivedAmount: bigint("received_amount", { mode: "number" }).notNull(),
     condition: receiptItemCondition().notNull().default("good"),
     checkedAt: timestamp("checked_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -102,7 +104,7 @@ export const receiptItems = pgTable(
     ),
     check(
       "receipt_items_quantities_check",
-      sql`${table.expectedQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and (${table.condition} <> 'not_arrived' or ${table.receivedQuantity} = 0)`,
+      sql`${table.expectedQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and ${table.unitPriceAtReceipt} between 0 and 9007199254740991 and ${table.receivedAmount} between 0 and 9007199254740991 and (${table.condition} <> 'not_arrived' or ${table.receivedQuantity} = 0)`,
     ),
   ],
 );

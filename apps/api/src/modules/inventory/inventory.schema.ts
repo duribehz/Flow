@@ -95,10 +95,11 @@ export const inventoryCountItems = pgTable(
       .notNull()
       .references(() => supplies.id),
     counted: boolean().notNull().default(false),
-    openingQuantity: bigint("opening_quantity", { mode: "number" }).notNull().default(0),
-    receivedQuantity: bigint("received_quantity", { mode: "number" }).notNull().default(0),
+    openingQuantity: bigint("opening_quantity", { mode: "number" }),
+    receivedQuantity: bigint("received_quantity", { mode: "number" }),
     closingQuantity: bigint("closing_quantity", { mode: "number" }),
     lastCountedAt: timestamp("last_counted_at", { withTimezone: true }),
+    reportedAt: timestamp("reported_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -109,11 +110,44 @@ export const inventoryCountItems = pgTable(
     index("inventory_count_items_supply_id_idx").on(table.supplyId),
     check(
       "inventory_count_items_quantities_check",
-      sql`${table.openingQuantity} between 0 and 9007199254740991 and ${table.receivedQuantity} between 0 and 9007199254740991 and (${table.closingQuantity} is null or ${table.closingQuantity} between 0 and 9007199254740991)`,
+      sql`(${table.openingQuantity} is null or ${table.openingQuantity} between 0 and 9007199254740991) and (${table.receivedQuantity} is null or ${table.receivedQuantity} between 0 and 9007199254740991) and (${table.closingQuantity} is null or ${table.closingQuantity} between 0 and 9007199254740991)`,
     ),
     check(
       "inventory_count_items_counted_check",
       sql`(${table.counted} and ${table.closingQuantity} is not null) or (not ${table.counted} and ${table.closingQuantity} is null)`,
     ),
+  ],
+);
+
+export const inventoryMovementKind = pgEnum("inventory_movement_kind", [
+  "transfer_out",
+  "transfer_in",
+  "transfer_cancel",
+  "receipt_in",
+]);
+
+// Signed movements in stored quantity units (hundredths). Stock = last report + movements after it.
+export const inventoryMovements = pgTable(
+  "inventory_movements",
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    branchId: uuid("branch_id")
+      .notNull()
+      .references(() => branches.id),
+    supplyId: uuid("supply_id")
+      .notNull()
+      .references(() => supplies.id),
+    kind: inventoryMovementKind().notNull(),
+    quantity: bigint({ mode: "number" }).notNull(),
+    referenceId: uuid("reference_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("inventory_movements_branch_supply_created_idx").on(
+      table.branchId,
+      table.supplyId,
+      table.createdAt,
+    ),
+    index("inventory_movements_reference_idx").on(table.referenceId),
   ],
 );

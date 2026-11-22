@@ -6,9 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type DraftReplenishmentStatus =
-  (typeof DraftReplenishmentStatus)[keyof typeof DraftReplenishmentStatus];
+export type DraftReplenishmentStatus = typeof DraftReplenishmentStatus[keyof typeof DraftReplenishmentStatus];
+
 
 export const DraftReplenishmentStatus = {
-  draft: "draft",
+  draft: 'draft',
 } as const;

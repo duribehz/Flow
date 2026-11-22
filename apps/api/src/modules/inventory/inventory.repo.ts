@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 
 import { AppError } from "@/shared/errors/app-error.js";
 import type { Executor } from "@/shared/infrastructure/database/client.js";
@@ -6,13 +6,19 @@ import { assertSafeStoredQuantity } from "@/shared/domain/quantities.js";
 import { branches } from "../branches/branches.schema.js";
 import { receiptItems, receipts } from "../receipts/receipts.schema.js";
 import { ReplenishmentsRepo } from "../replenishments/replenishments.repo.js";
-import { branchSupplySettings, supplies } from "../supplies/supplies.schema.js";
+import { categories, supplies, units } from "../supplies/supplies.schema.js";
+import { branchTransferItems, branchTransfers } from "../transfers/transfers.schema.js";
 import type {
   CreateInventoryCountInput,
   CreateInventoryDayInput,
   UpdateInventoryCountInput,
 } from "./inventory.dto.js";
-import { inventoryCountItems, inventoryCounts, inventoryDays } from "./inventory.schema.js";
+import {
+  inventoryCountItems,
+  inventoryCounts,
+  inventoryDays,
+  inventoryMovements,
+} from "./inventory.schema.js";
 
 export type ListInventoryDaysFilters = {
   branchId?: string;
@@ -28,6 +34,22 @@ export type ListInventoryCountsFilters = {
 
 export class InventoryRepo {
   constructor(private readonly conn: Executor) {}
+
+  listInventorySupplies() {
+    return this.conn
+      .select({
+        id: supplies.id,
+        sku: supplies.sku,
+        name: supplies.name,
+        active: supplies.active,
+        category: { name: categories.name },
+        unit: { symbol: units.symbol },
+      })
+      .from(supplies)
+      .innerJoin(categories, eq(supplies.categoryId, categories.id))
+      .innerJoin(units, eq(supplies.unitId, units.id))
+      .orderBy(asc(supplies.name), asc(supplies.sku));
+  }
 
   openInventoryDay(actorId: string, input: CreateInventoryDayInput) {
     return this.runInTransaction(async (conn) => {
@@ -82,7 +104,6 @@ export class InventoryRepo {
       if (day.status !== "open") {
         throw new AppError(409, "INVENTORY_DAY_CLOSED", "Inventory day is closed");
       }
-
       const [count] = await conn
         .insert(inventoryCounts)
         .values({
@@ -102,56 +123,45 @@ export class InventoryRepo {
         );
       }
 
-      const settings = await conn
-        .select({ supplyId: branchSupplySettings.supplyId })
-        .from(branchSupplySettings)
-        .innerJoin(supplies, eq(branchSupplySettings.supplyId, supplies.id))
+      const trackedSupplies = await conn
+        .select({ supplyId: supplies.id })
+        .from(supplies)
+        .where(and(eq(supplies.active, true), eq(supplies.trackInventory, true)))
+        .orderBy(asc(supplies.name), asc(supplies.sku));
+
+      const transferredSupplies = await conn
+        .select({ supplyId: branchTransferItems.supplyId })
+        .from(branchTransferItems)
+        .innerJoin(branchTransfers, eq(branchTransferItems.transferId, branchTransfers.id))
         .where(
           and(
-            eq(branchSupplySettings.branchId, day.branchId),
-            eq(branchSupplySettings.active, true),
-            eq(supplies.active, true),
+            eq(branchTransfers.acceptedInventoryDayId, day.id),
+            eq(branchTransfers.status, "accepted"),
           ),
         );
+      const candidateSupplyIds = [
+        ...new Set([
+          ...trackedSupplies.map((supply) => supply.supplyId),
+          ...transferredSupplies.map((item) => item.supplyId),
+        ]),
+      ];
 
-      if (settings.length === 0) {
+      if (candidateSupplyIds.length === 0) {
         return { ...count, items: [] };
       }
 
-      const supplyIds = settings.map((setting) => setting.supplyId);
-      const previousRows = await conn
-        .select({
-          supplyId: inventoryCountItems.supplyId,
-          closingQuantity: inventoryCountItems.closingQuantity,
-          countedAt: inventoryCounts.submittedAt,
-        })
-        .from(inventoryCountItems)
-        .innerJoin(inventoryCounts, eq(inventoryCountItems.inventoryCountId, inventoryCounts.id))
-        .innerJoin(inventoryDays, eq(inventoryCounts.inventoryDayId, inventoryDays.id))
-        .where(
-          and(
-            eq(inventoryCounts.branchId, day.branchId),
-            inArray(inventoryCounts.status, ["submitted", "reviewed"]),
-            eq(inventoryCountItems.counted, true),
-            inArray(inventoryCountItems.supplyId, supplyIds),
-            lt(inventoryDays.businessDate, day.businessDate),
-          ),
-        )
-        .orderBy(desc(inventoryDays.businessDate), desc(inventoryCounts.submittedAt));
-
-      const previousBySupply = new Map<
-        string,
-        { closingQuantity: number; countedAt: Date | null }
-      >();
-      for (const row of previousRows) {
-        if (!previousBySupply.has(row.supplyId) && row.closingQuantity !== null) {
-          previousBySupply.set(row.supplyId, {
-            closingQuantity: Number(row.closingQuantity),
-            countedAt: row.countedAt,
-          });
-        }
-      }
-
+      const allSupplies = await conn
+        .select({ id: supplies.id })
+        .from(supplies)
+        .where(inArray(supplies.id, candidateSupplyIds))
+        .orderBy(asc(supplies.name), asc(supplies.sku));
+      const supplyIds = allSupplies.map((supply) => supply.id);
+      const previousBySupply = await this.getPreviousBySupply(
+        day.branchId,
+        day.businessDate,
+        supplyIds,
+        conn,
+      );
       const receivedBySupply = await this.sumReceivedByDay(day.id, conn);
       const items = await conn
         .insert(inventoryCountItems)
@@ -161,8 +171,8 @@ export class InventoryRepo {
             return {
               inventoryCountId: count.id,
               supplyId,
-              openingQuantity: previous?.closingQuantity ?? 0,
-              receivedQuantity: receivedBySupply.get(supplyId) ?? 0,
+              openingQuantity: previous?.closingQuantity ?? null,
+              receivedQuantity: receivedBySupply.get(supplyId) ?? null,
               lastCountedAt: previous?.countedAt ?? null,
             };
           }),
@@ -224,23 +234,60 @@ export class InventoryRepo {
 
   updateInventoryCount(countId: string, input: UpdateInventoryCountInput) {
     return this.runInTransaction(async (conn) => {
-      const current = await this.getInventoryCount(countId, conn);
-      if (!current) {
+      const [countLock] = await conn
+        .select({ id: inventoryCounts.id })
+        .from(inventoryCounts)
+        .where(eq(inventoryCounts.id, countId))
+        .for("update");
+      if (!countLock) {
         throw new AppError(404, "INVENTORY_COUNT_NOT_FOUND", "Inventory count not found");
       }
+
+      const current = await this.getInventoryCount(countId, conn);
+      if (!current)
+        throw new AppError(404, "INVENTORY_COUNT_NOT_FOUND", "Inventory count not found");
       if (current.status !== "draft") {
         throw new AppError(409, "INVENTORY_COUNT_NOT_DRAFT", "Inventory count is not a draft");
       }
 
-      const snapshotSupplyIds = new Set(current.items.map((item) => item.supplyId));
-      for (const item of input.items ?? []) {
-        if (!snapshotSupplyIds.has(item.supplyId)) {
-          throw new AppError(
-            400,
-            "SUPPLY_NOT_IN_COUNT",
-            "Supply is not part of the inventory count snapshot",
-          );
+      const existingSupplyIds = new Set(current.items.map((item) => item.supplyId));
+      const newSupplyIds = [...new Set((input.items ?? []).map((item) => item.supplyId))].filter(
+        (supplyId) => !existingSupplyIds.has(supplyId),
+      );
+
+      if (newSupplyIds.length > 0) {
+        const availableSupplies = await conn
+          .select({ id: supplies.id })
+          .from(supplies)
+          .where(and(inArray(supplies.id, newSupplyIds), eq(supplies.active, true)));
+        if (availableSupplies.length !== newSupplyIds.length) {
+          throw new AppError(404, "SUPPLY_NOT_AVAILABLE", "One or more supplies are unavailable");
         }
+
+        const [day] = await conn
+          .select()
+          .from(inventoryDays)
+          .where(eq(inventoryDays.id, current.inventoryDayId));
+        if (!day) throw new AppError(404, "INVENTORY_DAY_NOT_FOUND", "Inventory day not found");
+        const previousBySupply = await this.getPreviousBySupply(
+          current.branchId,
+          day.businessDate,
+          newSupplyIds,
+          conn,
+        );
+        const receivedBySupply = await this.sumReceivedByDay(day.id, conn);
+        await conn.insert(inventoryCountItems).values(
+          newSupplyIds.map((supplyId) => {
+            const previous = previousBySupply.get(supplyId);
+            return {
+              inventoryCountId: countId,
+              supplyId,
+              openingQuantity: previous?.closingQuantity ?? null,
+              receivedQuantity: receivedBySupply.get(supplyId) ?? null,
+              lastCountedAt: previous?.countedAt ?? null,
+            };
+          }),
+        );
       }
 
       const [draft] = await conn
@@ -258,6 +305,7 @@ export class InventoryRepo {
           .set({
             closingQuantity: item.closingQuantity,
             counted: item.closingQuantity !== null,
+            reportedAt: item.closingQuantity !== null ? new Date() : null,
           })
           .where(
             and(
@@ -310,7 +358,7 @@ export class InventoryRepo {
       for (const item of current.items) {
         await conn
           .update(inventoryCountItems)
-          .set({ receivedQuantity: receivedBySupply.get(item.supplyId) ?? 0 })
+          .set({ receivedQuantity: receivedBySupply.get(item.supplyId) ?? null })
           .where(eq(inventoryCountItems.id, item.id));
       }
 
@@ -366,29 +414,133 @@ export class InventoryRepo {
     });
   }
 
+  async listLastReports(branchId: string) {
+    const reports = await this.conn
+      .selectDistinctOn([inventoryCountItems.supplyId], {
+        supplyId: inventoryCountItems.supplyId,
+        closingQuantity: inventoryCountItems.closingQuantity,
+        businessDate: inventoryDays.businessDate,
+        reportedAt: inventoryCountItems.reportedAt,
+      })
+      .from(inventoryCountItems)
+      .innerJoin(inventoryCounts, eq(inventoryCountItems.inventoryCountId, inventoryCounts.id))
+      .innerJoin(inventoryDays, eq(inventoryCounts.inventoryDayId, inventoryDays.id))
+      .where(and(eq(inventoryCounts.branchId, branchId), eq(inventoryCountItems.counted, true)))
+      .orderBy(
+        inventoryCountItems.supplyId,
+        desc(inventoryDays.businessDate),
+        desc(inventoryCountItems.reportedAt),
+      );
+
+    const movements = await this.conn
+      .select({
+        supplyId: inventoryMovements.supplyId,
+        quantity: inventoryMovements.quantity,
+        createdAt: inventoryMovements.createdAt,
+      })
+      .from(inventoryMovements)
+      .where(eq(inventoryMovements.branchId, branchId));
+
+    return reports.map((report) => {
+      const since = report.reportedAt ?? new Date(`${report.businessDate}T00:00:00.000Z`);
+      const movementsSince = movements
+        .filter((movement) => movement.supplyId === report.supplyId && movement.createdAt > since)
+        .reduce((total, movement) => total + movement.quantity, 0);
+      return {
+        supplyId: report.supplyId,
+        closingQuantity: report.closingQuantity,
+        businessDate: report.businessDate,
+        reportedAt: report.reportedAt?.toISOString() ?? null,
+        movementsSince,
+        currentQuantity:
+          report.closingQuantity === null ? null : report.closingQuantity + movementsSince,
+      };
+    });
+  }
+
   private async sumReceivedByDay(dayId: string, conn: Executor) {
     const rows = await conn
       .select({
         supplyId: receiptItems.supplyId,
-        total: sql<number>`coalesce(sum(case when ${receiptItems.condition} = 'good' then ${receiptItems.receivedQuantity} else 0 end), 0)`,
+        total: sql<number>`coalesce(sum(${receiptItems.receivedQuantity}), 0)`,
       })
       .from(receiptItems)
       .innerJoin(receipts, eq(receiptItems.receiptId, receipts.id))
       .where(and(eq(receipts.inventoryDayId, dayId), eq(receipts.status, "completed")))
       .groupBy(receiptItems.supplyId);
-    return new Map(
-      rows.map((row) => {
-        try {
-          return [row.supplyId, assertSafeStoredQuantity(Number(row.total))] as const;
-        } catch {
-          throw new AppError(
-            500,
-            "RECEIVED_QUANTITY_OVERFLOW",
-            "Usable receipt total exceeds the safe quantity range",
-          );
-        }
-      }),
-    );
+    const totals = new Map<string, number>();
+    try {
+      for (const row of rows) {
+        totals.set(row.supplyId, assertSafeStoredQuantity(Number(row.total)));
+      }
+
+      const transferRows = await conn
+        .select({
+          supplyId: branchTransferItems.supplyId,
+          total: sql<number>`coalesce(sum(${branchTransferItems.quantity}), 0)`,
+        })
+        .from(branchTransferItems)
+        .innerJoin(branchTransfers, eq(branchTransferItems.transferId, branchTransfers.id))
+        .where(
+          and(
+            eq(branchTransfers.acceptedInventoryDayId, dayId),
+            eq(branchTransfers.status, "accepted"),
+          ),
+        )
+        .groupBy(branchTransferItems.supplyId);
+      for (const row of transferRows) {
+        const sum = BigInt(totals.get(row.supplyId) ?? 0) + BigInt(Number(row.total));
+        totals.set(row.supplyId, assertSafeStoredQuantity(Number(sum)));
+      }
+    } catch {
+      throw new AppError(
+        500,
+        "RECEIVED_QUANTITY_OVERFLOW",
+        "Received quantity total exceeds the safe quantity range",
+      );
+    }
+    return totals;
+  }
+
+  private async getPreviousBySupply(
+    branchId: string,
+    businessDate: string,
+    supplyIds: string[],
+    conn: Executor,
+  ) {
+    if (supplyIds.length === 0)
+      return new Map<string, { closingQuantity: number; countedAt: Date | null }>();
+
+    const previousRows = await conn
+      .select({
+        supplyId: inventoryCountItems.supplyId,
+        closingQuantity: inventoryCountItems.closingQuantity,
+        countedAt: inventoryCounts.submittedAt,
+      })
+      .from(inventoryCountItems)
+      .innerJoin(inventoryCounts, eq(inventoryCountItems.inventoryCountId, inventoryCounts.id))
+      .innerJoin(inventoryDays, eq(inventoryCounts.inventoryDayId, inventoryDays.id))
+      .where(
+        and(
+          eq(inventoryCounts.branchId, branchId),
+          inArray(inventoryCounts.status, ["submitted", "reviewed"]),
+          eq(inventoryCountItems.counted, true),
+          inArray(inventoryCountItems.supplyId, supplyIds),
+          lt(inventoryDays.businessDate, businessDate),
+        ),
+      )
+      .orderBy(desc(inventoryDays.businessDate), desc(inventoryCounts.submittedAt));
+
+    const previousBySupply = new Map<string, { closingQuantity: number; countedAt: Date | null }>();
+    for (const row of previousRows) {
+      if (!previousBySupply.has(row.supplyId) && row.closingQuantity !== null) {
+        previousBySupply.set(row.supplyId, {
+          closingQuantity: Number(row.closingQuantity),
+          countedAt: row.countedAt,
+        });
+      }
+    }
+    return previousBySupply;
   }
 
   private runInTransaction<T>(callback: (conn: Executor) => Promise<T>) {

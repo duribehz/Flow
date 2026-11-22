@@ -6,11 +6,12 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetReceiptsStatus = (typeof GetReceiptsStatus)[keyof typeof GetReceiptsStatus];
+export type GetReceiptsStatus = typeof GetReceiptsStatus[keyof typeof GetReceiptsStatus];
+
 
 export const GetReceiptsStatus = {
-  pending: "pending",
-  in_progress: "in_progress",
-  completed: "completed",
-  cancelled: "cancelled",
+  pending: 'pending',
+  in_progress: 'in_progress',
+  completed: 'completed',
+  cancelled: 'cancelled',
 } as const;

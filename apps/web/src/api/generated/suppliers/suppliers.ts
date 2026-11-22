@@ -5,124 +5,136 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   ApiError,
   CreateSupplier,
   GetSuppliers200,
   GetSuppliersSupplierId200,
-  PostSuppliers201,
-} from "../models";
+  PostSuppliers201
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getSuppliersResponse200 = {
-  data: GetSuppliers200;
-  status: 200;
-};
 
-export type getSuppliersResponseSuccess = getSuppliersResponse200 & {
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getSuppliersResponse200 = {
+  data: GetSuppliers200
+  status: 200
+}
+
+export type getSuppliersResponseSuccess = (getSuppliersResponse200) & {
   headers: Headers;
 };
+;
 
-export type getSuppliersResponse = getSuppliersResponseSuccess;
+export type getSuppliersResponse = (getSuppliersResponseSuccess)
 
 export const getGetSuppliersUrl = () => {
-  return `/v1/suppliers`;
-};
+
+
+
+
+  return `/v1/suppliers`
+}
 
 /**
  * @summary List suppliers
  */
-export const getSuppliers = async (
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getSuppliersResponse> => {
-  return apiClient<getSuppliersResponse>(getGetSuppliersUrl(), {
+export const getSuppliers = async ( options?: Parameters<typeof apiClient>[1]): Promise<getSuppliersResponse> => {
+
+  return apiClient<getSuppliersResponse>(getGetSuppliersUrl(),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
+
+
+  }
+);}
+
+
+
 
 export const getGetSuppliersKey = () => [`/v1/suppliers`] as const;
 
-export type GetSuppliersQueryResult = NonNullable<Awaited<ReturnType<typeof getSuppliers>>>;
+export type GetSuppliersQueryResult = NonNullable<Awaited<ReturnType<typeof getSuppliers>>>
 
 /**
  * @summary List suppliers
  */
-export const useGetSuppliers = <TError = unknown>(options?: {
-  swr?: SWRConfiguration<Awaited<ReturnType<typeof getSuppliers>>, TError> & {
-    swrKey?: Key;
-    enabled?: boolean;
-  };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const useGetSuppliers = <TError = unknown>(
+   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSuppliers>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
+) => {
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetSuppliersKey() : null));
-  const swrFn = () => getSuppliers(requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSuppliersKey() : null);
+  const swrFn = () => getSuppliers(requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postSuppliersResponse201 = {
-  data: PostSuppliers201;
-  status: 201;
-};
+  data: PostSuppliers201
+  status: 201
+}
 
 export type postSuppliersResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postSuppliersResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postSuppliersResponseSuccess = postSuppliersResponse201 & {
+export type postSuppliersResponseSuccess = (postSuppliersResponse201) & {
   headers: Headers;
 };
 export type postSuppliersResponseError = (postSuppliersResponse400 | postSuppliersResponse409) & {
   headers: Headers;
 };
 
-export type postSuppliersResponse = postSuppliersResponseSuccess | postSuppliersResponseError;
+export type postSuppliersResponse = (postSuppliersResponseSuccess | postSuppliersResponseError)
 
 export const getPostSuppliersUrl = () => {
-  return `/v1/suppliers`;
-};
+
+
+
+
+  return `/v1/suppliers`
+}
 
 /**
  * @summary Create a supplier
  */
-export const postSuppliers = async (
-  createSupplier: CreateSupplier,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postSuppliersResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postSuppliers = async (createSupplier: CreateSupplier, options?: Parameters<typeof apiClient>[1]): Promise<postSuppliersResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -131,126 +143,115 @@ export const postSuppliers = async (
     }
     return headers;
   };
-  return apiClient<postSuppliersResponse>(getPostSuppliersUrl(), {
+return apiClient<postSuppliersResponse>(getPostSuppliersUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createSupplier),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createSupplier)
+  }
+);}
 
-export const getPostSuppliersMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
+
+
+
+export const getPostSuppliersMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateSupplier }) => {
     return postSuppliers(arg, options);
-  };
-};
+  }
+}
 export const getPostSuppliersMutationKey = () => [`/v1/suppliers`] as const;
 
-export type PostSuppliersMutationResult = NonNullable<Awaited<ReturnType<typeof postSuppliers>>>;
+export type PostSuppliersMutationResult = NonNullable<Awaited<ReturnType<typeof postSuppliers>>>
 
 /**
  * @summary Create a supplier
  */
-export const usePostSuppliers = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postSuppliers>>,
-    TError,
-    Key,
-    CreateSupplier,
-    Awaited<ReturnType<typeof postSuppliers>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostSuppliers = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postSuppliers>>, TError, Key, CreateSupplier, Awaited<ReturnType<typeof postSuppliers>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostSuppliersMutationKey();
   const swrFn = getPostSuppliersMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getSuppliersSupplierIdResponse200 = {
-  data: GetSuppliersSupplierId200;
-  status: 200;
-};
+  data: GetSuppliersSupplierId200
+  status: 200
+}
 
 export type getSuppliersSupplierIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getSuppliersSupplierIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getSuppliersSupplierIdResponseSuccess = getSuppliersSupplierIdResponse200 & {
+export type getSuppliersSupplierIdResponseSuccess = (getSuppliersSupplierIdResponse200) & {
   headers: Headers;
 };
-export type getSuppliersSupplierIdResponseError = (
-  | getSuppliersSupplierIdResponse400
-  | getSuppliersSupplierIdResponse404
-) & {
+export type getSuppliersSupplierIdResponseError = (getSuppliersSupplierIdResponse400 | getSuppliersSupplierIdResponse404) & {
   headers: Headers;
 };
 
-export type getSuppliersSupplierIdResponse =
-  | getSuppliersSupplierIdResponseSuccess
-  | getSuppliersSupplierIdResponseError;
+export type getSuppliersSupplierIdResponse = (getSuppliersSupplierIdResponseSuccess | getSuppliersSupplierIdResponseError)
 
-export const getGetSuppliersSupplierIdUrl = (supplierId: string) => {
-  return `/v1/suppliers/${supplierId}`;
-};
+export const getGetSuppliersSupplierIdUrl = (supplierId: string,) => {
+
+
+
+
+  return `/v1/suppliers/${supplierId}`
+}
 
 /**
  * @summary Get a supplier
  */
-export const getSuppliersSupplierId = async (
-  supplierId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getSuppliersSupplierIdResponse> => {
-  return apiClient<getSuppliersSupplierIdResponse>(getGetSuppliersSupplierIdUrl(supplierId), {
+export const getSuppliersSupplierId = async (supplierId: string, options?: Parameters<typeof apiClient>[1]): Promise<getSuppliersSupplierIdResponse> => {
+
+  return apiClient<getSuppliersSupplierIdResponse>(getGetSuppliersSupplierIdUrl(supplierId),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetSuppliersSupplierIdKey = (supplierId: string) =>
-  [`/v1/suppliers/${supplierId}`] as const;
 
-export type GetSuppliersSupplierIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getSuppliersSupplierId>>
->;
+  }
+);}
+
+
+
+
+export const getGetSuppliersSupplierIdKey = (supplierId: string,) => [`/v1/suppliers/${supplierId}`] as const;
+
+export type GetSuppliersSupplierIdQueryResult = NonNullable<Awaited<ReturnType<typeof getSuppliersSupplierId>>>
 
 /**
  * @summary Get a supplier
  */
 export const useGetSuppliersSupplierId = <TError = ApiError>(
-  supplierId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getSuppliersSupplierId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  supplierId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getSuppliersSupplierId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled =
-    swrOptions?.enabled !== false && supplierId !== null && supplierId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetSuppliersSupplierIdKey(supplierId) : null));
-  const swrFn = () => getSuppliersSupplierId(supplierId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && supplierId !== null && supplierId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetSuppliersSupplierIdKey(supplierId) : null);
+  const swrFn = () => getSuppliersSupplierId(supplierId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

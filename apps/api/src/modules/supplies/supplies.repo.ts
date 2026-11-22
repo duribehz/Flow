@@ -2,7 +2,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 
 import type { Executor } from "@/shared/infrastructure/database/client.js";
 import { suppliers as suppliersTable } from "../suppliers/suppliers.schema.js";
-import type { CreateSupplyInput } from "./supplies.dto.js";
+import type { CreateSupplyInput, UpdateSupplyInput } from "./supplies.dto.js";
 import { categories, supplies, supplySuppliers, units } from "./supplies.schema.js";
 
 export class SuppliesRepo {
@@ -60,6 +60,40 @@ export class SuppliesRepo {
     });
   }
 
+  async updateSupply(supplyId: string, input: UpdateSupplyInput) {
+    const { supplierIds, ...fields } = input;
+
+    return this.runInTransaction(async (conn) => {
+      const [updated] = await conn
+        .update(supplies)
+        .set({ ...fields, updatedAt: new Date() })
+        .where(eq(supplies.id, supplyId))
+        .returning({ id: supplies.id });
+
+      if (!updated) {
+        return undefined;
+      }
+
+      if (supplierIds) {
+        await conn.delete(supplySuppliers).where(eq(supplySuppliers.supplyId, supplyId));
+        await conn
+          .insert(supplySuppliers)
+          .values(supplierIds.map((supplierId) => ({ supplyId, supplierId })));
+      }
+
+      return new SuppliesRepo(conn).getSupplyById(supplyId);
+    });
+  }
+
+  async updateInventoryTracking(supplyId: string, trackInventory: boolean) {
+    const [updated] = await this.conn
+      .update(supplies)
+      .set({ trackInventory, updatedAt: new Date() })
+      .where(eq(supplies.id, supplyId))
+      .returning({ id: supplies.id });
+    return updated ? this.getSupplyById(updated.id) : undefined;
+  }
+
   async categoryExists(categoryId: string) {
     const [category] = await this.conn
       .select({ id: categories.id })
@@ -105,6 +139,7 @@ export class SuppliesRepo {
         description: supplies.description,
         unitCost: supplies.unitCost,
         active: supplies.active,
+        trackInventory: supplies.trackInventory,
         category: {
           id: categories.id,
           name: categories.name,

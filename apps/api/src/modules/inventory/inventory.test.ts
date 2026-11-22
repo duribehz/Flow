@@ -304,6 +304,7 @@ describe("inventory routes", () => {
     };
 
     expect(document.paths["/v1/inventory-days"]?.get.operationId).toBe("getInventoryDays");
+    expect(document.paths["/v1/inventory/supplies"]?.get.operationId).toBe("getInventorySupplies");
     expect(document.paths["/v1/inventory-days/{dayId}"]?.get.operationId).toBe(
       "getInventoryDaysDayId",
     );

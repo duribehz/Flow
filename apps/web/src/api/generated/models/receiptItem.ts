@@ -5,8 +5,8 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ReceiptItemCondition } from "./receiptItemCondition";
-import type { ReceiptItemSupply } from "./receiptItemSupply";
+import type { ReceiptItemCondition } from './receiptItemCondition';
+import type { ReceiptItemSupply } from './receiptItemSupply';
 
 export interface ReceiptItem {
   id: string;
@@ -16,15 +16,25 @@ export interface ReceiptItem {
   usagePurposeId: string;
   usagePurposeName: string;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     */
   expectedQuantity: number;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     */
   receivedQuantity: number;
+  /**
+     * Money amount in integer cents.
+     * @minimum 0
+     */
+  unitPriceAtReceipt: number;
+  /**
+     * Money amount in integer cents.
+     * @minimum 0
+     */
+  receivedAmount: number;
   condition: ReceiptItemCondition;
   /** @nullable */
   checkedAt: string | null;

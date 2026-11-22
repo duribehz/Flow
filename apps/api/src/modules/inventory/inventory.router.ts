@@ -2,6 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
+import { assertBranchAccess } from "@/shared/infrastructure/http/auth-middleware.js";
 import {
   createInventoryCountDTO,
   createInventoryDayDTO,
@@ -10,11 +11,14 @@ import {
   inventoryCountIdParamsDTO,
   inventoryDayDTO,
   inventoryDayIdParamsDTO,
+  inventoryLastReportDTO,
+  inventoryLastReportsQueryDTO,
+  inventorySupplyDTO,
   listInventoryCountsQueryDTO,
   listInventoryDaysQueryDTO,
   updateInventoryCountDTO,
 } from "./inventory.dto.js";
-import type { InventoryCount, InventoryDay } from "./inventory.repo.js";
+import { InventoryRepo, type InventoryCount, type InventoryDay } from "./inventory.repo.js";
 import { createInventoryCountUseCase } from "./use-cases/create-inventory-count.usecase.js";
 import { getInventoryCountUseCase } from "./use-cases/get-inventory-count.usecase.js";
 import { getInventoryDayUseCase } from "./use-cases/get-inventory-day.usecase.js";
@@ -50,6 +54,54 @@ export const inventoryRouter = new OpenAPIHono<State>({
 
 inventoryRouter.openapi(
   createRoute({
+    method: "get",
+    path: "/inventory/supplies",
+    operationId: "getInventorySupplies",
+    tags: ["Inventory"],
+    summary: "List article details needed for inventory counts",
+    responses: {
+      200: {
+        description: "Inventory article catalog",
+        content: {
+          "application/json": { schema: z.object({ data: z.array(inventorySupplyDTO) }) },
+        },
+      },
+    },
+  }),
+  async (context) => {
+    const supplies = await new InventoryRepo(context.get("db")).listInventorySupplies();
+    return context.json({ data: supplies }, 200);
+  },
+);
+
+inventoryRouter.openapi(
+  createRoute({
+    method: "get",
+    path: "/inventory/last-reports",
+    operationId: "getInventoryLastReports",
+    tags: ["Inventory"],
+    summary: "Last reported stock per article for a branch",
+    request: { query: inventoryLastReportsQueryDTO },
+    responses: {
+      200: {
+        description: "Last reported stock per article",
+        content: {
+          "application/json": { schema: z.object({ data: z.array(inventoryLastReportDTO) }) },
+        },
+      },
+      400: errors[400],
+    },
+  }),
+  async (ctx) => {
+    const query = ctx.req.valid("query");
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), query.branchId);
+    const rows = await new InventoryRepo(ctx.get("db")).listLastReports(query.branchId);
+    return ctx.json({ data: rows }, 200);
+  },
+);
+
+inventoryRouter.openapi(
+  createRoute({
     method: "post",
     path: "/inventory-days",
     operationId: "postInventoryDays",
@@ -73,11 +125,9 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const result = await openInventoryDayUseCase(
-      ctx.get("userId"),
-      ctx.req.valid("json"),
-      ctx.get("db"),
-    );
+    const input = ctx.req.valid("json");
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), input.branchId);
+    const result = await openInventoryDayUseCase(ctx.get("userId"), input, ctx.get("db"));
     return ctx.json({ data: toDayResponse(result.day) }, result.created ? 201 : 200);
   },
 );
@@ -99,7 +149,10 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const days = await listInventoryDaysUseCase(ctx.req.valid("query"), ctx.get("db"));
+    const filters = ctx.req.valid("query");
+    const scopedFilters =
+      ctx.get("userRole") === "manager" ? { ...filters, branchId: ctx.get("branchId")! } : filters;
+    const days = await listInventoryDaysUseCase(scopedFilters, ctx.get("db"));
     return ctx.json({ data: days.map(toDayResponse) }, 200);
   },
 );
@@ -123,6 +176,7 @@ inventoryRouter.openapi(
   }),
   async (ctx) => {
     const day = await getInventoryDayUseCase(ctx.req.valid("param").dayId, ctx.get("db"));
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), day.branchId);
     return ctx.json({ data: toDayResponse(day) }, 200);
   },
 );
@@ -152,11 +206,10 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const count = await createInventoryCountUseCase(
-      ctx.get("userId"),
-      ctx.req.valid("json"),
-      ctx.get("db"),
-    );
+    const input = ctx.req.valid("json");
+    const day = await getInventoryDayUseCase(input.inventoryDayId, ctx.get("db"));
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), day.branchId);
+    const count = await createInventoryCountUseCase(ctx.get("userId"), input, ctx.get("db"));
     return ctx.json({ data: toCountResponse(count) }, 201);
   },
 );
@@ -180,7 +233,10 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const counts = await listInventoryCountsUseCase(ctx.req.valid("query"), ctx.get("db"));
+    const filters = ctx.req.valid("query");
+    const scopedFilters =
+      ctx.get("userRole") === "manager" ? { ...filters, branchId: ctx.get("branchId")! } : filters;
+    const counts = await listInventoryCountsUseCase(scopedFilters, ctx.get("db"));
     return ctx.json({ data: counts.map(toCountSummaryResponse) }, 200);
   },
 );
@@ -206,6 +262,7 @@ inventoryRouter.openapi(
   }),
   async (ctx) => {
     const count = await getInventoryCountUseCase(ctx.req.valid("param").countId, ctx.get("db"));
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), count.branchId);
     return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );
@@ -237,11 +294,10 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const count = await updateInventoryCountUseCase(
-      ctx.req.valid("param").countId,
-      ctx.req.valid("json"),
-      ctx.get("db"),
-    );
+    const countId = ctx.req.valid("param").countId;
+    const current = await getInventoryCountUseCase(countId, ctx.get("db"));
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), current.branchId);
+    const count = await updateInventoryCountUseCase(countId, ctx.req.valid("json"), ctx.get("db"));
     return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );
@@ -267,11 +323,10 @@ inventoryRouter.openapi(
     },
   }),
   async (ctx) => {
-    const count = await submitInventoryCountUseCase(
-      ctx.get("userId"),
-      ctx.req.valid("param").countId,
-      ctx.get("db"),
-    );
+    const countId = ctx.req.valid("param").countId;
+    const current = await getInventoryCountUseCase(countId, ctx.get("db"));
+    assertBranchAccess(ctx.get("userRole"), ctx.get("branchId"), current.branchId);
+    const count = await submitInventoryCountUseCase(ctx.get("userId"), countId, ctx.get("db"));
     return ctx.json({ data: toCountResponse(count) }, 200);
   },
 );

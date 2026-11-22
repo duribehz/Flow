@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Unit } from "./unit";
+import type { Unit } from './unit';
 
 export type GetUnitsUnitId200 = {
   data: Unit;

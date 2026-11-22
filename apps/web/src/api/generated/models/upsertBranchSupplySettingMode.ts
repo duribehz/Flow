@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type UpsertBranchSupplySettingMode =
-  (typeof UpsertBranchSupplySettingMode)[keyof typeof UpsertBranchSupplySettingMode];
+export type UpsertBranchSupplySettingMode = typeof UpsertBranchSupplySettingMode[keyof typeof UpsertBranchSupplySettingMode];
+
 
 export const UpsertBranchSupplySettingMode = {
-  fixed: "fixed",
-  on_demand: "on_demand",
+  fixed: 'fixed',
+  on_demand: 'on_demand',
 } as const;

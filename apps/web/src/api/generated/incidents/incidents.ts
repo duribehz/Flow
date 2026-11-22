@@ -5,11 +5,16 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   ApiError,
@@ -19,145 +24,139 @@ import type {
   GetIncidentsParams,
   PatchIncidentsIncidentId200,
   PostIncidents201,
-  UpdateIncident,
-} from "../models";
+  UpdateIncident
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getIncidentsResponse200 = {
-  data: GetIncidents200;
-  status: 200;
-};
+
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getIncidentsResponse200 = {
+  data: GetIncidents200
+  status: 200
+}
 
 export type getIncidentsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
-export type getIncidentsResponseSuccess = getIncidentsResponse200 & {
+export type getIncidentsResponseSuccess = (getIncidentsResponse200) & {
   headers: Headers;
 };
-export type getIncidentsResponseError = getIncidentsResponse400 & {
+export type getIncidentsResponseError = (getIncidentsResponse400) & {
   headers: Headers;
 };
 
-export type getIncidentsResponse = getIncidentsResponseSuccess | getIncidentsResponseError;
+export type getIncidentsResponse = (getIncidentsResponseSuccess | getIncidentsResponseError)
 
-export const getGetIncidentsUrl = (params?: GetIncidentsParams) => {
+export const getGetIncidentsUrl = (params?: GetIncidentsParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : String(value));
+      normalizedParams.append(key, value === null ? 'null' : String(value))
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/v1/incidents?${stringifiedParams}` : `/v1/incidents`;
-};
+  return stringifiedParams.length > 0 ? `/v1/incidents?${stringifiedParams}` : `/v1/incidents`
+}
 
 /**
  * @summary List incidents
  */
-export const getIncidents = async (
-  params?: GetIncidentsParams,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getIncidentsResponse> => {
-  return apiClient<getIncidentsResponse>(getGetIncidentsUrl(params), {
+export const getIncidents = async (params?: GetIncidentsParams, options?: Parameters<typeof apiClient>[1]): Promise<getIncidentsResponse> => {
+
+  return apiClient<getIncidentsResponse>(getGetIncidentsUrl(params),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetIncidentsKey = (params?: GetIncidentsParams) =>
-  [`/v1/incidents`, ...(params ? [params] : [])] as const;
 
-export type GetIncidentsQueryResult = NonNullable<Awaited<ReturnType<typeof getIncidents>>>;
+  }
+);}
+
+
+
+
+export const getGetIncidentsKey = (params?: GetIncidentsParams,) => [`/v1/incidents`, ...(params ? [params]: [])] as const;
+
+export type GetIncidentsQueryResult = NonNullable<Awaited<ReturnType<typeof getIncidents>>>
 
 /**
  * @summary List incidents
  */
 export const useGetIncidents = <TError = ApiError>(
-  params?: GetIncidentsParams,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getIncidents>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  params?: GetIncidentsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getIncidents>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetIncidentsKey(params) : null));
-  const swrFn = () => getIncidents(params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetIncidentsKey(params) : null);
+  const swrFn = () => getIncidents(params, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postIncidentsResponse201 = {
-  data: PostIncidents201;
-  status: 201;
-};
+  data: PostIncidents201
+  status: 201
+}
 
 export type postIncidentsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postIncidentsResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postIncidentsResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postIncidentsResponseSuccess = postIncidentsResponse201 & {
+export type postIncidentsResponseSuccess = (postIncidentsResponse201) & {
   headers: Headers;
 };
-export type postIncidentsResponseError = (
-  | postIncidentsResponse400
-  | postIncidentsResponse404
-  | postIncidentsResponse409
-) & {
+export type postIncidentsResponseError = (postIncidentsResponse400 | postIncidentsResponse404 | postIncidentsResponse409) & {
   headers: Headers;
 };
 
-export type postIncidentsResponse = postIncidentsResponseSuccess | postIncidentsResponseError;
+export type postIncidentsResponse = (postIncidentsResponseSuccess | postIncidentsResponseError)
 
 export const getPostIncidentsUrl = () => {
-  return `/v1/incidents`;
-};
+
+
+
+
+  return `/v1/incidents`
+}
 
 /**
  * @summary Report a derived incident for a receipt item
  */
-export const postIncidents = async (
-  createIncident: CreateIncident,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postIncidentsResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postIncidents = async (createIncident: CreateIncident, options?: Parameters<typeof apiClient>[1]): Promise<postIncidentsResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -166,187 +165,167 @@ export const postIncidents = async (
     }
     return headers;
   };
-  return apiClient<postIncidentsResponse>(getPostIncidentsUrl(), {
+return apiClient<postIncidentsResponse>(getPostIncidentsUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createIncident),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createIncident)
+  }
+);}
 
-export const getPostIncidentsMutationFetcher = (options?: SecondParameter<typeof apiClient>) => {
+
+
+
+export const getPostIncidentsMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateIncident }) => {
     return postIncidents(arg, options);
-  };
-};
+  }
+}
 export const getPostIncidentsMutationKey = () => [`/v1/incidents`] as const;
 
-export type PostIncidentsMutationResult = NonNullable<Awaited<ReturnType<typeof postIncidents>>>;
+export type PostIncidentsMutationResult = NonNullable<Awaited<ReturnType<typeof postIncidents>>>
 
 /**
  * @summary Report a derived incident for a receipt item
  */
-export const usePostIncidents = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postIncidents>>,
-    TError,
-    Key,
-    CreateIncident,
-    Awaited<ReturnType<typeof postIncidents>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostIncidents = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postIncidents>>, TError, Key, CreateIncident, Awaited<ReturnType<typeof postIncidents>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostIncidentsMutationKey();
   const swrFn = getPostIncidentsMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getIncidentsIncidentIdResponse200 = {
-  data: GetIncidentsIncidentId200;
-  status: 200;
-};
+  data: GetIncidentsIncidentId200
+  status: 200
+}
 
 export type getIncidentsIncidentIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getIncidentsIncidentIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getIncidentsIncidentIdResponseSuccess = getIncidentsIncidentIdResponse200 & {
+export type getIncidentsIncidentIdResponseSuccess = (getIncidentsIncidentIdResponse200) & {
   headers: Headers;
 };
-export type getIncidentsIncidentIdResponseError = (
-  | getIncidentsIncidentIdResponse400
-  | getIncidentsIncidentIdResponse404
-) & {
+export type getIncidentsIncidentIdResponseError = (getIncidentsIncidentIdResponse400 | getIncidentsIncidentIdResponse404) & {
   headers: Headers;
 };
 
-export type getIncidentsIncidentIdResponse =
-  | getIncidentsIncidentIdResponseSuccess
-  | getIncidentsIncidentIdResponseError;
+export type getIncidentsIncidentIdResponse = (getIncidentsIncidentIdResponseSuccess | getIncidentsIncidentIdResponseError)
 
-export const getGetIncidentsIncidentIdUrl = (incidentId: string) => {
-  return `/v1/incidents/${incidentId}`;
-};
+export const getGetIncidentsIncidentIdUrl = (incidentId: string,) => {
+
+
+
+
+  return `/v1/incidents/${incidentId}`
+}
 
 /**
  * @summary Get incident detail
  */
-export const getIncidentsIncidentId = async (
-  incidentId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getIncidentsIncidentIdResponse> => {
-  return apiClient<getIncidentsIncidentIdResponse>(getGetIncidentsIncidentIdUrl(incidentId), {
+export const getIncidentsIncidentId = async (incidentId: string, options?: Parameters<typeof apiClient>[1]): Promise<getIncidentsIncidentIdResponse> => {
+
+  return apiClient<getIncidentsIncidentIdResponse>(getGetIncidentsIncidentIdUrl(incidentId),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetIncidentsIncidentIdKey = (incidentId: string) =>
-  [`/v1/incidents/${incidentId}`] as const;
 
-export type GetIncidentsIncidentIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getIncidentsIncidentId>>
->;
+  }
+);}
+
+
+
+
+export const getGetIncidentsIncidentIdKey = (incidentId: string,) => [`/v1/incidents/${incidentId}`] as const;
+
+export type GetIncidentsIncidentIdQueryResult = NonNullable<Awaited<ReturnType<typeof getIncidentsIncidentId>>>
 
 /**
  * @summary Get incident detail
  */
 export const useGetIncidentsIncidentId = <TError = ApiError>(
-  incidentId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getIncidentsIncidentId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  incidentId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getIncidentsIncidentId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled =
-    swrOptions?.enabled !== false && incidentId !== null && incidentId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetIncidentsIncidentIdKey(incidentId) : null));
-  const swrFn = () => getIncidentsIncidentId(incidentId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && incidentId !== null && incidentId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetIncidentsIncidentIdKey(incidentId) : null);
+  const swrFn = () => getIncidentsIncidentId(incidentId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchIncidentsIncidentIdResponse200 = {
-  data: PatchIncidentsIncidentId200;
-  status: 200;
-};
+  data: PatchIncidentsIncidentId200
+  status: 200
+}
 
 export type patchIncidentsIncidentIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchIncidentsIncidentIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchIncidentsIncidentIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchIncidentsIncidentIdResponseSuccess = patchIncidentsIncidentIdResponse200 & {
+export type patchIncidentsIncidentIdResponseSuccess = (patchIncidentsIncidentIdResponse200) & {
   headers: Headers;
 };
-export type patchIncidentsIncidentIdResponseError = (
-  | patchIncidentsIncidentIdResponse400
-  | patchIncidentsIncidentIdResponse404
-  | patchIncidentsIncidentIdResponse409
-) & {
+export type patchIncidentsIncidentIdResponseError = (patchIncidentsIncidentIdResponse400 | patchIncidentsIncidentIdResponse404 | patchIncidentsIncidentIdResponse409) & {
   headers: Headers;
 };
 
-export type patchIncidentsIncidentIdResponse =
-  | patchIncidentsIncidentIdResponseSuccess
-  | patchIncidentsIncidentIdResponseError;
+export type patchIncidentsIncidentIdResponse = (patchIncidentsIncidentIdResponseSuccess | patchIncidentsIncidentIdResponseError)
 
-export const getPatchIncidentsIncidentIdUrl = (incidentId: string) => {
-  return `/v1/incidents/${incidentId}`;
-};
+export const getPatchIncidentsIncidentIdUrl = (incidentId: string,) => {
+
+
+
+
+  return `/v1/incidents/${incidentId}`
+}
 
 /**
  * @summary Update incident status, assignment or resolution
  */
-export const patchIncidentsIncidentId = async (
-  incidentId: string,
-  updateIncident: UpdateIncident,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchIncidentsIncidentIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchIncidentsIncidentId = async (incidentId: string,
+    updateIncident: UpdateIncident, options?: Parameters<typeof apiClient>[1]): Promise<patchIncidentsIncidentIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -355,54 +334,43 @@ export const patchIncidentsIncidentId = async (
     }
     return headers;
   };
-  return apiClient<patchIncidentsIncidentIdResponse>(getPatchIncidentsIncidentIdUrl(incidentId), {
+return apiClient<patchIncidentsIncidentIdResponse>(getPatchIncidentsIncidentIdUrl(incidentId),
+  {
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(updateIncident),
-  });
-};
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateIncident)
+  }
+);}
 
-export const getPatchIncidentsIncidentIdMutationFetcher = (
-  incidentId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchIncidentsIncidentIdMutationFetcher = (incidentId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateIncident }) => {
     return patchIncidentsIncidentId(incidentId, arg, options);
-  };
-};
-export const getPatchIncidentsIncidentIdMutationKey = (incidentId: string) =>
-  [`/v1/incidents/${incidentId}`] as const;
+  }
+}
+export const getPatchIncidentsIncidentIdMutationKey = (incidentId: string,) => [`/v1/incidents/${incidentId}`] as const;
 
-export type PatchIncidentsIncidentIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchIncidentsIncidentId>>
->;
+export type PatchIncidentsIncidentIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchIncidentsIncidentId>>>
 
 /**
  * @summary Update incident status, assignment or resolution
  */
 export const usePatchIncidentsIncidentId = <TError = ApiError>(
-  incidentId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchIncidentsIncidentId>>,
-      TError,
-      Key,
-      UpdateIncident,
-      Awaited<ReturnType<typeof patchIncidentsIncidentId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  incidentId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchIncidentsIncidentId>>, TError, Key, UpdateIncident, Awaited<ReturnType<typeof patchIncidentsIncidentId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPatchIncidentsIncidentIdMutationKey(incidentId);
   const swrFn = getPatchIncidentsIncidentIdMutationFetcher(incidentId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

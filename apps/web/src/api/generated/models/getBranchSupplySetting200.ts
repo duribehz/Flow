@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { BranchSupplySetting } from "./branchSupplySetting";
+import type { BranchSupplySetting } from './branchSupplySetting';
 
 export type GetBranchSupplySetting200 = {
   data: BranchSupplySetting;

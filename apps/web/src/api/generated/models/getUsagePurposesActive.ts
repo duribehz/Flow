@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetUsagePurposesActive =
-  (typeof GetUsagePurposesActive)[keyof typeof GetUsagePurposesActive];
+export type GetUsagePurposesActive = typeof GetUsagePurposesActive[keyof typeof GetUsagePurposesActive];
+
 
 export const GetUsagePurposesActive = {
-  true: "true",
-  false: "false",
+  true: 'true',
+  false: 'false',
 } as const;

@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { branchSupplySettingsRouter } from "./modules/branch-supply-settings/branch-supply-settings.router.js";
 import { branchesRouter } from "./modules/branches/branches.router.js";
 import { categoriesRouter } from "./modules/categories/categories.router.js";
+import { authRouter } from "./modules/auth/auth.router.js";
 import { inventoryRouter } from "./modules/inventory/inventory.router.js";
 import { incidentsRouter } from "./modules/receipts/incidents.router.js";
 import { receiptsRouter } from "./modules/receipts/receipts.router.js";
@@ -12,9 +13,14 @@ import { shipmentsRouter } from "./modules/shipments/shipments.router.js";
 import { suppliersRouter } from "./modules/suppliers/suppliers.router.js";
 import { suppliesRouter } from "./modules/supplies/supplies.router.js";
 import { unitsRouter } from "./modules/units/units.router.js";
+import { transfersRouter } from "./modules/transfers/transfers.router.js";
 import { usagePurposesRouter } from "./modules/usage-purposes/usage-purposes.router.js";
+import { usersRouter } from "./modules/users/users.router.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
-import { devActorMiddleware } from "./shared/infrastructure/http/dev-actor.js";
+import {
+  authenticateRequest,
+  authorizeRoleRoutes,
+} from "./shared/infrastructure/http/auth-middleware.js";
 import { configureOpenApi } from "./shared/infrastructure/http/openapi.js";
 import type { State } from "./shared/infrastructure/http/state.js";
 import { DB } from "./shared/infrastructure/database/client.js";
@@ -32,8 +38,11 @@ app.use("*", async (context, next) => {
   context.set("db", DB);
   await next();
 });
-app.use("*", devActorMiddleware);
+app.use("*", authenticateRequest);
+app.use("*", authorizeRoleRoutes);
 app.onError(errorHandler);
+app.route("/v1/auth", authRouter);
+app.route("/v1/users", usersRouter);
 app.route("/v1/branches", branchesRouter);
 app.route("/v1/branches", branchSupplySettingsRouter);
 app.route("/v1/categories", categoriesRouter);
@@ -42,6 +51,7 @@ app.route("/v1", receiptsRouter);
 app.route("/v1/replenishments", replenishmentsRouter);
 app.route("/v1/shipments", shipmentsRouter);
 app.route("/v1/supplies", suppliesRouter);
+app.route("/v1/transfers", transfersRouter);
 app.route("/v1/suppliers", suppliersRouter);
 app.route("/v1/units", unitsRouter);
 app.route("/v1/usage-purposes", usagePurposesRouter);

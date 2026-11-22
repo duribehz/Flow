@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventoryDay } from "./inventoryDay";
+import type { InventoryDay } from './inventoryDay';
 
 export type GetInventoryDaysDayId200 = {
   data: InventoryDay;

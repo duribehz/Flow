@@ -5,9 +5,9 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { GetIncidentsStatus } from "./getIncidentsStatus";
+import type { GetIncidentsStatus } from './getIncidentsStatus';
 
 export type GetIncidentsParams = {
-  receiptId?: string;
-  status?: GetIncidentsStatus;
+receiptId?: string;
+status?: GetIncidentsStatus;
 };

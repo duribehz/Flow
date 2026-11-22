@@ -1,8 +1,21 @@
 import { useState } from "react";
-import { Ellipsis, PackageOpen, Plus, RefreshCw, UsersRound } from "lucide-react";
+import {
+  Ellipsis,
+  Pencil,
+  PackageOpen,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  UsersRound,
+} from "lucide-react";
 
 import { useGetCategories } from "@/api/generated/categories/categories";
-import { useGetSupplies } from "@/api/generated/supplies/supplies";
+import {
+  useDeleteSuppliesSupplyId,
+  useGetSupplies,
+  usePatchSuppliesSupplyId,
+} from "@/api/generated/supplies/supplies";
 import { useGetSuppliers } from "@/api/generated/suppliers/suppliers";
 import { useGetUnits } from "@/api/generated/units/units";
 import type { Supply } from "@/api/generated/models";
@@ -48,6 +61,7 @@ export function ArticlesPage() {
   const [status, setStatus] = useState<StatusFilter>("all");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [managedSupply, setManagedSupply] = useState<Supply>();
+  const [editingSupply, setEditingSupply] = useState<Supply>();
   const {
     data: suppliesData,
     error: suppliesError,
@@ -169,10 +183,10 @@ export function ArticlesPage() {
             </div>
           </div>
 
-          <Table className="min-w-[1080px]">
+          <Table>
             <TableHeader className="bg-muted/60">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="h-[50px] w-[250px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
+                <TableHead className="h-[50px] pl-7 text-xs font-semibold tracking-wide text-muted-foreground">
                   ARTÍCULO
                 </TableHead>
                 <TableHead className="w-[180px] text-xs font-semibold tracking-wide text-muted-foreground">
@@ -232,7 +246,9 @@ export function ArticlesPage() {
                   <SupplyRow
                     key={supply.id}
                     supply={supply}
+                    onEdit={() => setEditingSupply(supply)}
                     onManage={() => setManagedSupply(supply)}
+                    onChanged={() => mutateSupplies()}
                   />
                 ))}
               {!isLoading && !error && visibleSupplies.length === 0 && (
@@ -261,12 +277,17 @@ export function ArticlesPage() {
         </Card>
       </main>
 
-      {isCreateOpen && (
+      {(isCreateOpen || editingSupply) && (
         <CreateSupplyDialog
+          key={editingSupply?.id ?? "new"}
+          supply={editingSupply}
           categories={categories}
           units={units}
           suppliers={suppliers}
-          onClose={() => setIsCreateOpen(false)}
+          onClose={() => {
+            setIsCreateOpen(false);
+            setEditingSupply(undefined);
+          }}
           onCreated={() => mutateSupplies()}
           onUnitCreated={() => mutateUnits()}
         />
@@ -284,45 +305,103 @@ export function ArticlesPage() {
   );
 }
 
-function SupplyRow({ supply, onManage }: { supply: Supply; onManage: () => void }) {
+function SupplyRow({
+  supply,
+  onEdit,
+  onManage,
+  onChanged,
+}: {
+  supply: Supply;
+  onEdit: () => void;
+  onManage: () => void;
+  onChanged: () => Promise<unknown>;
+}) {
+  const deactivate = useDeleteSuppliesSupplyId(supply.id);
+  const reactivate = usePatchSuppliesSupplyId(supply.id);
+  const [rowError, setRowError] = useState<string>();
+  const isBusy = deactivate.isMutating || reactivate.isMutating;
+
+  async function handleDeactivate() {
+    if (
+      !window.confirm(
+        `¿Desactivar ${supply.name}? Dejará de aparecer en los conteos y pedidos, pero su historial se conserva.`,
+      )
+    ) {
+      return;
+    }
+    setRowError(undefined);
+    try {
+      await deactivate.trigger();
+      await onChanged();
+    } catch (error) {
+      setRowError(getErrorMessage(error as ApiError));
+    }
+  }
+
+  async function handleReactivate() {
+    setRowError(undefined);
+    try {
+      await reactivate.trigger({
+        active: true,
+      });
+      await onChanged();
+    } catch (error) {
+      setRowError(getErrorMessage(error as ApiError));
+    }
+  }
+
   return (
-    <TableRow className="h-[88px] hover:bg-transparent">
-      <TableCell className="pl-7">
-        <p className="text-base font-semibold">{supply.name}</p>
-        <p className="mt-0.5 text-base text-muted-foreground">{supply.sku}</p>
+    <TableRow className="hover:bg-transparent">
+      <TableCell className="py-4 pl-6">
+        <p className="font-semibold">{supply.name}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{supply.sku}</p>
+        {rowError && <p className="mt-1 text-xs text-destructive">{rowError}</p>}
       </TableCell>
-      <TableCell className="text-base">{supply.category.name}</TableCell>
-      <TableCell className="text-base text-muted-foreground">
-        <span
-          className="block max-w-[220px] truncate"
-          title={supply.suppliers.map(({ name }) => name).join(", ")}
-        >
-          {supply.suppliers.map(({ name }) => name).join(", ")}
-        </span>
+      <TableCell className="text-sm">{supply.category.name}</TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {supply.suppliers.map(({ name }) => name).join(", ") || "Sin proveedor"}
       </TableCell>
-      <TableCell className="text-base text-muted-foreground">
+      <TableCell className="text-sm text-muted-foreground">
         {supply.unit.name} ({supply.unit.symbol})
       </TableCell>
-      <TableCell className="text-base font-semibold">{formatMoney(supply.unitCost)}</TableCell>
+      <TableCell className="text-sm font-semibold whitespace-nowrap">
+        {formatMoney(supply.unitCost)}
+      </TableCell>
       <TableCell>
-        <span className="inline-flex h-8 items-center rounded-full border bg-muted/70 px-3 text-sm font-semibold">
+        <span className="inline-flex h-7 items-center rounded-full border bg-muted/70 px-2.5 text-xs font-semibold">
           {supply.active ? "Activo" : "Inactivo"}
         </span>
       </TableCell>
       <TableCell className="pr-5 text-right">
         <DropdownMenu>
           <DropdownMenuTrigger
+            disabled={isBusy}
             render={
               <Button variant="ghost" size="icon" aria-label={`Acciones para ${supply.name}`} />
             }
           >
             <Ellipsis className="size-5 text-muted-foreground" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil />
+              Editar artículo
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onManage}>
               <UsersRound />
               Gestionar proveedores
             </DropdownMenuItem>
+            {supply.active ? (
+              <DropdownMenuItem className="text-red-600" onClick={() => void handleDeactivate()}>
+                <Trash2 />
+                Desactivar artículo
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem onClick={() => void handleReactivate()}>
+                <RotateCcw />
+                Reactivar artículo
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
@@ -341,6 +420,10 @@ function LoadingRows() {
 }
 
 function getErrorMessage(error: ApiError) {
+  if (error.status === 409) {
+    return "Ya existe un artículo con ese código.";
+  }
+
   if (error.status >= 500) {
     return "El servidor no está disponible. Inténtalo de nuevo en unos momentos.";
   }

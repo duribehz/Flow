@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { InventoryCountStatus } from "./inventoryCountStatus";
+import type { InventoryCountStatus } from './inventoryCountStatus';
 
 export interface InventoryCount {
   id: string;

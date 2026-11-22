@@ -5,9 +5,9 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { ReplenishmentItemCategory } from "./replenishmentItemCategory";
-import type { ReplenishmentItemSupply } from "./replenishmentItemSupply";
-import type { ReplenishmentItemUnit } from "./replenishmentItemUnit";
+import type { ReplenishmentItemCategory } from './replenishmentItemCategory';
+import type { ReplenishmentItemSupply } from './replenishmentItemSupply';
+import type { ReplenishmentItemUnit } from './replenishmentItemUnit';
 
 export interface ReplenishmentItem {
   id: string;
@@ -17,36 +17,36 @@ export interface ReplenishmentItem {
   category: ReplenishmentItemCategory;
   unit: ReplenishmentItemUnit;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   * @nullable
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     * @nullable
+     */
   existenceQuantity: number | null;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   * @nullable
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     * @nullable
+     */
   suggestedQuantity: number | null;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     */
   requestedQuantity: number;
   /**
-   * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
-   * @minimum 0
-   */
+     * Stored quantity as a nonnegative integer in hundredths of the base unit (100 = 1 unit).
+     * @minimum 0
+     */
   fulfilledQuantity: number;
   /**
-   * Money amount in integer cents.
-   * @minimum 0
-   */
+     * Money amount in integer cents.
+     * @minimum 0
+     */
   unitCost: number;
   /**
-   * Money amount in integer cents.
-   * @minimum 0
-   */
+     * Money amount in integer cents.
+     * @minimum 0
+     */
   lineTotal: number;
   createdAt: string;
 }

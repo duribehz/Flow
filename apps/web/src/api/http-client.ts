@@ -1,4 +1,11 @@
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+declare global {
+  interface Window {
+    __FLOW_CONFIG__?: { apiUrl?: string };
+  }
+}
+
+const runtimeApiUrl = typeof window === "undefined" ? undefined : window.__FLOW_CONFIG__?.apiUrl;
+const apiBaseUrl = (runtimeApiUrl || import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export class ApiError extends Error {
   readonly status: number;
@@ -12,26 +19,16 @@ export class ApiError extends Error {
   }
 }
 
-const DEV_USER_ID_STORAGE_KEY = "flow.dev-user-id";
-
-function readDevUserId(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(DEV_USER_ID_STORAGE_KEY);
-}
-
 export async function apiClient<T>(path: string, options: RequestInit): Promise<T> {
   const url = path.startsWith("http")
     ? path
     : `${apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
-
-  const devUserId = readDevUserId();
 
   const response = await fetch(url, {
     ...options,
     credentials: "include",
     headers: {
       Accept: "application/json",
-      ...(devUserId ? { "x-dev-user-id": devUserId } : {}),
       ...options.headers,
     },
   });

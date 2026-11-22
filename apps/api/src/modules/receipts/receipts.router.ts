@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 
 import { errorSchema } from "@/shared/infrastructure/http/contracts.js";
+import { assertBranchAccess } from "@/shared/infrastructure/http/auth-middleware.js";
 import type { State } from "@/shared/infrastructure/http/state.js";
 import {
   createReceiptDTO,
@@ -58,7 +59,12 @@ receiptsRouter.openapi(
     },
   }),
   async (context) => {
-    const receipts = await listReceiptsUseCase(context.req.valid("query"), context.get("db"));
+    const filters = context.req.valid("query");
+    const scopedFilters =
+      context.get("userRole") === "manager"
+        ? { ...filters, branchId: context.get("branchId")! }
+        : filters;
+    const receipts = await listReceiptsUseCase(scopedFilters, context.get("db"));
     return context.json({ data: receipts.map(serializeReceipt) }, 200);
   },
 );
@@ -92,6 +98,7 @@ receiptsRouter.openapi(
       context.get("userId"),
       context.req.valid("json"),
       context.get("db"),
+      context.get("userRole") === "manager" ? context.get("branchId")! : undefined,
     );
     return context.json({ data: serializeReceipt(receipt) }, 201);
   },
@@ -119,6 +126,7 @@ receiptsRouter.openapi(
       context.req.valid("param").receiptId,
       context.get("db"),
     );
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), receipt.branch.id);
     return context.json({ data: serializeReceipt(receipt) }, 200);
   },
 );
@@ -143,8 +151,11 @@ receiptsRouter.openapi(
     },
   }),
   async (context) => {
+    const receiptId = context.req.valid("param").receiptId;
+    const current = await getReceiptUseCase(receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), current.branch.id);
     const receipt = await updateReceiptNotesUseCase(
-      context.req.valid("param").receiptId,
+      receiptId,
       context.req.valid("json").notes,
       context.get("db"),
     );
@@ -173,6 +184,8 @@ receiptsRouter.openapi(
   }),
   async (context) => {
     const { receiptId, itemId } = context.req.valid("param");
+    const current = await getReceiptUseCase(receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), current.branch.id);
     const receipt = await updateReceiptItemUseCase(
       receiptId,
       itemId,
@@ -202,10 +215,10 @@ receiptsRouter.openapi(
     },
   }),
   async (context) => {
-    const receipt = await completeReceiptUseCase(
-      context.req.valid("param").receiptId,
-      context.get("db"),
-    );
+    const receiptId = context.req.valid("param").receiptId;
+    const current = await getReceiptUseCase(receiptId, context.get("db"));
+    assertBranchAccess(context.get("userRole"), context.get("branchId"), current.branch.id);
+    const receipt = await completeReceiptUseCase(receiptId, context.get("db"));
     return context.json({ data: serializeReceipt(receipt) }, 200);
   },
 );

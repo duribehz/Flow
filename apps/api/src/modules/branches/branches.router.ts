@@ -34,6 +34,12 @@ branchesRouter.openapi(
     },
   }),
   async (ctx) => {
+    if (ctx.get("userRole") === "manager") {
+      const branchId = ctx.get("branchId");
+      if (!branchId) return ctx.json({ data: [] }, 200);
+      const branch = await getBranchUseCase(branchId, ctx.get("db"));
+      return ctx.json({ data: [branch] }, 200);
+    }
     const branches = await getBranchesUseCase(ctx.get("db"));
 
     return ctx.json({ data: branches }, 200);
@@ -95,6 +101,12 @@ branchesRouter.openapi(
   }),
   async (ctx) => {
     const { branchId } = ctx.req.valid("param");
+    if (ctx.get("userRole") === "manager" && ctx.get("branchId") !== branchId) {
+      return ctx.json(
+        { error: { code: "BRANCH_ACCESS_DENIED", message: "Branch not found" } },
+        404,
+      );
+    }
     const branch = await getBranchUseCase(branchId, ctx.get("db"));
     return ctx.json({ data: branch }, 200);
   },

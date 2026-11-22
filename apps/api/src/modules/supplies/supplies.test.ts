@@ -17,6 +17,7 @@ const createSupplyInput: CreateSupplyInput = {
   categoryId: "20000000-0000-4000-8000-000000000001",
   supplierIds: ["40000000-0000-4000-8000-000000000001", "40000000-0000-4000-8000-000000000002"],
   active: true,
+  trackInventory: true,
 };
 
 const supply: Supply = {
@@ -26,6 +27,7 @@ const supply: Supply = {
   description: createSupplyInput.description ?? null,
   unitCost: createSupplyInput.unitCost ?? 0,
   active: createSupplyInput.active ?? true,
+  trackInventory: createSupplyInput.trackInventory ?? false,
   category: {
     id: createSupplyInput.categoryId,
     name: "Aceites",
@@ -56,6 +58,12 @@ const createSupplyMock = mock(async (input: CreateSupplyInput) => {
   return supply;
 });
 const replaceSupplySuppliersMock = mock(async () => supply);
+const updateSupplyInventoryTrackingMock = mock(
+  async (_supplyId: string, trackInventory: boolean) => ({
+    ...supply,
+    trackInventory,
+  }),
+);
 
 mock.module("./use-cases/get-supplies.usecase.js", () => ({
   getSuppliesUseCase: getSuppliesMock,
@@ -65,6 +73,9 @@ mock.module("./use-cases/create-supply.usecase.js", () => ({
 }));
 mock.module("./use-cases/replace-supply-suppliers.usecase.js", () => ({
   replaceSupplySuppliersUseCase: replaceSupplySuppliersMock,
+}));
+mock.module("./use-cases/update-supply-inventory-tracking.usecase.js", () => ({
+  updateSupplyInventoryTrackingUseCase: updateSupplyInventoryTrackingMock,
 }));
 
 const { suppliesRouter } = await import("./supplies.router.js");
@@ -126,7 +137,22 @@ describe("supply routes", () => {
     });
 
     expect(response.status).toBe(201);
-    expect(receivedCreateInput).toMatchObject({ unitCost: 0, active: true });
+    expect(receivedCreateInput).toMatchObject({ unitCost: 0, active: true, trackInventory: false });
+  });
+
+  test("updates the global inventory tracking flag", async () => {
+    const supplyId = supply.id;
+    const response = await createTestApp().request(`/v1/supplies/${supplyId}/inventory-tracking`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ trackInventory: false }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      data: { ...supplyResponse, trackInventory: false },
+    });
+    expect(updateSupplyInventoryTrackingMock).toHaveBeenCalledWith(supplyId, false, testDb);
   });
 
   test("rejects invalid input", async () => {

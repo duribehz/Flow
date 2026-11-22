@@ -10,9 +10,9 @@ export interface CreateInventoryDay {
   branchId: string;
   businessDate: string;
   /**
-   * @minLength 1
-   * @maxLength 1000
-   * @nullable
-   */
+     * @minLength 1
+     * @maxLength 1000
+     * @nullable
+     */
   notes?: string | null;
 }

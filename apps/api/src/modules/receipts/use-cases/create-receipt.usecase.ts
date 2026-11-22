@@ -7,6 +7,7 @@ export function createReceiptUseCase(
   actorId: string,
   input: CreateReceiptInput,
   db: Executor = DB,
+  branchScopeId?: string,
 ) {
-  return new ReceiptsRepo(db).createFromShipment(shipmentId, actorId, input);
+  return new ReceiptsRepo(db).createFromShipment(shipmentId, actorId, input, branchScopeId);
 }

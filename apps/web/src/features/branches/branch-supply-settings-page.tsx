@@ -72,7 +72,7 @@ export function BranchSupplySettingsPage() {
       <PageHeader
         eyebrow="Configuración de operación"
         title={branch?.name ?? "Artículos por sucursal"}
-        description="Activa los artículos que se cuentan en esta sucursal y define sus metas y propósitos predeterminados."
+        description="Activa los artículos que se cuentan en esta sucursal y define su modo y su stock objetivo."
         actions={
           <Link
             to="/usage-purposes"
@@ -148,19 +148,9 @@ function SupplySettingCard({
   const mutation = usePutBranchSupplySetting<ApiError>(branchId, supply.id);
   const activePurposes = purposes.filter((purpose) => purpose.active);
   const firstActivePurposeId = activePurposes[0]?.id ?? "";
-  const purposeOptions = activePurposes.some(
-    (purpose) => purpose.id === setting?.defaultUsagePurposeId,
-  )
-    ? activePurposes
-    : [
-        ...activePurposes,
-        ...purposes.filter((purpose) => purpose.id === setting?.defaultUsagePurposeId),
-      ];
+  const purposeId = setting?.defaultUsagePurposeId ?? firstActivePurposeId;
   const [active, setActive] = useState(setting?.active ?? false);
   const [mode, setMode] = useState<UpsertBranchSupplySetting["mode"]>(setting?.mode ?? "on_demand");
-  const [purposeId, setPurposeId] = useState(
-    setting?.defaultUsagePurposeId ?? firstActivePurposeId,
-  );
   const [targets, setTargets] = useState<Record<number, string>>(() =>
     Object.fromEntries(
       (setting?.weeklyTargets ?? []).map((target) => [
@@ -175,7 +165,6 @@ function SupplySettingCard({
   useEffect(() => {
     setActive(setting?.active ?? false);
     setMode(setting?.mode ?? "on_demand");
-    setPurposeId(setting?.defaultUsagePurposeId ?? firstActivePurposeId);
     setTargets(
       Object.fromEntries(
         (setting?.weeklyTargets ?? []).map((target) => [
@@ -279,35 +268,17 @@ function SupplySettingCard({
                 }
                 className="h-10 rounded-lg border border-input bg-background px-3"
               >
-                <option value="fixed">Fijo · sugerir según metas</option>
+                <option value="fixed">Fijo · sugerir stock</option>
                 <option value="on_demand">Bajo demanda · editar manualmente</option>
-              </select>
-            </label>
-            <label className="grid gap-2 text-sm font-medium">
-              Propósito predeterminado
-              <select
-                value={purposeId}
-                onChange={(event) => setPurposeId(event.target.value)}
-                className="h-10 rounded-lg border border-input bg-background px-3"
-                required
-              >
-                <option value="">Selecciona un propósito</option>
-                {purposeOptions.map((purpose) => (
-                  <option key={purpose.id} value={purpose.id}>
-                    {purpose.name}
-                    {!purpose.active ? " (inactivo)" : ""}
-                  </option>
-                ))}
               </select>
             </label>
           </div>
 
           {mode === "fixed" && (
             <fieldset className="space-y-3">
-              <legend className="text-sm font-semibold">Meta de existencia por día</legend>
+              <legend className="text-sm font-semibold">Stock objetivo por día</legend>
               <p className="text-xs text-muted-foreground">
-                La meta se usa para sugerir la cantidad del pedido generado por el conteo del día
-                anterior. Déjala vacía si no aplica.
+                Stock que debe tener la sucursal cada día. Déjalo vacío si no aplica.
               </p>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {weekdays.map(({ value, label }) => (
@@ -315,7 +286,7 @@ function SupplySettingCard({
                     {label} ({supply.unit.symbol})
                     <Input
                       inputMode="decimal"
-                      placeholder="Sin meta"
+                      placeholder="Sin stock objetivo"
                       value={targets[value] ?? ""}
                       onChange={(event) =>
                         setTargets((current) => ({ ...current, [value]: event.target.value }))
@@ -345,7 +316,7 @@ function SupplySettingCard({
           )}
           <Button
             type="submit"
-            variant="outline"
+            variant="default"
             disabled={mutation.isMutating || purposes.length === 0}
           >
             {mutation.isMutating ? <Loader2 className="animate-spin" /> : <Save />}

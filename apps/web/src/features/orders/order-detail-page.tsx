@@ -1,8 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, Plus, RefreshCw, Save, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Plus, RefreshCw, Save, Search, Send, Trash2, X } from "lucide-react";
 
-import type { ReplenishmentItem, Supply, UsagePurpose } from "@/api/generated/models";
+import { useGetBranchSupplySettings } from "@/api/generated/branch-supply-settings/branch-supply-settings";
+import { useGetInventoryLastReports } from "@/api/generated/inventory/inventory";
+import type {
+  BranchSupplySetting,
+  InventoryLastReport,
+  ReplenishmentItem,
+  Supply,
+  UsagePurpose,
+} from "@/api/generated/models";
 import {
   useDeleteReplenishmentsReplenishmentIdItemsItemId,
   useGetReplenishmentsReplenishmentId,
@@ -51,6 +59,17 @@ export function OrderDetailPage() {
   const purposes = purposesQuery.data?.status === 200 ? purposesQuery.data.data.data : [];
   const shipments = shipmentsQuery.data?.status === 200 ? shipmentsQuery.data.data.data : [];
   const receipts = receiptsQuery.data?.status === 200 ? receiptsQuery.data.data.data : [];
+  const branchId =
+    detailQuery.data?.status === 200 ? detailQuery.data.data.data.branch.id : undefined;
+  const lastReportsQuery = useGetInventoryLastReports<ApiError>(
+    { branchId: branchId ?? "" },
+    { swr: { enabled: Boolean(branchId) } },
+  );
+  const settingsQuery = useGetBranchSupplySettings<ApiError>(branchId ?? "", {
+    swr: { enabled: Boolean(branchId) },
+  });
+  const lastReports = lastReportsQuery.data?.status === 200 ? lastReportsQuery.data.data.data : [];
+  const branchSettings = settingsQuery.data?.status === 200 ? settingsQuery.data.data.data : [];
   const shipment = shipments.find((candidate) => candidate.replenishmentRequestId === orderId);
   const receipt = shipment
     ? receipts.find((candidate) => candidate.shipmentId === shipment.id)
@@ -217,7 +236,7 @@ export function OrderDetailPage() {
                   className="min-h-20 flex-1 resize-y rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                 />
                 <Button
-                  variant="outline"
+                  variant="default"
                   disabled={notesMutation.isMutating || notes.trim() === (order.notes ?? "")}
                   onClick={() => {
                     const normalizedNotes = notes.trim();
@@ -263,6 +282,8 @@ export function OrderDetailPage() {
             supplies={supplies.filter((supply) => supply.active)}
             purposes={purposes}
             existingItems={order.items}
+            lastReports={lastReports}
+            settings={branchSettings}
             isLoading={suppliesQuery.isLoading || purposesQuery.isLoading}
             hasCatalogError={Boolean(suppliesQuery.error || purposesQuery.error)}
             isSubmitting={addMutation.isMutating}
@@ -309,7 +330,7 @@ export function OrderDetailPage() {
         <Card className="border-sky-200">
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle>Pedido despachado</CardTitle>
+              <CardTitle>Pedido en recepción</CardTitle>
               <StatusBadge status={shipment.status} />
             </div>
           </CardHeader>
@@ -323,7 +344,7 @@ export function OrderDetailPage() {
                   </p>
                 </div>
                 <Button
-                  variant="outline"
+                  variant="default"
                   onClick={() =>
                     void navigate({ to: "/receipts/$receiptId", params: { receiptId: receipt.id } })
                   }
@@ -364,6 +385,8 @@ function AddLineForm({
   isLoading,
   hasCatalogError,
   isSubmitting,
+  lastReports,
+  settings,
   onAdd,
 }: {
   supplies: Supply[];
@@ -372,16 +395,33 @@ function AddLineForm({
   isLoading: boolean;
   hasCatalogError: boolean;
   isSubmitting: boolean;
+  lastReports: InventoryLastReport[];
+  settings: BranchSupplySetting[];
   onAdd: (value: {
     supplyId: string;
     usagePurposeId: string;
     requestedQuantity: number;
   }) => Promise<boolean>;
 }) {
+  const [search, setSearch] = useState("");
   const [supplyId, setSupplyId] = useState("");
   const [purposeId, setPurposeId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [error, setError] = useState("");
+
+  const normalizedSearch = search.trim().toLowerCase();
+  const matches = normalizedSearch
+    ? supplies
+        .filter((supply) => `${supply.sku} ${supply.name}`.toLowerCase().includes(normalizedSearch))
+        .slice(0, 8)
+    : [];
+  const selectedSupply = supplies.find((supply) => supply.id === supplyId);
+  const report = selectedSupply
+    ? lastReports.find((candidate) => candidate.supplyId === selectedSupply.id)
+    : undefined;
+  const setting = selectedSupply
+    ? settings.find((candidate) => candidate.supplyId === selectedSupply.id)
+    : undefined;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -404,10 +444,13 @@ function AddLineForm({
       usagePurposeId: purposeId,
       requestedQuantity: storedQuantity,
     });
-    if (wasAdded) setQuantity("");
+    if (wasAdded) {
+      setQuantity("");
+      setSearch("");
+      setSupplyId("");
+    }
   }
 
-  const selectedSupply = supplies.find((supply) => supply.id === supplyId);
   const storedQuantity = parseStoredQuantity(quantity);
   const preview =
     selectedSupply && storedQuantity !== null
@@ -424,21 +467,58 @@ function AddLineForm({
           onSubmit={handleSubmit}
           className="grid gap-4 md:grid-cols-[2fr_1.4fr_1fr_auto] md:items-end"
         >
-          <FormField label="Artículo" htmlFor="new-supply">
-            <select
-              id="new-supply"
-              value={supplyId}
-              onChange={(e) => setSupplyId(e.currentTarget.value)}
-              disabled={isLoading}
-              className={selectClass}
-            >
-              <option value="">Seleccionar artículo</option>
-              {supplies.map((supply) => (
-                <option key={supply.id} value={supply.id}>
-                  {supply.sku} · {supply.name}
-                </option>
-              ))}
-            </select>
+          <FormField label="Buscar artículo" htmlFor="new-supply-search">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id="new-supply-search"
+                autoComplete="off"
+                placeholder="Nombre o SKU"
+                className="pl-8"
+                value={search}
+                disabled={isLoading}
+                onChange={(event) => {
+                  setSearch(event.currentTarget.value);
+                  setSupplyId("");
+                }}
+              />
+            </div>
+            {!selectedSupply && matches.length > 0 && (
+              <ul className="mt-2 max-h-56 divide-y overflow-y-auto rounded-lg border bg-background">
+                {matches.map((supply) => (
+                  <li key={supply.id}>
+                    <button
+                      type="button"
+                      className="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-muted"
+                      onClick={() => {
+                        setSupplyId(supply.id);
+                        setSearch(`${supply.sku} · ${supply.name}`);
+                      }}
+                    >
+                      <span className="font-medium">{supply.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {supply.sku} · {supply.unit.symbol}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!selectedSupply && normalizedSearch && matches.length === 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">Sin artículos con ese nombre.</p>
+            )}
+            {selectedSupply && (
+              <button
+                type="button"
+                className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground underline"
+                onClick={() => {
+                  setSupplyId("");
+                  setSearch("");
+                }}
+              >
+                <X className="size-3" /> Cambiar artículo
+              </button>
+            )}
           </FormField>
           <FormField label="Propósito" htmlFor="new-purpose">
             <select
@@ -472,6 +552,65 @@ function AddLineForm({
           >
             {isSubmitting ? <Loader2 className="animate-spin" /> : <Plus />} Agregar
           </Button>
+
+          {selectedSupply && (
+            <div className="grid gap-4 rounded-lg bg-muted/50 p-4 text-sm sm:grid-cols-2 md:col-span-4">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Último reporte de existencias
+                </p>
+                {report && report.closingQuantity !== null ? (
+                  <p className="mt-1.5">
+                    <strong>
+                      {formatStoredQuantity(report.closingQuantity)} {selectedSupply.unit.symbol}
+                    </strong>{" "}
+                    · {formatReportDate(report.businessDate)}
+                  </p>
+                ) : (
+                  <p className="mt-1.5">Sin reporte de existencias para este artículo</p>
+                )}
+                {report && report.currentQuantity !== null && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Stock actual estimado:{" "}
+                    <strong className="text-foreground">
+                      {formatStoredQuantity(report.currentQuantity)} {selectedSupply.unit.symbol}
+                    </strong>{" "}
+                    (incluye envíos y recepciones posteriores al reporte)
+                  </p>
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Configuración de stock
+                </p>
+                {setting ? (
+                  <>
+                    <p className="mt-1.5">
+                      {setting.mode === "fixed"
+                        ? "Fijo · sugerir stock"
+                        : "Bajo demanda · editar manualmente"}
+                    </p>
+                    {setting.mode === "fixed" && (
+                      <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                        {[...setting.weeklyTargets]
+                          .sort((a, b) => a.weekday - b.weekday)
+                          .map((target) => (
+                            <li key={target.weekday}>
+                              {weekdayShortNames[target.weekday]}{" "}
+                              {formatStoredQuantity(target.targetQuantity)}{" "}
+                              {selectedSupply.unit.symbol}
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <p className="mt-1.5">Sin configuración de stock en esta sucursal</p>
+                )}
+              </div>
+            </div>
+          )}
+
           <p id="new-line-help" className="text-xs text-muted-foreground md:col-span-3">
             {isLoading
               ? "Cargando artículos y propósitos..."
@@ -496,6 +635,24 @@ function AddLineForm({
       </CardContent>
     </Card>
   );
+}
+
+const weekdayShortNames: Record<number, string> = {
+  1: "Lun",
+  2: "Mar",
+  3: "Mié",
+  4: "Jue",
+  5: "Vie",
+  6: "Sáb",
+  7: "Dom",
+};
+
+function formatReportDate(businessDate: string) {
+  return new Date(`${businessDate}T12:00:00`).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function OrderLine({
@@ -639,7 +796,7 @@ function OrderLine({
           <div className="flex gap-2 md:justify-end">
             <Button
               size="icon"
-              variant="outline"
+              variant="default"
               aria-label={`Guardar ${item.supply.name}`}
               disabled={updateMutation.isMutating}
               onClick={() => void updateLine()}
@@ -648,7 +805,8 @@ function OrderLine({
             </Button>
             <Button
               size="icon"
-              variant="outline"
+              variant="destructive"
+              className="bg-red-600 text-white hover:bg-red-700"
               aria-label={`Eliminar ${item.supply.name}`}
               disabled={deleteMutation.isMutating}
               onClick={() => void removeLine()}

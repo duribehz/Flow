@@ -5,11 +5,16 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   ApiError,
@@ -19,145 +24,134 @@ import type {
   GetUsagePurposesParams,
   GetUsagePurposesUsagePurposeId200,
   PatchUsagePurposesUsagePurposeId200,
-  PostUsagePurposes201,
-} from "../models";
+  PostUsagePurposes201
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getUsagePurposesResponse200 = {
-  data: GetUsagePurposes200;
-  status: 200;
-};
+
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getUsagePurposesResponse200 = {
+  data: GetUsagePurposes200
+  status: 200
+}
 
 export type getUsagePurposesResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
-export type getUsagePurposesResponseSuccess = getUsagePurposesResponse200 & {
+export type getUsagePurposesResponseSuccess = (getUsagePurposesResponse200) & {
   headers: Headers;
 };
-export type getUsagePurposesResponseError = getUsagePurposesResponse400 & {
+export type getUsagePurposesResponseError = (getUsagePurposesResponse400) & {
   headers: Headers;
 };
 
-export type getUsagePurposesResponse =
-  | getUsagePurposesResponseSuccess
-  | getUsagePurposesResponseError;
+export type getUsagePurposesResponse = (getUsagePurposesResponseSuccess | getUsagePurposesResponseError)
 
-export const getGetUsagePurposesUrl = (params?: GetUsagePurposesParams) => {
+export const getGetUsagePurposesUrl = (params?: GetUsagePurposesParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : String(value));
+      normalizedParams.append(key, value === null ? 'null' : String(value))
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0
-    ? `/v1/usage-purposes?${stringifiedParams}`
-    : `/v1/usage-purposes`;
-};
+  return stringifiedParams.length > 0 ? `/v1/usage-purposes?${stringifiedParams}` : `/v1/usage-purposes`
+}
 
 /**
  * @summary List usage purposes
  */
-export const getUsagePurposes = async (
-  params?: GetUsagePurposesParams,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getUsagePurposesResponse> => {
-  return apiClient<getUsagePurposesResponse>(getGetUsagePurposesUrl(params), {
+export const getUsagePurposes = async (params?: GetUsagePurposesParams, options?: Parameters<typeof apiClient>[1]): Promise<getUsagePurposesResponse> => {
+
+  return apiClient<getUsagePurposesResponse>(getGetUsagePurposesUrl(params),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetUsagePurposesKey = (params?: GetUsagePurposesParams) =>
-  [`/v1/usage-purposes`, ...(params ? [params] : [])] as const;
 
-export type GetUsagePurposesQueryResult = NonNullable<Awaited<ReturnType<typeof getUsagePurposes>>>;
+  }
+);}
+
+
+
+
+export const getGetUsagePurposesKey = (params?: GetUsagePurposesParams,) => [`/v1/usage-purposes`, ...(params ? [params]: [])] as const;
+
+export type GetUsagePurposesQueryResult = NonNullable<Awaited<ReturnType<typeof getUsagePurposes>>>
 
 /**
  * @summary List usage purposes
  */
 export const useGetUsagePurposes = <TError = ApiError>(
-  params?: GetUsagePurposesParams,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getUsagePurposes>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  params?: GetUsagePurposesParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUsagePurposes>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetUsagePurposesKey(params) : null));
-  const swrFn = () => getUsagePurposes(params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetUsagePurposesKey(params) : null);
+  const swrFn = () => getUsagePurposes(params, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postUsagePurposesResponse201 = {
-  data: PostUsagePurposes201;
-  status: 201;
-};
+  data: PostUsagePurposes201
+  status: 201
+}
 
 export type postUsagePurposesResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postUsagePurposesResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postUsagePurposesResponseSuccess = postUsagePurposesResponse201 & {
+export type postUsagePurposesResponseSuccess = (postUsagePurposesResponse201) & {
   headers: Headers;
 };
-export type postUsagePurposesResponseError = (
-  | postUsagePurposesResponse400
-  | postUsagePurposesResponse409
-) & {
+export type postUsagePurposesResponseError = (postUsagePurposesResponse400 | postUsagePurposesResponse409) & {
   headers: Headers;
 };
 
-export type postUsagePurposesResponse =
-  | postUsagePurposesResponseSuccess
-  | postUsagePurposesResponseError;
+export type postUsagePurposesResponse = (postUsagePurposesResponseSuccess | postUsagePurposesResponseError)
 
 export const getPostUsagePurposesUrl = () => {
-  return `/v1/usage-purposes`;
-};
+
+
+
+
+  return `/v1/usage-purposes`
+}
 
 /**
  * @summary Create a usage purpose
  */
-export const postUsagePurposes = async (
-  createUsagePurpose: CreateUsagePurpose,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postUsagePurposesResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postUsagePurposes = async (createUsagePurpose: CreateUsagePurpose, options?: Parameters<typeof apiClient>[1]): Promise<postUsagePurposesResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -166,197 +160,167 @@ export const postUsagePurposes = async (
     }
     return headers;
   };
-  return apiClient<postUsagePurposesResponse>(getPostUsagePurposesUrl(), {
+return apiClient<postUsagePurposesResponse>(getPostUsagePurposesUrl(),
+  {
     ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(createUsagePurpose),
-  });
-};
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createUsagePurpose)
+  }
+);}
 
-export const getPostUsagePurposesMutationFetcher = (
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostUsagePurposesMutationFetcher = ( options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateUsagePurpose }) => {
     return postUsagePurposes(arg, options);
-  };
-};
+  }
+}
 export const getPostUsagePurposesMutationKey = () => [`/v1/usage-purposes`] as const;
 
-export type PostUsagePurposesMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postUsagePurposes>>
->;
+export type PostUsagePurposesMutationResult = NonNullable<Awaited<ReturnType<typeof postUsagePurposes>>>
 
 /**
  * @summary Create a usage purpose
  */
-export const usePostUsagePurposes = <TError = ApiError>(options?: {
-  swr?: SWRMutationConfiguration<
-    Awaited<ReturnType<typeof postUsagePurposes>>,
-    TError,
-    Key,
-    CreateUsagePurpose,
-    Awaited<ReturnType<typeof postUsagePurposes>>
-  > & { swrKey?: string };
-  request?: SecondParameter<typeof apiClient>;
-}) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+export const usePostUsagePurposes = <TError = ApiError>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postUsagePurposes>>, TError, Key, CreateUsagePurpose, Awaited<ReturnType<typeof postUsagePurposes>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
+) => {
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostUsagePurposesMutationKey();
   const swrFn = getPostUsagePurposesMutationFetcher(requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getUsagePurposesUsagePurposeIdResponse200 = {
-  data: GetUsagePurposesUsagePurposeId200;
-  status: 200;
-};
+  data: GetUsagePurposesUsagePurposeId200
+  status: 200
+}
 
 export type getUsagePurposesUsagePurposeIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getUsagePurposesUsagePurposeIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getUsagePurposesUsagePurposeIdResponseSuccess =
-  getUsagePurposesUsagePurposeIdResponse200 & {
-    headers: Headers;
-  };
-export type getUsagePurposesUsagePurposeIdResponseError = (
-  | getUsagePurposesUsagePurposeIdResponse400
-  | getUsagePurposesUsagePurposeIdResponse404
-) & {
+export type getUsagePurposesUsagePurposeIdResponseSuccess = (getUsagePurposesUsagePurposeIdResponse200) & {
+  headers: Headers;
+};
+export type getUsagePurposesUsagePurposeIdResponseError = (getUsagePurposesUsagePurposeIdResponse400 | getUsagePurposesUsagePurposeIdResponse404) & {
   headers: Headers;
 };
 
-export type getUsagePurposesUsagePurposeIdResponse =
-  | getUsagePurposesUsagePurposeIdResponseSuccess
-  | getUsagePurposesUsagePurposeIdResponseError;
+export type getUsagePurposesUsagePurposeIdResponse = (getUsagePurposesUsagePurposeIdResponseSuccess | getUsagePurposesUsagePurposeIdResponseError)
 
-export const getGetUsagePurposesUsagePurposeIdUrl = (usagePurposeId: string) => {
-  return `/v1/usage-purposes/${usagePurposeId}`;
-};
+export const getGetUsagePurposesUsagePurposeIdUrl = (usagePurposeId: string,) => {
+
+
+
+
+  return `/v1/usage-purposes/${usagePurposeId}`
+}
 
 /**
  * @summary Get a usage purpose
  */
-export const getUsagePurposesUsagePurposeId = async (
-  usagePurposeId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getUsagePurposesUsagePurposeIdResponse> => {
-  return apiClient<getUsagePurposesUsagePurposeIdResponse>(
-    getGetUsagePurposesUsagePurposeIdUrl(usagePurposeId),
-    {
-      ...options,
-      method: "GET",
-    },
-  );
-};
+export const getUsagePurposesUsagePurposeId = async (usagePurposeId: string, options?: Parameters<typeof apiClient>[1]): Promise<getUsagePurposesUsagePurposeIdResponse> => {
 
-export const getGetUsagePurposesUsagePurposeIdKey = (usagePurposeId: string) =>
-  [`/v1/usage-purposes/${usagePurposeId}`] as const;
+  return apiClient<getUsagePurposesUsagePurposeIdResponse>(getGetUsagePurposesUsagePurposeIdUrl(usagePurposeId),
+  {
+    ...options,
+    method: 'GET'
 
-export type GetUsagePurposesUsagePurposeIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getUsagePurposesUsagePurposeId>>
->;
+
+  }
+);}
+
+
+
+
+export const getGetUsagePurposesUsagePurposeIdKey = (usagePurposeId: string,) => [`/v1/usage-purposes/${usagePurposeId}`] as const;
+
+export type GetUsagePurposesUsagePurposeIdQueryResult = NonNullable<Awaited<ReturnType<typeof getUsagePurposesUsagePurposeId>>>
 
 /**
  * @summary Get a usage purpose
  */
 export const useGetUsagePurposesUsagePurposeId = <TError = ApiError>(
-  usagePurposeId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getUsagePurposesUsagePurposeId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  usagePurposeId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getUsagePurposesUsagePurposeId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled =
-    swrOptions?.enabled !== false && usagePurposeId !== null && usagePurposeId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ??
-    (() => (isEnabled ? getGetUsagePurposesUsagePurposeIdKey(usagePurposeId) : null));
-  const swrFn = () => getUsagePurposesUsagePurposeId(usagePurposeId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && usagePurposeId !== null && usagePurposeId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetUsagePurposesUsagePurposeIdKey(usagePurposeId) : null);
+  const swrFn = () => getUsagePurposesUsagePurposeId(usagePurposeId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchUsagePurposesUsagePurposeIdResponse200 = {
-  data: PatchUsagePurposesUsagePurposeId200;
-  status: 200;
-};
+  data: PatchUsagePurposesUsagePurposeId200
+  status: 200
+}
 
 export type patchUsagePurposesUsagePurposeIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchUsagePurposesUsagePurposeIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchUsagePurposesUsagePurposeIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchUsagePurposesUsagePurposeIdResponseSuccess =
-  patchUsagePurposesUsagePurposeIdResponse200 & {
-    headers: Headers;
-  };
-export type patchUsagePurposesUsagePurposeIdResponseError = (
-  | patchUsagePurposesUsagePurposeIdResponse400
-  | patchUsagePurposesUsagePurposeIdResponse404
-  | patchUsagePurposesUsagePurposeIdResponse409
-) & {
+export type patchUsagePurposesUsagePurposeIdResponseSuccess = (patchUsagePurposesUsagePurposeIdResponse200) & {
+  headers: Headers;
+};
+export type patchUsagePurposesUsagePurposeIdResponseError = (patchUsagePurposesUsagePurposeIdResponse400 | patchUsagePurposesUsagePurposeIdResponse404 | patchUsagePurposesUsagePurposeIdResponse409) & {
   headers: Headers;
 };
 
-export type patchUsagePurposesUsagePurposeIdResponse =
-  | patchUsagePurposesUsagePurposeIdResponseSuccess
-  | patchUsagePurposesUsagePurposeIdResponseError;
+export type patchUsagePurposesUsagePurposeIdResponse = (patchUsagePurposesUsagePurposeIdResponseSuccess | patchUsagePurposesUsagePurposeIdResponseError)
 
-export const getPatchUsagePurposesUsagePurposeIdUrl = (usagePurposeId: string) => {
-  return `/v1/usage-purposes/${usagePurposeId}`;
-};
+export const getPatchUsagePurposesUsagePurposeIdUrl = (usagePurposeId: string,) => {
+
+
+
+
+  return `/v1/usage-purposes/${usagePurposeId}`
+}
 
 /**
  * @summary Edit a usage purpose
  */
-export const patchUsagePurposesUsagePurposeId = async (
-  usagePurposeId: string,
-  editUsagePurpose: EditUsagePurpose,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchUsagePurposesUsagePurposeIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchUsagePurposesUsagePurposeId = async (usagePurposeId: string,
+    editUsagePurpose: EditUsagePurpose, options?: Parameters<typeof apiClient>[1]): Promise<patchUsagePurposesUsagePurposeIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -365,58 +329,43 @@ export const patchUsagePurposesUsagePurposeId = async (
     }
     return headers;
   };
-  return apiClient<patchUsagePurposesUsagePurposeIdResponse>(
-    getPatchUsagePurposesUsagePurposeIdUrl(usagePurposeId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(editUsagePurpose),
-    },
-  );
-};
+return apiClient<patchUsagePurposesUsagePurposeIdResponse>(getPatchUsagePurposesUsagePurposeIdUrl(usagePurposeId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(editUsagePurpose)
+  }
+);}
 
-export const getPatchUsagePurposesUsagePurposeIdMutationFetcher = (
-  usagePurposeId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchUsagePurposesUsagePurposeIdMutationFetcher = (usagePurposeId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: EditUsagePurpose }) => {
     return patchUsagePurposesUsagePurposeId(usagePurposeId, arg, options);
-  };
-};
-export const getPatchUsagePurposesUsagePurposeIdMutationKey = (usagePurposeId: string) =>
-  [`/v1/usage-purposes/${usagePurposeId}`] as const;
+  }
+}
+export const getPatchUsagePurposesUsagePurposeIdMutationKey = (usagePurposeId: string,) => [`/v1/usage-purposes/${usagePurposeId}`] as const;
 
-export type PatchUsagePurposesUsagePurposeIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>
->;
+export type PatchUsagePurposesUsagePurposeIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>>
 
 /**
  * @summary Edit a usage purpose
  */
 export const usePatchUsagePurposesUsagePurposeId = <TError = ApiError>(
-  usagePurposeId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>,
-      TError,
-      Key,
-      EditUsagePurpose,
-      Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  usagePurposeId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>, TError, Key, EditUsagePurpose, Awaited<ReturnType<typeof patchUsagePurposesUsagePurposeId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPatchUsagePurposesUsagePurposeIdMutationKey(usagePurposeId);
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getPatchUsagePurposesUsagePurposeIdMutationKey(usagePurposeId);
   const swrFn = getPatchUsagePurposesUsagePurposeIdMutationFetcher(usagePurposeId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}

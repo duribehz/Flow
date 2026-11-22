@@ -5,7 +5,7 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { Shipment } from "./shipment";
+import type { Shipment } from './shipment';
 
 export type GetShipmentsShipmentId200 = {
   data: Shipment;

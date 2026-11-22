@@ -5,9 +5,9 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import type { SubmittedReplenishmentBranch } from "./submittedReplenishmentBranch";
-import type { SubmittedReplenishmentRequestedBy } from "./submittedReplenishmentRequestedBy";
-import type { SubmittedReplenishmentStatus } from "./submittedReplenishmentStatus";
+import type { SubmittedReplenishmentBranch } from './submittedReplenishmentBranch';
+import type { SubmittedReplenishmentRequestedBy } from './submittedReplenishmentRequestedBy';
+import type { SubmittedReplenishmentStatus } from './submittedReplenishmentStatus';
 
 export interface SubmittedReplenishment {
   id: string;

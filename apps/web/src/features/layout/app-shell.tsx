@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from "react";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, Navigate, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import {
+  ArrowLeftRight,
   Bell,
   Box,
   Boxes,
@@ -8,6 +9,7 @@ import {
   CircleHelp,
   ClipboardCheck,
   FileChartColumn,
+  LogOut,
   Menu,
   Store,
   Tags,
@@ -19,6 +21,8 @@ import {
   X,
 } from "lucide-react";
 
+import { useGetAuthMe, usePostAuthLogout } from "@/api/generated/authentication/authentication";
+import { ApiError } from "@/api/http-client";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -36,7 +40,9 @@ type NavigationItem = {
     | "/inventory/review"
     | "/orders"
     | "/receipts"
+    | "/transfers"
     | "/incidents"
+    | "/analytics"
     | "/usage-purposes"
     | "/articles"
     | "/categories"
@@ -48,12 +54,17 @@ type NavigationItem = {
 
 const navigationGroups: Array<{ label: string; items: NavigationItem[] }> = [
   {
+    label: "Análisis",
+    items: [{ label: "Analítica", path: "/analytics", icon: FileChartColumn }],
+  },
+  {
     label: "Operación",
     items: [
       { label: "Existencias", path: "/inventory", icon: FileChartColumn },
       { label: "Bandeja", path: "/inventory/review", icon: Warehouse },
       { label: "Pedidos", path: "/orders", icon: Truck },
       { label: "Recepciones", path: "/receipts", icon: ClipboardCheck },
+      { label: "Transferencias", path: "/transfers", icon: ArrowLeftRight },
       { label: "Incidencias", path: "/incidents", icon: TriangleAlert },
     ],
   },
@@ -74,7 +85,9 @@ const routeLabels: Record<string, string> = {
   inventory: "Existencias",
   orders: "Pedidos",
   receipts: "Recepciones",
+  transfers: "Transferencias",
   incidents: "Incidencias",
+  analytics: "Analítica",
   "usage-purposes": "Propósitos de uso",
   articles: "Artículos",
   categories: "Categorías",
@@ -85,7 +98,19 @@ const routeLabels: Record<string, string> = {
 
 export function AppShell() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const isLoginPage = pathname === "/login";
+  const currentUserQuery = useGetAuthMe<ApiError>({
+    swr: { enabled: !isLoginPage, shouldRetryOnError: false },
+  });
+  const logout = usePostAuthLogout();
+  const currentUser =
+    currentUserQuery.data?.status === 200 ? currentUserQuery.data.data.data : undefined;
+  const isUnauthenticated =
+    currentUserQuery.error?.status === 401 ||
+    (currentUserQuery.data !== undefined && currentUserQuery.data.status !== 200);
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const routeSegment = pathname.split("/").filter(Boolean)[0] ?? "inventory";
   const currentLabel = pathname.startsWith("/inventory/review")
     ? "Bandeja"
@@ -106,11 +131,78 @@ export function AppShell() {
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [isNavigationOpen]);
 
+  useEffect(() => {
+    if (isLoginPage) return;
+    if (isUnauthenticated) {
+      void navigate({ to: "/login", replace: true });
+      return;
+    }
+    if (currentUser && !hasRouteAccess(currentUser.role, pathname)) {
+      void navigate({ to: "/inventory", replace: true });
+    }
+  }, [currentUser, isUnauthenticated, isLoginPage, navigate, pathname]);
+
+  if (isLoginPage) return <Outlet />;
+  if (isUnauthenticated) return <Navigate to="/login" replace />;
+  if (currentUserQuery.isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Cargando sesión…
+      </main>
+    );
+  }
+  if (currentUserQuery.error && currentUserQuery.error.status !== 401) {
+    return (
+      <main className="flex min-h-screen items-center justify-center px-5">
+        <div className="text-center">
+          <p className="font-medium">No pudimos validar la sesión.</p>
+          <Button className="mt-4" variant="outline" onClick={() => void currentUserQuery.mutate()}>
+            Intentar de nuevo
+          </Button>
+        </div>
+      </main>
+    );
+  }
+  if (!currentUser) {
+    return (
+      <main className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Cargando sesión…
+      </main>
+    );
+  }
+
+  const visibleNavigationGroups = getNavigationGroups(currentUser.role);
+  const userRoleLabel = getRoleLabel(currentUser.role);
+  const userInitials = currentUser.userName.slice(0, 2).toUpperCase();
+
+  async function handleLogout() {
+    try {
+      await logout.trigger();
+    } finally {
+      setIsNavigationOpen(false);
+      void navigate({ to: "/login", replace: true });
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-[#fbfbfc] lg:pl-[304px]">
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-[304px] lg:flex">
-        <SidebarContent pathname={pathname} />
-      </aside>
+    <div
+      className={`min-h-screen bg-[#fbfbfc] transition-[padding] duration-200 ${
+        isSidebarVisible ? "lg:pl-[248px]" : "lg:pl-0"
+      }`}
+    >
+      {isSidebarVisible && (
+        <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] lg:flex">
+          <SidebarContent
+            pathname={pathname}
+            groups={visibleNavigationGroups}
+            userName={currentUser.userName}
+            userRole={userRoleLabel}
+            userInitials={userInitials}
+            isLoggingOut={logout.isMutating}
+            onLogout={() => void handleLogout()}
+          />
+        </aside>
+      )}
 
       {isNavigationOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden">
@@ -124,7 +216,7 @@ export function AppShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Navegación principal"
-            className="relative h-full w-[min(304px,calc(100vw-48px))] shadow-2xl"
+            className="relative h-full w-[min(248px,calc(100vw-48px))] shadow-2xl"
           >
             <Button
               variant="ghost"
@@ -135,7 +227,16 @@ export function AppShell() {
             >
               <X className="size-5" />
             </Button>
-            <SidebarContent pathname={pathname} onNavigate={() => setIsNavigationOpen(false)} />
+            <SidebarContent
+              pathname={pathname}
+              groups={visibleNavigationGroups}
+              userName={currentUser.userName}
+              userRole={userRoleLabel}
+              userInitials={userInitials}
+              isLoggingOut={logout.isMutating}
+              onNavigate={() => setIsNavigationOpen(false)}
+              onLogout={() => void handleLogout()}
+            />
           </aside>
         </div>
       )}
@@ -149,6 +250,16 @@ export function AppShell() {
               aria-label="Abrir navegación"
               className="lg:hidden"
               onClick={() => setIsNavigationOpen(true)}
+            >
+              <Menu className="size-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-lg"
+              aria-label={isSidebarVisible ? "Ocultar navegación" : "Mostrar navegación"}
+              aria-expanded={isSidebarVisible}
+              className="hidden lg:inline-flex"
+              onClick={() => setIsSidebarVisible((visible) => !visible)}
             >
               <Menu className="size-5" />
             </Button>
@@ -188,25 +299,43 @@ export function AppShell() {
   );
 }
 
-function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function SidebarContent({
+  pathname,
+  groups,
+  userName,
+  userRole,
+  userInitials,
+  isLoggingOut,
+  onNavigate,
+  onLogout,
+}: {
+  pathname: string;
+  groups: Array<{ label: string; items: NavigationItem[] }>;
+  userName: string;
+  userRole: string;
+  userInitials: string;
+  isLoggingOut: boolean;
+  onNavigate?: () => void;
+  onLogout: () => void;
+}) {
   return (
     <div className="flex h-full w-full flex-col border-r border-white/10 bg-[#08080a] text-neutral-400">
-      <div className="flex h-[108px] items-center gap-4 px-8">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white text-[#111113]">
-          <Box className="size-6" strokeWidth={2} />
+      <div className="flex h-[92px] items-center gap-3 px-6">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#111113]">
+          <Box className="size-5" strokeWidth={2} />
         </div>
         <div>
-          <p className="text-[26px] leading-7 font-semibold tracking-tight text-white">Flow</p>
-          <p className="mt-1 text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
+          <p className="text-xl leading-6 font-semibold tracking-tight text-white">Flow</p>
+          <p className="mt-1 text-[10px] font-medium tracking-[0.2em] text-neutral-500 uppercase">
             Supply Manager
           </p>
         </div>
       </div>
 
-      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto px-6 py-3">
-        {navigationGroups.map((group) => (
-          <div key={group.label} className="mb-7">
-            <p className="mb-2 px-4 text-xs font-semibold tracking-[0.2em] text-neutral-600 uppercase">
+      <nav aria-label="Navegación principal" className="flex-1 overflow-y-auto px-4 py-3">
+        {groups.map((group) => (
+          <div key={group.label} className="mb-6">
+            <p className="mb-2 px-3 text-[10px] font-semibold tracking-[0.2em] text-neutral-600 uppercase">
               {group.label}
             </p>
             <div className="space-y-1">
@@ -225,13 +354,13 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
                     to={item.path}
                     aria-current={isActive ? "page" : undefined}
                     onClick={onNavigate}
-                    className={`flex h-14 items-center gap-4 rounded-xl px-4 text-lg transition-colors ${
+                    className={`flex h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors ${
                       isActive
                         ? "bg-[#2b2b2e] font-medium text-white"
                         : "hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <Icon className="size-5 shrink-0" />
+                    <Icon className="size-4 shrink-0" />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -241,17 +370,109 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
         ))}
       </nav>
 
-      <div className="border-t border-white/10 px-8 py-7">
-        <div className="flex items-center gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#29292c] text-sm font-semibold text-white">
-            DU
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-base font-semibold text-white">Dario Uribe</p>
-            <p className="truncate text-sm text-neutral-500">Administrador</p>
-          </div>
-        </div>
-      </div>
+      <ProfileMenu
+        userName={userName}
+        userRole={userRole}
+        userInitials={userInitials}
+        isLoggingOut={isLoggingOut}
+        onLogout={onLogout}
+      />
     </div>
   );
+}
+
+function ProfileMenu({
+  userName,
+  userRole,
+  userInitials,
+  isLoggingOut,
+  onLogout,
+}: {
+  userName: string;
+  userRole: string;
+  userInitials: string;
+  isLoggingOut: boolean;
+  onLogout: () => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative border-t border-white/10 px-4 py-4">
+      {isOpen && (
+        <div className="absolute inset-x-4 bottom-full mb-2 rounded-xl border border-white/10 bg-[#18181b] p-2 shadow-xl">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-neutral-300 hover:bg-white/10 hover:text-white"
+            disabled={isLoggingOut}
+            onClick={() => {
+              setIsOpen(false);
+              onLogout();
+            }}
+          >
+            <LogOut className="size-4" /> Cerrar sesión
+          </Button>
+        </div>
+      )}
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((open) => !open)}
+        className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-white/5"
+      >
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#29292c] text-sm font-semibold text-white">
+          {userInitials}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-white">{userName}</p>
+          <p className="truncate text-xs text-neutral-500">{userRole}</p>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+function getNavigationGroups(role: string) {
+  if (role === "manager") {
+    const managerPaths = new Set<NavigationItem["path"]>([
+      "/inventory",
+      "/receipts",
+      "/transfers",
+      "/incidents",
+    ]);
+    return navigationGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => managerPaths.has(item.path)),
+      }))
+      .filter((group) => group.items.length > 0);
+  }
+
+  if (role === "admin") {
+    return navigationGroups
+      .map((group) => ({ ...group, items: group.items.filter((item) => item.path !== "/users") }))
+      .filter((group) => group.items.length > 0);
+  }
+
+  return navigationGroups;
+}
+
+function getRoleLabel(role: string) {
+  if (role === "manager") return "Gerente";
+  if (role === "admin") return "Administrador";
+  return "Super admin";
+}
+
+function hasRouteAccess(role: string, pathname: string) {
+  if (role === "super_admin") return true;
+  if (role === "admin") return !pathname.startsWith("/users");
+  if (role === "manager") {
+    return (
+      pathname === "/inventory" ||
+      pathname.startsWith("/inventory/counts/") ||
+      pathname.startsWith("/receipts") ||
+      pathname.startsWith("/transfers") ||
+      pathname.startsWith("/incidents")
+    );
+  }
+  return false;
 }

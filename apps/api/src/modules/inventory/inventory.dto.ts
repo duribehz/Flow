@@ -83,8 +83,8 @@ export const inventoryCountItemDTO = z
     inventoryCountId: z.uuid(),
     supplyId: z.uuid(),
     counted: z.boolean(),
-    openingQuantity: storedQuantitySchema,
-    receivedQuantity: storedQuantitySchema,
+    openingQuantity: storedQuantitySchema.nullable(),
+    receivedQuantity: storedQuantitySchema.nullable(),
     closingQuantity: storedQuantitySchema.nullable(),
     lastCountedAt: dateTimeSchema.nullable(),
     createdAt: dateTimeSchema,
@@ -110,6 +110,30 @@ export const inventoryCountDTO = z
 export const inventoryCountDetailDTO = inventoryCountDTO
   .extend({ items: z.array(inventoryCountItemDTO) })
   .openapi("InventoryCountDetail");
+
+export const inventorySupplyDTO = z
+  .object({
+    id: z.uuid(),
+    sku: z.string(),
+    name: z.string(),
+    active: z.boolean(),
+    category: z.object({ name: z.string() }),
+    unit: z.object({ symbol: z.string() }),
+  })
+  .openapi("InventorySupply");
+
+export const inventoryLastReportsQueryDTO = z.object({ branchId: z.uuid() });
+
+export const inventoryLastReportDTO = z
+  .object({
+    supplyId: z.uuid(),
+    closingQuantity: z.number().int().nullable(),
+    businessDate: z.string(),
+    reportedAt: z.iso.datetime().nullable(),
+    movementsSince: z.number().int(),
+    currentQuantity: z.number().int().nullable(),
+  })
+  .openapi("InventoryLastReport");
 
 export type CreateInventoryDayInput = z.infer<typeof createInventoryDayDTO>;
 export type CreateInventoryCountInput = z.infer<typeof createInventoryCountDTO>;

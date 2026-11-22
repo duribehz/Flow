@@ -8,15 +8,15 @@
 
 export interface CreateSupplier {
   /**
-   * @minLength 1
-   * @maxLength 200
-   */
+     * @minLength 1
+     * @maxLength 200
+     */
   name: string;
   /**
-   * @minLength 1
-   * @maxLength 30
-   * @nullable
-   */
+     * @minLength 1
+     * @maxLength 30
+     * @nullable
+     */
   phoneNumber?: string | null;
   /** @nullable */
   email?: string | null;

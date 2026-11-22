@@ -5,11 +5,17 @@
  * Inventory and replenishment management API
  * OpenAPI spec version: 1.0.0
  */
-import useSwr from "swr";
-import type { Arguments, Key, SWRConfiguration } from "swr";
+import useSwr from 'swr';
+import type {
+  Arguments,
+  Key,
+  SWRConfiguration
+} from 'swr';
 
-import useSWRMutation from "swr/mutation";
-import type { SWRMutationConfiguration } from "swr/mutation";
+import useSWRMutation from 'swr/mutation';
+import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
 
 import type {
   ApiError,
@@ -22,149 +28,140 @@ import type {
   PostReceiptsReceiptIdComplete200,
   PostShipmentsShipmentIdReceipts201,
   UpdateReceiptItem,
-  UpdateReceiptNotes,
-} from "../models";
+  UpdateReceiptNotes
+} from '../models';
 
-import { apiClient } from "../../http-client";
+import { apiClient } from '../../http-client';
 
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
-export type getReceiptsResponse200 = {
-  data: GetReceipts200;
-  status: 200;
-};
+
+  type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+
+
+ export type getReceiptsResponse200 = {
+  data: GetReceipts200
+  status: 200
+}
 
 export type getReceiptsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
-export type getReceiptsResponseSuccess = getReceiptsResponse200 & {
+export type getReceiptsResponseSuccess = (getReceiptsResponse200) & {
   headers: Headers;
 };
-export type getReceiptsResponseError = getReceiptsResponse400 & {
+export type getReceiptsResponseError = (getReceiptsResponse400) & {
   headers: Headers;
 };
 
-export type getReceiptsResponse = getReceiptsResponseSuccess | getReceiptsResponseError;
+export type getReceiptsResponse = (getReceiptsResponseSuccess | getReceiptsResponseError)
 
-export const getGetReceiptsUrl = (params?: GetReceiptsParams) => {
+export const getGetReceiptsUrl = (params?: GetReceiptsParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
+
     if (value !== undefined) {
-      normalizedParams.append(key, value === null ? "null" : String(value));
+      normalizedParams.append(key, value === null ? 'null' : String(value))
     }
   });
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/v1/receipts?${stringifiedParams}` : `/v1/receipts`;
-};
+  return stringifiedParams.length > 0 ? `/v1/receipts?${stringifiedParams}` : `/v1/receipts`
+}
 
 /**
  * @summary List receipts
  */
-export const getReceipts = async (
-  params?: GetReceiptsParams,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getReceiptsResponse> => {
-  return apiClient<getReceiptsResponse>(getGetReceiptsUrl(params), {
+export const getReceipts = async (params?: GetReceiptsParams, options?: Parameters<typeof apiClient>[1]): Promise<getReceiptsResponse> => {
+
+  return apiClient<getReceiptsResponse>(getGetReceiptsUrl(params),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetReceiptsKey = (params?: GetReceiptsParams) =>
-  [`/v1/receipts`, ...(params ? [params] : [])] as const;
 
-export type GetReceiptsQueryResult = NonNullable<Awaited<ReturnType<typeof getReceipts>>>;
+  }
+);}
+
+
+
+
+export const getGetReceiptsKey = (params?: GetReceiptsParams,) => [`/v1/receipts`, ...(params ? [params]: [])] as const;
+
+export type GetReceiptsQueryResult = NonNullable<Awaited<ReturnType<typeof getReceipts>>>
 
 /**
  * @summary List receipts
  */
 export const useGetReceipts = <TError = ApiError>(
-  params?: GetReceiptsParams,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getReceipts>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  params?: GetReceiptsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getReceipts>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false;
-  const swrKey = swrOptions?.swrKey ?? (() => (isEnabled ? getGetReceiptsKey(params) : null));
-  const swrFn = () => getReceipts(params, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetReceiptsKey(params) : null);
+  const swrFn = () => getReceipts(params, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postShipmentsShipmentIdReceiptsResponse201 = {
-  data: PostShipmentsShipmentIdReceipts201;
-  status: 201;
-};
+  data: PostShipmentsShipmentIdReceipts201
+  status: 201
+}
 
 export type postShipmentsShipmentIdReceiptsResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postShipmentsShipmentIdReceiptsResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postShipmentsShipmentIdReceiptsResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postShipmentsShipmentIdReceiptsResponseSuccess =
-  postShipmentsShipmentIdReceiptsResponse201 & {
-    headers: Headers;
-  };
-export type postShipmentsShipmentIdReceiptsResponseError = (
-  | postShipmentsShipmentIdReceiptsResponse400
-  | postShipmentsShipmentIdReceiptsResponse404
-  | postShipmentsShipmentIdReceiptsResponse409
-) & {
+export type postShipmentsShipmentIdReceiptsResponseSuccess = (postShipmentsShipmentIdReceiptsResponse201) & {
+  headers: Headers;
+};
+export type postShipmentsShipmentIdReceiptsResponseError = (postShipmentsShipmentIdReceiptsResponse400 | postShipmentsShipmentIdReceiptsResponse404 | postShipmentsShipmentIdReceiptsResponse409) & {
   headers: Headers;
 };
 
-export type postShipmentsShipmentIdReceiptsResponse =
-  | postShipmentsShipmentIdReceiptsResponseSuccess
-  | postShipmentsShipmentIdReceiptsResponseError;
+export type postShipmentsShipmentIdReceiptsResponse = (postShipmentsShipmentIdReceiptsResponseSuccess | postShipmentsShipmentIdReceiptsResponseError)
 
-export const getPostShipmentsShipmentIdReceiptsUrl = (shipmentId: string) => {
-  return `/v1/shipments/${shipmentId}/receipts`;
-};
+export const getPostShipmentsShipmentIdReceiptsUrl = (shipmentId: string,) => {
+
+
+
+
+  return `/v1/shipments/${shipmentId}/receipts`
+}
 
 /**
  * @summary Start receiving a dispatched shipment
  */
-export const postShipmentsShipmentIdReceipts = async (
-  shipmentId: string,
-  createReceipt: CreateReceipt,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postShipmentsShipmentIdReceiptsResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const postShipmentsShipmentIdReceipts = async (shipmentId: string,
+    createReceipt: CreateReceipt, options?: Parameters<typeof apiClient>[1]): Promise<postShipmentsShipmentIdReceiptsResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -173,198 +170,167 @@ export const postShipmentsShipmentIdReceipts = async (
     }
     return headers;
   };
-  return apiClient<postShipmentsShipmentIdReceiptsResponse>(
-    getPostShipmentsShipmentIdReceiptsUrl(shipmentId),
-    {
-      ...options,
-      method: "POST",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(createReceipt),
-    },
-  );
-};
+return apiClient<postShipmentsShipmentIdReceiptsResponse>(getPostShipmentsShipmentIdReceiptsUrl(shipmentId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(createReceipt)
+  }
+);}
 
-export const getPostShipmentsShipmentIdReceiptsMutationFetcher = (
-  shipmentId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPostShipmentsShipmentIdReceiptsMutationFetcher = (shipmentId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: CreateReceipt }) => {
     return postShipmentsShipmentIdReceipts(shipmentId, arg, options);
-  };
-};
-export const getPostShipmentsShipmentIdReceiptsMutationKey = (shipmentId: string) =>
-  [`/v1/shipments/${shipmentId}/receipts`] as const;
+  }
+}
+export const getPostShipmentsShipmentIdReceiptsMutationKey = (shipmentId: string,) => [`/v1/shipments/${shipmentId}/receipts`] as const;
 
-export type PostShipmentsShipmentIdReceiptsMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>
->;
+export type PostShipmentsShipmentIdReceiptsMutationResult = NonNullable<Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>>
 
 /**
  * @summary Start receiving a dispatched shipment
  */
 export const usePostShipmentsShipmentIdReceipts = <TError = ApiError>(
-  shipmentId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>,
-      TError,
-      Key,
-      CreateReceipt,
-      Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  shipmentId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>, TError, Key, CreateReceipt, Awaited<ReturnType<typeof postShipmentsShipmentIdReceipts>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostShipmentsShipmentIdReceiptsMutationKey(shipmentId);
   const swrFn = getPostShipmentsShipmentIdReceiptsMutationFetcher(shipmentId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type getReceiptsReceiptIdResponse200 = {
-  data: GetReceiptsReceiptId200;
-  status: 200;
-};
+  data: GetReceiptsReceiptId200
+  status: 200
+}
 
 export type getReceiptsReceiptIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type getReceiptsReceiptIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
-export type getReceiptsReceiptIdResponseSuccess = getReceiptsReceiptIdResponse200 & {
+export type getReceiptsReceiptIdResponseSuccess = (getReceiptsReceiptIdResponse200) & {
   headers: Headers;
 };
-export type getReceiptsReceiptIdResponseError = (
-  | getReceiptsReceiptIdResponse400
-  | getReceiptsReceiptIdResponse404
-) & {
+export type getReceiptsReceiptIdResponseError = (getReceiptsReceiptIdResponse400 | getReceiptsReceiptIdResponse404) & {
   headers: Headers;
 };
 
-export type getReceiptsReceiptIdResponse =
-  | getReceiptsReceiptIdResponseSuccess
-  | getReceiptsReceiptIdResponseError;
+export type getReceiptsReceiptIdResponse = (getReceiptsReceiptIdResponseSuccess | getReceiptsReceiptIdResponseError)
 
-export const getGetReceiptsReceiptIdUrl = (receiptId: string) => {
-  return `/v1/receipts/${receiptId}`;
-};
+export const getGetReceiptsReceiptIdUrl = (receiptId: string,) => {
+
+
+
+
+  return `/v1/receipts/${receiptId}`
+}
 
 /**
  * @summary Get receipt detail
  */
-export const getReceiptsReceiptId = async (
-  receiptId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<getReceiptsReceiptIdResponse> => {
-  return apiClient<getReceiptsReceiptIdResponse>(getGetReceiptsReceiptIdUrl(receiptId), {
+export const getReceiptsReceiptId = async (receiptId: string, options?: Parameters<typeof apiClient>[1]): Promise<getReceiptsReceiptIdResponse> => {
+
+  return apiClient<getReceiptsReceiptIdResponse>(getGetReceiptsReceiptIdUrl(receiptId),
+  {
     ...options,
-    method: "GET",
-  });
-};
+    method: 'GET'
 
-export const getGetReceiptsReceiptIdKey = (receiptId: string) =>
-  [`/v1/receipts/${receiptId}`] as const;
 
-export type GetReceiptsReceiptIdQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getReceiptsReceiptId>>
->;
+  }
+);}
+
+
+
+
+export const getGetReceiptsReceiptIdKey = (receiptId: string,) => [`/v1/receipts/${receiptId}`] as const;
+
+export type GetReceiptsReceiptIdQueryResult = NonNullable<Awaited<ReturnType<typeof getReceiptsReceiptId>>>
 
 /**
  * @summary Get receipt detail
  */
 export const useGetReceiptsReceiptId = <TError = ApiError>(
-  receiptId: string,
-  options?: {
-    swr?: SWRConfiguration<Awaited<ReturnType<typeof getReceiptsReceiptId>>, TError> & {
-      swrKey?: Key;
-      enabled?: boolean;
-    };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  receiptId: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof getReceiptsReceiptId>>, TError> & { swrKey?: Key, enabled?: boolean }, request?: SecondParameter<typeof apiClient> }
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const isEnabled = swrOptions?.enabled !== false && receiptId !== null && receiptId !== undefined;
-  const swrKey =
-    swrOptions?.swrKey ?? (() => (isEnabled ? getGetReceiptsReceiptIdKey(receiptId) : null));
-  const swrFn = () => getReceiptsReceiptId(receiptId, requestOptions);
+  const isEnabled = swrOptions?.enabled !== false && receiptId !== null && receiptId !== undefined
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getGetReceiptsReceiptIdKey(receiptId) : null);
+  const swrFn = () => getReceiptsReceiptId(receiptId, requestOptions)
 
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions);
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchReceiptsReceiptIdResponse200 = {
-  data: PatchReceiptsReceiptId200;
-  status: 200;
-};
+  data: PatchReceiptsReceiptId200
+  status: 200
+}
 
 export type patchReceiptsReceiptIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchReceiptsReceiptIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchReceiptsReceiptIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchReceiptsReceiptIdResponseSuccess = patchReceiptsReceiptIdResponse200 & {
+export type patchReceiptsReceiptIdResponseSuccess = (patchReceiptsReceiptIdResponse200) & {
   headers: Headers;
 };
-export type patchReceiptsReceiptIdResponseError = (
-  | patchReceiptsReceiptIdResponse400
-  | patchReceiptsReceiptIdResponse404
-  | patchReceiptsReceiptIdResponse409
-) & {
+export type patchReceiptsReceiptIdResponseError = (patchReceiptsReceiptIdResponse400 | patchReceiptsReceiptIdResponse404 | patchReceiptsReceiptIdResponse409) & {
   headers: Headers;
 };
 
-export type patchReceiptsReceiptIdResponse =
-  | patchReceiptsReceiptIdResponseSuccess
-  | patchReceiptsReceiptIdResponseError;
+export type patchReceiptsReceiptIdResponse = (patchReceiptsReceiptIdResponseSuccess | patchReceiptsReceiptIdResponseError)
 
-export const getPatchReceiptsReceiptIdUrl = (receiptId: string) => {
-  return `/v1/receipts/${receiptId}`;
-};
+export const getPatchReceiptsReceiptIdUrl = (receiptId: string,) => {
+
+
+
+
+  return `/v1/receipts/${receiptId}`
+}
 
 /**
  * @summary Update receipt notes
  */
-export const patchReceiptsReceiptId = async (
-  receiptId: string,
-  updateReceiptNotes: UpdateReceiptNotes,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchReceiptsReceiptIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchReceiptsReceiptId = async (receiptId: string,
+    updateReceiptNotes: UpdateReceiptNotes, options?: Parameters<typeof apiClient>[1]): Promise<patchReceiptsReceiptIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -373,117 +339,97 @@ export const patchReceiptsReceiptId = async (
     }
     return headers;
   };
-  return apiClient<patchReceiptsReceiptIdResponse>(getPatchReceiptsReceiptIdUrl(receiptId), {
+return apiClient<patchReceiptsReceiptIdResponse>(getPatchReceiptsReceiptIdUrl(receiptId),
+  {
     ...options,
-    method: "PATCH",
-    headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-    body: JSON.stringify(updateReceiptNotes),
-  });
-};
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateReceiptNotes)
+  }
+);}
 
-export const getPatchReceiptsReceiptIdMutationFetcher = (
-  receiptId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchReceiptsReceiptIdMutationFetcher = (receiptId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateReceiptNotes }) => {
     return patchReceiptsReceiptId(receiptId, arg, options);
-  };
-};
-export const getPatchReceiptsReceiptIdMutationKey = (receiptId: string) =>
-  [`/v1/receipts/${receiptId}`] as const;
+  }
+}
+export const getPatchReceiptsReceiptIdMutationKey = (receiptId: string,) => [`/v1/receipts/${receiptId}`] as const;
 
-export type PatchReceiptsReceiptIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchReceiptsReceiptId>>
->;
+export type PatchReceiptsReceiptIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchReceiptsReceiptId>>>
 
 /**
  * @summary Update receipt notes
  */
 export const usePatchReceiptsReceiptId = <TError = ApiError>(
-  receiptId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchReceiptsReceiptId>>,
-      TError,
-      Key,
-      UpdateReceiptNotes,
-      Awaited<ReturnType<typeof patchReceiptsReceiptId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  receiptId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchReceiptsReceiptId>>, TError, Key, UpdateReceiptNotes, Awaited<ReturnType<typeof patchReceiptsReceiptId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPatchReceiptsReceiptIdMutationKey(receiptId);
   const swrFn = getPatchReceiptsReceiptIdMutationFetcher(receiptId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type patchReceiptsReceiptIdItemsItemIdResponse200 = {
-  data: PatchReceiptsReceiptIdItemsItemId200;
-  status: 200;
-};
+  data: PatchReceiptsReceiptIdItemsItemId200
+  status: 200
+}
 
 export type patchReceiptsReceiptIdItemsItemIdResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type patchReceiptsReceiptIdItemsItemIdResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type patchReceiptsReceiptIdItemsItemIdResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type patchReceiptsReceiptIdItemsItemIdResponseSuccess =
-  patchReceiptsReceiptIdItemsItemIdResponse200 & {
-    headers: Headers;
-  };
-export type patchReceiptsReceiptIdItemsItemIdResponseError = (
-  | patchReceiptsReceiptIdItemsItemIdResponse400
-  | patchReceiptsReceiptIdItemsItemIdResponse404
-  | patchReceiptsReceiptIdItemsItemIdResponse409
-) & {
+export type patchReceiptsReceiptIdItemsItemIdResponseSuccess = (patchReceiptsReceiptIdItemsItemIdResponse200) & {
+  headers: Headers;
+};
+export type patchReceiptsReceiptIdItemsItemIdResponseError = (patchReceiptsReceiptIdItemsItemIdResponse400 | patchReceiptsReceiptIdItemsItemIdResponse404 | patchReceiptsReceiptIdItemsItemIdResponse409) & {
   headers: Headers;
 };
 
-export type patchReceiptsReceiptIdItemsItemIdResponse =
-  | patchReceiptsReceiptIdItemsItemIdResponseSuccess
-  | patchReceiptsReceiptIdItemsItemIdResponseError;
+export type patchReceiptsReceiptIdItemsItemIdResponse = (patchReceiptsReceiptIdItemsItemIdResponseSuccess | patchReceiptsReceiptIdItemsItemIdResponseError)
 
-export const getPatchReceiptsReceiptIdItemsItemIdUrl = (receiptId: string, itemId: string) => {
-  return `/v1/receipts/${receiptId}/items/${itemId}`;
-};
+export const getPatchReceiptsReceiptIdItemsItemIdUrl = (receiptId: string,
+    itemId: string,) => {
+
+
+
+
+  return `/v1/receipts/${receiptId}/items/${itemId}`
+}
 
 /**
  * @summary Record received quantity and condition
  */
-export const patchReceiptsReceiptIdItemsItemId = async (
-  receiptId: string,
-  itemId: string,
-  updateReceiptItem: UpdateReceiptItem,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<patchReceiptsReceiptIdItemsItemIdResponse> => {
-  const getHeaders = (
-    h?: NonNullable<RequestInit["headers"]>,
-  ): Record<string, string | readonly string[]> => {
+export const patchReceiptsReceiptIdItemsItemId = async (receiptId: string,
+    itemId: string,
+    updateReceiptItem: UpdateReceiptItem, options?: Parameters<typeof apiClient>[1]): Promise<patchReceiptsReceiptIdItemsItemIdResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
     if (h instanceof Headers) return Object.fromEntries(h.entries());
     if (Symbol.iterator in h) {
       return Object.fromEntries(
-        Array.from(
-          h as Iterable<Iterable<string>>,
-          (entry) => Array.from(entry) as [string, string],
-        ),
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
       );
     }
     const headers: Record<string, string | readonly string[]> = {};
@@ -492,165 +438,128 @@ export const patchReceiptsReceiptIdItemsItemId = async (
     }
     return headers;
   };
-  return apiClient<patchReceiptsReceiptIdItemsItemIdResponse>(
-    getPatchReceiptsReceiptIdItemsItemIdUrl(receiptId, itemId),
-    {
-      ...options,
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", ...getHeaders(options?.headers) },
-      body: JSON.stringify(updateReceiptItem),
-    },
-  );
-};
+return apiClient<patchReceiptsReceiptIdItemsItemIdResponse>(getPatchReceiptsReceiptIdItemsItemIdUrl(receiptId,itemId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(updateReceiptItem)
+  }
+);}
 
-export const getPatchReceiptsReceiptIdItemsItemIdMutationFetcher = (
-  receiptId: string,
-  itemId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+
+
+
+export const getPatchReceiptsReceiptIdItemsItemIdMutationFetcher = (receiptId: string,
+    itemId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, { arg }: { arg: UpdateReceiptItem }) => {
     return patchReceiptsReceiptIdItemsItemId(receiptId, itemId, arg, options);
-  };
-};
-export const getPatchReceiptsReceiptIdItemsItemIdMutationKey = (
-  receiptId: string,
-  itemId: string,
-) => [`/v1/receipts/${receiptId}/items/${itemId}`] as const;
+  }
+}
+export const getPatchReceiptsReceiptIdItemsItemIdMutationKey = (receiptId: string,
+    itemId: string,) => [`/v1/receipts/${receiptId}/items/${itemId}`] as const;
 
-export type PatchReceiptsReceiptIdItemsItemIdMutationResult = NonNullable<
-  Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>
->;
+export type PatchReceiptsReceiptIdItemsItemIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>>
 
 /**
  * @summary Record received quantity and condition
  */
 export const usePatchReceiptsReceiptIdItemsItemId = <TError = ApiError>(
   receiptId: string,
-  itemId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>,
-      TError,
-      Key,
-      UpdateReceiptItem,
-      Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+    itemId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>, TError, Key, UpdateReceiptItem, Awaited<ReturnType<typeof patchReceiptsReceiptIdItemsItemId>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
 
-  const swrKey =
-    swrOptions?.swrKey ?? getPatchReceiptsReceiptIdItemsItemIdMutationKey(receiptId, itemId);
-  const swrFn = getPatchReceiptsReceiptIdItemsItemIdMutationFetcher(
-    receiptId,
-    itemId,
-    requestOptions,
-  );
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const swrKey = swrOptions?.swrKey ?? getPatchReceiptsReceiptIdItemsItemIdMutationKey(receiptId,itemId);
+  const swrFn = getPatchReceiptsReceiptIdItemsItemIdMutationFetcher(receiptId,itemId, requestOptions);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
 export type postReceiptsReceiptIdCompleteResponse200 = {
-  data: PostReceiptsReceiptIdComplete200;
-  status: 200;
-};
+  data: PostReceiptsReceiptIdComplete200
+  status: 200
+}
 
 export type postReceiptsReceiptIdCompleteResponse400 = {
-  data: ApiError;
-  status: 400;
-};
+  data: ApiError
+  status: 400
+}
 
 export type postReceiptsReceiptIdCompleteResponse404 = {
-  data: ApiError;
-  status: 404;
-};
+  data: ApiError
+  status: 404
+}
 
 export type postReceiptsReceiptIdCompleteResponse409 = {
-  data: ApiError;
-  status: 409;
-};
+  data: ApiError
+  status: 409
+}
 
-export type postReceiptsReceiptIdCompleteResponseSuccess =
-  postReceiptsReceiptIdCompleteResponse200 & {
-    headers: Headers;
-  };
-export type postReceiptsReceiptIdCompleteResponseError = (
-  | postReceiptsReceiptIdCompleteResponse400
-  | postReceiptsReceiptIdCompleteResponse404
-  | postReceiptsReceiptIdCompleteResponse409
-) & {
+export type postReceiptsReceiptIdCompleteResponseSuccess = (postReceiptsReceiptIdCompleteResponse200) & {
+  headers: Headers;
+};
+export type postReceiptsReceiptIdCompleteResponseError = (postReceiptsReceiptIdCompleteResponse400 | postReceiptsReceiptIdCompleteResponse404 | postReceiptsReceiptIdCompleteResponse409) & {
   headers: Headers;
 };
 
-export type postReceiptsReceiptIdCompleteResponse =
-  | postReceiptsReceiptIdCompleteResponseSuccess
-  | postReceiptsReceiptIdCompleteResponseError;
+export type postReceiptsReceiptIdCompleteResponse = (postReceiptsReceiptIdCompleteResponseSuccess | postReceiptsReceiptIdCompleteResponseError)
 
-export const getPostReceiptsReceiptIdCompleteUrl = (receiptId: string) => {
-  return `/v1/receipts/${receiptId}/complete`;
-};
+export const getPostReceiptsReceiptIdCompleteUrl = (receiptId: string,) => {
+
+
+
+
+  return `/v1/receipts/${receiptId}/complete`
+}
 
 /**
  * @summary Complete a receipt and post accepted quantities to inventory
  */
-export const postReceiptsReceiptIdComplete = async (
-  receiptId: string,
-  options?: Parameters<typeof apiClient>[1],
-): Promise<postReceiptsReceiptIdCompleteResponse> => {
-  return apiClient<postReceiptsReceiptIdCompleteResponse>(
-    getPostReceiptsReceiptIdCompleteUrl(receiptId),
-    {
-      ...options,
-      method: "POST",
-    },
-  );
-};
+export const postReceiptsReceiptIdComplete = async (receiptId: string, options?: Parameters<typeof apiClient>[1]): Promise<postReceiptsReceiptIdCompleteResponse> => {
 
-export const getPostReceiptsReceiptIdCompleteMutationFetcher = (
-  receiptId: string,
-  options?: SecondParameter<typeof apiClient>,
-) => {
+  return apiClient<postReceiptsReceiptIdCompleteResponse>(getPostReceiptsReceiptIdCompleteUrl(receiptId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getPostReceiptsReceiptIdCompleteMutationFetcher = (receiptId: string, options?: SecondParameter<typeof apiClient>) => {
   return (_: Key, __: { arg: Arguments }) => {
     return postReceiptsReceiptIdComplete(receiptId, options);
-  };
-};
-export const getPostReceiptsReceiptIdCompleteMutationKey = (receiptId: string) =>
-  [`/v1/receipts/${receiptId}/complete`] as const;
+  }
+}
+export const getPostReceiptsReceiptIdCompleteMutationKey = (receiptId: string,) => [`/v1/receipts/${receiptId}/complete`] as const;
 
-export type PostReceiptsReceiptIdCompleteMutationResult = NonNullable<
-  Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>
->;
+export type PostReceiptsReceiptIdCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>>
 
 /**
  * @summary Complete a receipt and post accepted quantities to inventory
  */
 export const usePostReceiptsReceiptIdComplete = <TError = ApiError>(
-  receiptId: string,
-  options?: {
-    swr?: SWRMutationConfiguration<
-      Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>,
-      TError,
-      Key,
-      Arguments,
-      Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>
-    > & { swrKey?: string };
-    request?: SecondParameter<typeof apiClient>;
-  },
+  receiptId: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>, TError, Key, Arguments, Awaited<ReturnType<typeof postReceiptsReceiptIdComplete>>> & { swrKey?: string }, request?: SecondParameter<typeof apiClient>}
 ) => {
-  const { swr: swrOptions, request: requestOptions } = options ?? {};
+
+  const {swr: swrOptions, request: requestOptions} = options ?? {}
 
   const swrKey = swrOptions?.swrKey ?? getPostReceiptsReceiptIdCompleteMutationKey(receiptId);
   const swrFn = getPostReceiptsReceiptIdCompleteMutationFetcher(receiptId, requestOptions);
 
-  const query = useSWRMutation(swrKey, swrFn, swrOptions);
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,
-    ...query,
-  };
-};
+    ...query
+  }
+}
