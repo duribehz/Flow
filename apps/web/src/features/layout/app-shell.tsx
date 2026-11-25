@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ComponentType } from "react";
 import { Link, Navigate, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeftRight,
-  Bell,
   Box,
   Boxes,
   Building2,
@@ -291,10 +290,6 @@ export function AppShell() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon-lg" aria-label="Notificaciones" className="relative">
-              <Bell className="size-5 text-muted-foreground" />
-              <span className="absolute top-2 right-2 size-1.5 rounded-full bg-foreground ring-2 ring-background" />
-            </Button>
             <ProfileMenu
               userName={currentUser.userName}
               userRole={userRoleLabel}

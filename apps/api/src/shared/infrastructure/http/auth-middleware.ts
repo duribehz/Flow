@@ -104,6 +104,7 @@ export const authorizeRoleRoutes: MiddlewareHandler<State> = async (context, nex
     (path === "/v1/branches" && context.req.method === "GET") ||
     (path === "/v1/inventory/supplies" && context.req.method === "GET") ||
     (path === "/v1/inventory/last-reports" && context.req.method === "GET") ||
+    (path === "/v1/supplies" && context.req.method === "GET") ||
     path === "/v1/inventory-days" ||
     path.startsWith("/v1/inventory-days/") ||
     path === "/v1/inventory-counts" ||

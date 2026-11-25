@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CalendarDays, ClipboardList, Loader2, RefreshCw } from "lucide-react";
 
 import { useGetBranches } from "@/api/generated/branches/branches";
+import { useGetAuthMe } from "@/api/generated/authentication/authentication";
 import {
   useGetInventoryCounts,
   useGetInventoryDays,
@@ -28,7 +29,11 @@ import { formatDate, formatDateTime, todayIsoDate } from "@/lib/operational-form
 
 export function InventoryPage() {
   const navigate = useNavigate();
-  const [branchId, setBranchId] = useState("");
+  const meQuery = useGetAuthMe<ApiError>();
+  const currentUser = meQuery.data?.status === 200 ? meQuery.data.data.data : undefined;
+  const isManager = currentUser?.role === "manager";
+  const [selectedBranchId, setSelectedBranchId] = useState("");
+  const branchId = isManager ? (currentUser?.branch?.id ?? "") : selectedBranchId;
   const [businessDate, setBusinessDate] = useState(todayIsoDate());
   const [actionError, setActionError] = useState<string>();
   const branchesQuery = useGetBranches<ApiError>();
@@ -92,9 +97,11 @@ export function InventoryPage() {
         title="Existencias"
         description="Abre el día de una sucursal y continúa sus existencias desde cualquier dispositivo."
         actions={
-          <Button variant="outline" onClick={() => void navigate({ to: "/inventory/review" })}>
-            Bandeja de almacén
-          </Button>
+          isManager ? undefined : (
+            <Button variant="outline" onClick={() => void navigate({ to: "/inventory/review" })}>
+              Bandeja de almacén
+            </Button>
+          )
         }
       />
 
@@ -108,22 +115,31 @@ export function InventoryPage() {
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(190px,0.55fr)_auto] sm:items-end">
-          <label className="grid gap-2 text-sm font-medium">
-            Sucursal
-            <select
-              value={branchId}
-              onChange={(event) => setBranchId(event.currentTarget.value)}
-              disabled={branchesQuery.isLoading}
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              <option value="">Selecciona una sucursal</option>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isManager ? (
+            <div className="grid gap-2 text-sm font-medium">
+              Sucursal
+              <p className="h-10 rounded-lg border bg-muted/50 px-3 py-2 text-sm">
+                {currentUser?.branch?.name ?? "Sin sucursal asignada"}
+              </p>
+            </div>
+          ) : (
+            <label className="grid gap-2 text-sm font-medium">
+              Sucursal
+              <select
+                value={branchId}
+                onChange={(event) => setSelectedBranchId(event.currentTarget.value)}
+                disabled={branchesQuery.isLoading}
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <option value="">Selecciona una sucursal</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="grid gap-2 text-sm font-medium">
             Fecha operativa
             <Input
